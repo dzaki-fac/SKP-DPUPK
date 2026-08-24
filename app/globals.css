@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colors — User Interviews */
+  --color-deep-teal: #1c5d5f;
+  --color-pine-shadow: #0e4749;
+  --color-sage: #65b8a2;
+  --color-lake-teal: #2a7779;
+  --color-forest-floor: #156152;
+  --color-ink-navy: #16325a;
+  --color-dusty-rose: #d6aec1;
+  --color-mint-mist: #a2cbcd;
+  --color-sea-foam: #cae1e2;
+  --color-paper-white: #f2f8f7;
+  --color-card-mint: #e4f0f1;
+  --color-blush-sand: #f2e8e2;
+  --color-charcoal-navy: #283338;
+  --color-slate: #333333;
+  --color-soft-black: #1a1a1a;
+  --color-illustration-ink: #231e21;
+
+  --background: var(--color-paper-white);
+  --foreground: var(--color-charcoal-navy);
+  --border: var(--color-card-mint);
+
+  /* Typography */
+  --font-sofia-pro: 'Inter', 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-p22-mackinac-pro: 'Source Serif 4', 'Lora', ui-serif, Georgia, serif;
+  --font-ibm-plex-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-caption: 12px;
+  --text-body-sm: 14px;
+  --text-body: 16px;
+  --text-subheading: 20px;
+  --text-heading-sm: 24px;
+  --text-heading: 44px;
+  --text-heading-lg: 50px;
+  --text-display: 64px;
+
+  --spacing-8: 8px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-56: 56px;
+  --spacing-64: 64px;
+  --spacing-88: 88px;
+  --spacing-112: 112px;
+
+  --radius-nav: 88px;
+  --radius-tags: 100px;
+  --radius-cards: 12px;
+  --radius-pills: 1000px;
+  --radius-buttons: 48px;
+
+  --surface-page-canvas: var(--color-paper-white);
+  --surface-card-mint: var(--color-card-mint);
+  --surface-blush-sand: var(--color-blush-sand);
+  --surface-sea-foam-wash: var(--color-sea-foam);
 }
 
 @theme inline {
+  --color-deep-teal: var(--color-deep-teal);
+  --color-pine-shadow: var(--color-pine-shadow);
+  --color-sage: var(--color-sage);
+  --color-ink-navy: var(--color-ink-navy);
+  --color-dusty-rose: var(--color-dusty-rose);
+  --color-mint-mist: var(--color-mint-mist);
+  --color-sea-foam: var(--color-sea-foam);
+  --color-paper-white: var(--color-paper-white);
+  --color-card-mint: var(--color-card-mint);
+  --color-blush-sand: var(--color-blush-sand);
+  --color-charcoal-navy: var(--color-charcoal-navy);
+  --color-illustration-ink: var(--color-illustration-ink);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sofia-pro);
+  --font-serif: var(--font-p22-mackinac-pro);
+  --font-mono: var(--font-ibm-plex-mono);
+  --radius-cards: var(--radius-cards);
+  --radius-buttons: var(--radius-buttons);
+  --radius-pills: var(--radius-pills);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { scrollbar-width: thin; scrollbar-color: var(--color-mint-mist) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--color-mint-mist); border-radius: 999px; }
+
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper-white);
+  color: var(--color-charcoal-navy);
+  font-family: var(--font-sofia-pro);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Eyebrow */
+.eyebrow {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.059em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: var(--color-charcoal-navy);
+}
+
+/* Serif headings */
+.heading-serif {
+  font-family: var(--font-p22-mackinac-pro);
+  color: var(--color-charcoal-navy);
+  letter-spacing: normal;
+  line-height: 1.16;
 }
