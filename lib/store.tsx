@@ -357,9 +357,10 @@ export function SKPProvider({ children }: { children: ReactNode }) {
     return plansSnapshot;
   };
 
-  // ===== CRUD Akun & Organisasi (khusus admin — pimpinan hanya melihat) =====
+  // ===== CRUD Akun & Organisasi (admin bebas; pimpinan sesuai subtree, otorisasi server) =====
   const updateEmployee = async (id: string, patch: { name?: string; email?: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role?: Role; isActive?: boolean; avatar?: string }) => {
-    if (!currentUser || currentUser.role !== "admin") { notify("Hanya administrator yang dapat mengubah akun pegawai"); return { ok: false, error: "only_admin" }; }
+    if (!currentUser || !canCreateAnyRole(currentUser.role)) { notify("Anda tidak berwenang mengubah akun pegawai"); return { ok: false, error: "no_permission" }; }
+    if (id === currentUser.id) { notify("Tidak bisa mengubah akun sendiri"); return { ok: false, error: "self" }; }
     const target = employees.find(e => e.id === id);
     if (!target) return { ok: false, error: "Pegawai tidak ditemukan" };
     if (patch.role !== undefined || patch.supervisorId !== undefined) {
@@ -414,7 +415,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteEmployee = async (id: string) => {
-    if (!currentUser || currentUser.role !== "admin") { notify("Hanya administrator yang dapat menghapus pegawai"); return { ok: false, error: "only_admin" }; }
+    if (!currentUser || !canCreateAnyRole(currentUser.role)) { notify("Anda tidak berwenang menghapus akun pegawai"); return { ok: false, error: "no_permission" }; }
     const target = employees.find(e => e.id === id);
     if (!target) return { ok: false, error: "Pegawai tidak ditemukan" };
     if (id === currentUser.id) { notify("Tidak bisa menghapus diri sendiri"); return { ok: false, error: "self" }; }

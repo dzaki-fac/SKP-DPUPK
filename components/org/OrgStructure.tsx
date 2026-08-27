@@ -4,27 +4,34 @@ import { useSKP } from "@/lib/store";
 import { ROLE_SHORT, ROLE_LABEL } from "@/lib/roles";
 import type { Employee } from "@/lib/types";
 
-const ROLE_TEXT: Record<string, string> = {
-  admin: "text-[#16325a]",
-  pimpinan_1: "text-[#1c5d5f]",
-  pimpinan_2: "text-[#1c5d5f]",
-  pimpinan_3: "text-[#1c5d5f]",
-  staf: "text-[#283338]/70",
+// Layout org chart: P1 di atas → cabang ke P2 → turun ke P3, lalu staf
+// tersusun VERTIKAL dalam satu kolom di bawah tiap P3 (tumbuh ke bawah, tidak melebar).
+const COL_W = 210; // lebar satu kolom = satu P3 + staf-stafnya
+const NODE_W = 186; // lebar kartu P1/P2/P3
+const NODE_H = 66; // tinggi kartu pimpinan
+const STAF_H = 50; // tinggi kartu staf
+const PAD_X = 16; // padding kiri/kanan area tree
+const PAD_Y = 16;
+const ROW_H = 92; // tinggi baris p1/p2/p3
+const LEVEL_GAP = 46; // jarak antar level pimpinan (tempat connector elbow)
+const STAF_TOP = 28; // jarak P3 → staf pertama
+const STAF_GAP = 14; // jarak antar kartu staf
+
+const ROLE_ACCENT: Record<string, string> = {
+  pimpinan_1: "#1c5d5f",
+  pimpinan_2: "#2f7a7c",
+  pimpinan_3: "#4b9a9c",
+  staf: "#283338",
 };
 
 export default function OrgStructure() {
   const { employees, plans } = useSKP();
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [search, setSearch] = useState("");
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [showCounts, setShowCounts] = useState(true);
 
-  // Struktur organisasi TIDAK difilter berdasarkan role login:
-  // seluruh jabatan (pimpinan_1 → pimpinan_2 → pimpinan_3 → staf) terlihat penuh.
-  // Admin tidak tampil sebagai node di dalam tree (di luar hierarki jabatan).
-  const treeNodes = useMemo(() => {
-    return employees.filter(e => e.role !== "admin");
-  }, [employees]);
+  // Struktur TIDAK difilter berdasarkan role login: tampil penuh semua jabatan.
+  // Admin tidak tampil sebagai node (di luar hierarki jabatan).
+  const treeNodes = useMemo(() => employees.filter(e => e.role !== "admin"), [employees]);
 
   const childrenOf = useMemo(() => {
     const m = new Map<string, Employee[]>();
@@ -39,171 +46,265 @@ export default function OrgStructure() {
     return m;
   }, [treeNodes]);
 
-  // Akar tree = node tanpa atasan (pimpinan_1). Admin sudah dikecualikan dari treeNodes.
   const roots = useMemo(() => treeNodes.filter(e => !e.supervisorId), [treeNodes]);
+
+  const levels = useMemo(() => {
+    const out: Employee[][] = [];
+    let cur = roots;
+    while (cur.length) { out.push(cur); cur = cur.flatMap(n => childrenOf.get(n.id) ?? []); }
+    return out;
+  }, [roots, childrenOf]);
+
+  // Kolom ditentukan oleh level P3 (parent dari leaf/staf). Setiap P3 = 1 kolom.
+  const { p1Level, p2Level, p3Level, cols } = useMemo(() => {
+    const l1 = levels[0] ?? [];
+    const l2 = levels[1] ?? [];
+    const l3 = levels[2] ?? [];
+    return { p1Level: l1, p2Level: l2, p3Level: l3, cols: l3.length };
+  }, [levels]);
+
+  const colOf = useMemo(() => {
+    const m = new Map<string, number>();
+    p3Level.forEach((n, i) => m.set(n.id, i));
+    return m;
+  }, [p3Level]);
+
+  // span [minCol,maxCol] untuk node (p3=1 kolom; p2/p1 = gabungan kolom anak P3).
+  const spanOf = useMemo(() => {
+    const cache = new Map<string, [number, number]>();
+    const build = (n: Employee): [number, number] => {
+      if (cache.has(n.id)) return cache.get(n.id)!;
+      const c = colOf.get(n.id);
+      if (c !== undefined) { cache.set(n.id, [c, c]); return [c, c]; }
+      const kids = childrenOf.get(n.id) ?? [];
+      if (kids.length) {
+        let min = Infinity, max = -Infinity;
+        kids.forEach(k => { const [a, b] = build(k); min = Math.min(min, a); max = Math.max(max, b); });
+        const r: [number, number] = [min, max];
+        cache.set(n.id, r);
+        return r;
+      }
+      const r: [number, number] = [0, 0];
+      cache.set(n.id, r);
+      return r;
+    };
+    treeNodes.forEach(build);
+    return (id: string) => cache.get(id) ?? [0, 0];
+  }, [colOf, childrenOf, treeNodes]);
+
+  const colCenter = (col: number) => PAD_X + col * COL_W + COL_W / 2;
+  const centerOfSpan = (a: number, b: number) => PAD_X + ((a + b) / 2) * COL_W + COL_W / 2;
+  const cardCenter = (id: string) => { const [a, b] = spanOf(id); return centerOfSpan(a, b); };
+  const rowTop = (i: number) => i * (ROW_H + LEVEL_GAP);
+  const rowBottom = (i: number) => rowTop(i) + ROW_H;
+
+  const totalW = PAD_X * 2 + Math.max(cols, 1) * COL_W;
+
+  const stafTop = () => rowBottom(2) + STAF_TOP;
+  const stafY = (idx: number) => stafTop() + idx * (STAF_H + STAF_GAP);
+
+  const maxStafBottom = useMemo(() => {
+    let bottom = rowBottom(2);
+    p3Level.forEach(p3 => {
+      const kids = childrenOf.get(p3.id) ?? [];
+      if (kids.length) bottom = Math.max(bottom, stafTop() + (kids.length - 1) * (STAF_H + STAF_GAP) + STAF_H);
+    });
+    return bottom;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p3Level, childrenOf]);
+
+  const totalH = maxStafBottom + PAD_Y;
+
+  const connectorPath = useMemo(() => {
+    let d = "";
+    // Elbow P1→P2 dan P2→P3
+    const elbow = (parentId: string, childIds: string[], fromLevel: number) => {
+      if (!childIds.length) return;
+      const px = cardCenter(parentId);
+      const py = rowBottom(fromLevel);
+      const hy = py + LEVEL_GAP / 2;
+      const xs = childIds.map(c => cardCenter(c));
+      const first = Math.min(...xs), last = Math.max(...xs);
+      const childTop = rowTop(fromLevel + 1);
+      d += `M ${px} ${py} V ${hy} L ${last} ${hy} H ${first}`;
+      xs.forEach(x => { d += ` M ${x} ${childTop} V ${hy}`; });
+    };
+    p1Level.forEach(p1 => elbow(p1.id, (childrenOf.get(p1.id) ?? []).map(k => k.id), 0));
+    p2Level.forEach(p2 => elbow(p2.id, (childrenOf.get(p2.id) ?? []).map(k => k.id), 1));
+    // Rel staf vertikal di bawah tiap P3 (drop + rel + stub ke tiap kartu)
+    p3Level.forEach(p3 => {
+      const kids = childrenOf.get(p3.id) ?? [];
+      if (!kids.length) return;
+      const scol = colCenter(colOf.get(p3.id)!);
+      const cardL = scol - NODE_W / 2;
+      const railX = cardL - 14;
+      const hubY = stafTop() - 10;
+      const ycs = kids.map((_, i) => stafY(i) + STAF_H / 2);
+      d += `M ${scol} ${rowBottom(2)} V ${hubY} H ${railX}`;
+      d += ` V ${ycs[ycs.length - 1]}`;
+      ycs.forEach(y => { d += ` M ${railX} ${y} H ${cardL}`; });
+    });
+    return d;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p1Level, p2Level, p3Level, childrenOf, cols]);
+
+  const counts = useMemo(() => {
+    const c = { pimpinan_1: 0, pimpinan_2: 0, pimpinan_3: 0, staf: 0 };
+    treeNodes.forEach(e => { if (e.role in c) (c as Record<string, number>)[e.role]++; });
+    return c;
+  }, [treeNodes]);
 
   const q = search.trim().toLowerCase();
   const matches = (e: Employee) => !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || e.employeeNumber.includes(q) || ROLE_LABEL[e.role].toLowerCase().includes(q) || e.role.includes(q);
-
   const hasMatchDescendant = (e: Employee): boolean => {
     if (matches(e)) return true;
     return (childrenOf.get(e.id) ?? []).some(hasMatchDescendant);
   };
-
-  const toggle = (id: string) => {
-    setExpanded(prev => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id); else n.add(id);
-      return n;
-    });
-  };
+  const dimNode = (e: Employee) => (q && !matches(e) && !hasMatchDescendant(e));
 
   const planCountOf = (id: string) => plans.filter(p => p.assignedTo === id).length;
-
   const detailEmp = detailId ? treeNodes.find(e => e.id === detailId) : null;
-  const renderDetail = (e: Employee) => {
-    if (!detailEmp || detailEmp.id !== e.id) return null;
+
+  const nodeCard = (n: Employee, x: number, y: number, w: number, h: number, staf = false) => (
+    <div
+      key={n.id}
+      className={`absolute bg-white border rounded-[10px] cursor-pointer transition-all ${dimNode(n) ? "opacity-30" : "hover:border-[#34a98f] hover:shadow-sm"} ${detailId === n.id ? "border-[#059669] ring-1 ring-[#059669]/20" : "border-[#e5e7eb] shadow-[0_1px_2px_rgba(17,24,39,0.04)]"}`}
+      style={{ left: x, top: y, width: w, height: h, boxSizing: "border-box", padding: staf ? "6px 10px" : "8px 12px", display: "flex", flexDirection: "column", justifyContent: "center" }}
+      onClick={() => setDetailId(n.id)}
+      title={n.name}
+    >
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className={`${staf ? "w-6 h-6" : "w-8 h-8"} rounded-full text-white flex items-center justify-center font-semibold leading-none shrink-0`} style={{ borderRadius: 9999, background: ROLE_ACCENT[n.role] || "#1c5d5f", fontSize: staf ? 9 : 11 }}>{n.avatar}</div>
+        <div className="min-w-0 flex-1">
+          <div className={`${staf ? "text-[12px]" : "text-[13px]"} font-semibold text-[#1f2937] truncate`}>{n.name}</div>
+          <div className="font-mono text-[10px] text-[#9ca3af] truncate">{n.employeeNumber || "Tanpa NIP"}</div>
+        </div>
+      </div>
+      {!staf && (
+        <div className="mt-1.5 flex items-center gap-2 min-w-0">
+          <span className="inline-flex items-center px-1.5 py-px rounded-full text-[10px] font-medium bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0] shrink-0">{ROLE_SHORT[n.role]}</span>
+          {(childrenOf.get(n.id)?.length ?? 0) > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] text-[#6b7280] shrink-0">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              {childrenOf.get(n.id)!.length} bawahan
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderDetail = () => {
+    const e = detailEmp;
+    if (!e) return null;
     const sup = e.supervisorId ? treeNodes.find(x => x.id === e.supervisorId) : null;
+    const kids = childrenOf.get(e.id) ?? [];
     const rows: Array<{ label: string; value: string }> = [
       { label: "NIP", value: e.employeeNumber || "—" },
       { label: "Email", value: e.email },
       { label: "Jabatan", value: ROLE_LABEL[e.role] },
       { label: "Atasan langsung", value: sup ? sup.name : "—" },
-      { label: "Status", value: e.isActive ? "Aktif" : "Non-aktif" },
+      { label: "Bawahan langsung", value: kids.length ? kids.map(k => k.name).join(", ") : "Tidak ada" },
       { label: "Rencana aktif", value: `${planCountOf(e.id)} rencana` },
     ];
     return (
-      <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setDetailId(null)}>
-        <div className="absolute inset-y-0 right-0 w-full max-w-md bg-white border-l border-[#e4f0f1] overflow-y-auto" onClick={e2 => e2.stopPropagation()}>
-          <div className="sticky top-0 bg-white border-b border-[#e4f0f1] px-6 py-5 flex items-center justify-between">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setDetailId(null)}>
+        <div className="w-full max-w-md bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg" onClick={e2 => e2.stopPropagation()}>
+          <div className="px-6 py-5 flex items-center justify-between border-b border-[#f1f5f9]">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-[#1c5d5f] text-white flex items-center justify-center text-sm font-bold leading-none shrink-0" style={{ borderRadius: 9999 }}>{e.avatar}</div>
+              <div className="w-11 h-11 rounded-full text-white flex items-center justify-center text-sm font-semibold leading-none shrink-0" style={{ borderRadius: 9999, background: ROLE_ACCENT[e.role] || "#1c5d5f" }}>{e.avatar}</div>
               <div>
-                <div className="font-medium text-[15px] text-[#283338]">{e.name}</div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#1c5d5f]">{ROLE_SHORT[e.role]}</div>
+                <div className="font-semibold text-[15px] text-[#1f2937]">{e.name}</div>
+                <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#059669]">{ROLE_SHORT[e.role]}</div>
               </div>
             </div>
-            <button type="button" onClick={() => setDetailId(null)} className="w-8 h-8 rounded-full border border-[#e4f0f1] text-[#283338]/60 hover:border-[#a2cbcd] hover:text-[#283338]" style={{ borderRadius: 9999 }}>✕</button>
+            <button type="button" onClick={() => setDetailId(null)} className="w-8 h-8 rounded-full border border-[#e5e7eb] text-[#6b7280] hover:border-[#059669] hover:text-[#111827]" style={{ borderRadius: 9999 }}>✕</button>
           </div>
-          <div className="p-6 space-y-5">
-            <div className="space-y-4">
-              {rows.map(r => (
-                <div key={r.label}>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">{r.label}</div>
-                  <div className="mt-1 text-[14px] text-[#283338]">{r.value}</div>
-                </div>
-              ))}
-            </div>
-            <div className="pt-4 border-t border-[#e4f0f1]">
-              <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Lingkup</div>
-              <p className="mt-1 text-[13px] text-[#283338]/70">
-                Struktur organisasi tampil penuh untuk semua role. Kewenangan pengelolaan akun dibatasi sesuai jabatan.
-              </p>
-            </div>
+          <div className="px-6 py-5 space-y-4">
+            {rows.map(r => (
+              <div key={r.label}>
+                <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#9ca3af]">{r.label}</div>
+                <div className="mt-1 text-[14px] text-[#1f2937]">{r.value}</div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
-    );
-  };
-
-  const renderNode = (e: Employee, depth: number): React.ReactNode => {
-    const kids = childrenOf.get(e.id) ?? [];
-    const isRootOfTree = roots.some(r => r.id === e.id);
-    const hasKids = kids.length > 0;
-    const open = search ? (hasMatchDescendant(e) || matches(e)) : (expanded.has(e.id) || isRootOfTree || depth === 0);
-    const showKids = hasKids && open;
-    const isMatchHere = matches(e);
-    if (search && !isMatchHere && !hasMatchDescendant(e)) return null;
-
-    return (
-      <div key={e.id}>
-        <div
-          className={`flex items-center gap-3 py-2.5 pr-3 group transition-colors ${depth === 0 ? "border-b border-[#d5e6e8]" : ""} ${isMatchHere ? "bg-[#f2f8f7]" : "hover:bg-[#f2f8f7]/60"}`}
-          style={{ paddingLeft: depth * 24 + 4 }}
-        >
-          {hasKids ? (
-            <button
-              type="button"
-              onClick={() => toggle(e.id)}
-              aria-label={showKids ? "Ciutkan" : "Bentangkan"}
-              className="w-4 shrink-0 text-center text-[12px] text-[#1c5d5f] hover:text-[#0e4749] select-none"
-            >
-              {showKids ? "▾" : "▸"}
-            </button>
-          ) : (
-            <span className="w-4 shrink-0 text-center text-[12px] text-[#a2cbcd] select-none" aria-hidden>·</span>
-          )}
-          <div className="w-8 h-8 rounded-full bg-[#1c5d5f] text-white flex items-center justify-center text-[11px] font-bold shrink-0 leading-none" style={{ borderRadius: 9999 }}>{e.avatar}</div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[14px] ${depth === 0 ? "font-semibold text-[#283338]" : "font-medium text-[#283338]"}`}>{e.name}</span>
-              {!e.isActive && <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#b91c1c]">non-aktif</span>}
-            </div>
-            <div className="font-mono text-[11px] text-[#283338]/50">{e.employeeNumber || "Tanpa NIP"}</div>
-          </div>
-          <span className={`hidden sm:inline font-mono text-[12px] whitespace-nowrap ${ROLE_TEXT[e.role] || "text-[#283338]/70"}`}>{ROLE_SHORT[e.role]}</span>
-          {showCounts && (
-            <span className="hidden md:inline font-mono text-[11px] text-[#283338]/45 whitespace-nowrap">
-              {hasKids && `${kids.length} bawahan`}
-              {hasKids && " · "}
-              {planCountOf(e.id)} rencana
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={() => setDetailId(detailId === e.id ? null : e.id)}
-            className="shrink-0 px-3 py-1 rounded-md border border-[#e4f0f1] text-[12px] font-medium text-[#1c5d5f] hover:border-[#a2cbcd] hover:bg-[#f2f8f7]"
-          >
-            Detail
-          </button>
-        </div>
-
-        {renderDetail(e)}
-
-        {showKids && kids.map(k => renderNode(k, depth + 1))}
       </div>
     );
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#283338]/40 text-[14px]" aria-hidden>⌕</span>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Cari nama, NIP, email, atau jabatan"
-            className="w-full pl-9 pr-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowCounts(v => !v)}
-          className="px-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-xs font-medium text-[#283338]/70 hover:border-[#a2cbcd] hover:text-[#283338]"
-        >
-          {showCounts ? "Sembunyikan rincian" : "Tampilkan rincian"}
-        </button>
-      </div>
-
-      <div>
-        <div className="border border-[#e4f0f1] bg-white">
-          <div className="px-4 py-3 border-b border-[#e4f0f1] flex items-center justify-between">
-            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Struktur organisasi</span>
-            <span className="font-mono text-[11px] text-[#283338]/45">{treeNodes.length} node</span>
+    <div className="space-y-4">
+      <div className="grid lg:grid-cols-[1fr_220px] gap-5 items-start">
+        {/* Area tree */}
+        <div className="min-w-0 bg-white border border-[#e5e7eb] rounded-[10px] shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
+          <div className="px-4 py-3 border-b border-[#f1f5f9] flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-mono uppercase tracking-[0.07em] text-[#6b7280]">Peta Hierarki Jabatan</span>
+            <div className="flex items-center gap-3">
+              <div className="relative w-full sm:w-auto sm:min-w-[220px]">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9ca3af]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Cari nama, NIP, email, jabatan"
+                  className="w-full pl-7 pr-3 py-1.5 rounded-md border border-[#e5e7eb] bg-white text-[13px] text-[#1f2937] focus:outline-none focus:border-[#059669] focus:ring-1 focus:ring-[#059669]/20 placeholder:text-[#9ca3af]"
+                />
+              </div>
+              <span className="text-[11px] text-[#9ca3af]">{treeNodes.length} pegawai</span>
+            </div>
           </div>
-          {roots.length === 0 && (
-            <div className="px-4 py-12 text-center text-[#283338]/60 text-sm">Belum ada struktur organisasi.</div>
+
+          {roots.length === 0 ? (
+            <div className="px-4 py-14 text-center text-[#6b7280] text-sm">Belum ada struktur organisasi.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <div className="relative" style={{ width: totalW, height: totalH }}>
+                <svg className="absolute inset-0" width={totalW} height={totalH} fill="none">
+                  <path d={connectorPath} stroke="#cbd5e1" strokeWidth={1.4} />
+                </svg>
+
+                {/* P1 */}
+                {p1Level.map(n => nodeCard(n, cardCenter(n.id) - NODE_W / 2, rowTop(0) + (ROW_H - NODE_H) / 2, NODE_W, NODE_H))}
+                {/* P2 */}
+                {p2Level.map(n => nodeCard(n, cardCenter(n.id) - NODE_W / 2, rowTop(1) + (ROW_H - NODE_H) / 2, NODE_W, NODE_H))}
+                {/* P3 */}
+                {p3Level.map(n => nodeCard(n, cardCenter(n.id) - NODE_W / 2, rowTop(2) + (ROW_H - NODE_H) / 2, NODE_W, NODE_H))}
+                {/* Staf (vertikal di bawah tiap P3) */}
+                {p3Level.map(p3 =>
+                  (childrenOf.get(p3.id) ?? []).map((s, i) => nodeCard(s, colCenter(colOf.get(p3.id)!) - NODE_W / 2, stafY(i), NODE_W, STAF_H, true))
+                )}
+              </div>
+            </div>
           )}
-          <div className="px-2 py-2">
-            {roots.map(r => renderNode(r, 0))}
-          </div>
         </div>
 
-        <p className="font-mono text-[11px] text-[#283338]/50 pt-3">
-          • Struktur organisasi tampil penuh untuk semua role. Kewenangan mengelola akun (tambah/edit/hapus/nonaktifkan) dibatasi sesuai jabatan Anda.
-        </p>
+        {/* Panel info samping */}
+        <aside className="bg-white border border-[#e5e7eb] rounded-[10px] p-4 shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
+          <div className="text-[11px] font-mono uppercase tracking-[0.07em] text-[#6b7280]">Informasi Struktur</div>
+          <div className="mt-3 space-y-1.5">
+            {[
+              { label: "Pimpinan 1 (Direktur)", v: counts.pimpinan_1 },
+              { label: "Pimpinan 2", v: counts.pimpinan_2 },
+              { label: "Pimpinan 3", v: counts.pimpinan_3 },
+              { label: "Staf", v: counts.staf },
+            ].map(row => (
+              <div key={row.label} className="flex items-center justify-between py-1.5 border-b border-[#f1f5f9] last:border-0">
+                <span className="text-[12.5px] text-[#6b7280]">{row.label}</span>
+                <span className="font-mono text-[14px] font-semibold text-[#1f2937]">{row.v}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-3 border-t border-[#f1f5f9] flex items-center justify-between">
+            <span className="text-[12.5px] font-semibold text-[#1f2937]">Total Pegawai</span>
+            <span className="font-mono text-[16px] font-bold text-[#059669]">{treeNodes.length}</span>
+          </div>
+          <p className="mt-4 text-[11.5px] leading-relaxed text-[#9ca3af]">
+            Struktur dapat dilihat seluruh role; hak kelola akun mengikuti kewenangan jabatan.
+          </p>
+        </aside>
       </div>
+
+      {renderDetail()}
     </div>
   );
 }

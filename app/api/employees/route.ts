@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getTokenFromHeader, verifyToken, hashPassword } from "@/lib/auth";
-import { validateOrgChange, validateOrgCreate, isValidRole, canCreateAs, canManageTarget, canAssignSupervisor, canCreateRole, descendantIds, roleAbove } from "@/lib/roles";
+import { validateOrgChange, validateOrgCreate, isValidRole, canManageTarget, canAssignSupervisor, canCreateRole, descendantIds } from "@/lib/roles";
 import type { OrgRow } from "@/lib/roles";
 import { z } from "zod";
 
@@ -24,10 +24,11 @@ export async function GET(req: Request) {
     id: string; userId: string; employeeNumber: string; name: string; email: string; supervisorId: string | null; role: string; avatar: string | null; isActive: boolean;
   }>;
 
-  // Admin melihat seluruh organisasi; pimpinan hanya subtree-nya (tidak termasuk sibling).
+  // Admin melihat seluruh organisasi; pimpinan HANYA subtree-nya — akun sendiri
+  // tidak tampil (tidak boleh dikelola), sibling & parent juga tidak.
   if (payload.role !== "admin") {
     const hierarchy = employees.map(e => ({ id: e.id, role: e.role as OrgRow["role"], supervisorId: e.supervisorId }));
-    const allowed = new Set<string>([payload.id, ...descendantIds(hierarchy, payload.id)]);
+    const allowed = new Set<string>(descendantIds(hierarchy, payload.id));
     return Response.json(employees.filter(e => allowed.has(e.id)).map(toDTO));
   }
 
@@ -49,28 +50,17 @@ export async function POST(req: Request) {
   const payload = token ? verifyToken(token) : null;
   if (!payload) return Response.json({ error: "Tidak terautentikasi" }, { status: 401 });
 
+  // Hanya admin yang boleh membuat/menambah akun pegawai.
+  if (payload.role !== "admin") {
+    return Response.json({ error: "Hanya administrator yang dapat menambah pegawai" }, { status: 403 });
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return Response.json({ error: "Validasi gagal", details: parsed.error.flatten() }, { status: 400 });
-  let b = parsed.data;
+  const b = parsed.data;
 
   const all = (await prisma.employee.findMany({ select: { id: true, role: true, supervisorId: true } })) as OrgRow[];
-  const creator: OrgRow = { id: payload.id, role: payload.role as OrgRow["role"], supervisorId: null };
-  const creatorRow = all.find(e => e.id === payload.id) ?? creator;
-
-  // --- Permission pembuatan akun (server-side, wajib) ---
-  const perm = canCreateAs(creatorRow, b.role, b.supervisorId ?? null, all);
-  if (!perm.ok) return Response.json({ error: perm.error }, { status: 403 });
-
-  // Ketika pimpinan membuat bawahan yang memang seharusnya langsung di bawahnya
-  // (role target = tepat satu tingkat di bawah pembuat), atasan otomatis = pembuat.
-  if (payload.role !== "admin") {
-    if (roleAbove(b.role) === payload.role) {
-      b = { ...b, supervisorId: payload.id };
-    } else if (!b.supervisorId) {
-      return Response.json({ error: "Atasan wajib ditentukan untuk pegawai baru" }, { status: 400 });
-    }
-  }
 
   if (b.email) {
     const exists = await prisma.employee.findUnique({ where: { email: b.email } });
@@ -200,15 +190,17 @@ export async function DELETE(req: Request) {
 
   const target = await prisma.employee.findUnique({ where: { id: b.id } });
   if (!target) return Response.json({ error: "Pegawai tidak ditemukan" }, { status: 404 });
-  if (target.role === "pimpinan_1") return Response.json({ error: "Tidak bisa menghapus Direktur (pimpinan_1) — harus selalu ada 1 Direktur" }, { status: 400 });
 
-  // Otorisasi menghapus: admin bebas; pimpinan hanya akun di dalam subtree-nya.
+  // Otorisasi menghapus (diperiksa lebih dulu): admin bebas; pimpinan hanya akun
+  // di dalam subtree-nya (sibling & parent otomatis ditolak 403).
   if (payload.role !== "admin") {
     const all = (await prisma.employee.findMany({ select: { id: true, role: true, supervisorId: true } })) as OrgRow[];
     const manager: OrgRow = { id: payload.id, role: payload.role as OrgRow["role"], supervisorId: null };
     const manage = canManageTarget(manager, { id: target.id, role: target.role as OrgRow["role"], supervisorId: target.supervisorId }, all);
     if (!manage.ok) return Response.json({ error: manage.error }, { status: 403 });
   }
+
+  if (target.role === "pimpinan_1") return Response.json({ error: "Tidak bisa menghapus Direktur (pimpinan_1) — harus selalu ada 1 Direktur" }, { status: 400 });
 
   const subs = await prisma.employee.count({ where: { supervisorId: b.id } });
   if (subs > 0) return Response.json({ error: `Masih ${subs} delegasi penerima — pindahkan dulu` }, { status: 400 });

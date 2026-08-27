@@ -228,7 +228,8 @@ export function canCreateAs(
  * Apakah pengelola (manager) boleh MENGELOLA akun `target`.
  * Berbasis subtree supervisorId, bukan role semata:
  * - admin: selalu diizinkan (unrestricted).
- * - lainnya: hanya dirinya sendiri dan keturunan (subtree) nyata di bawahnya.
+ * - lainnya: HANYA keturunan (subtree) nyata di bawahnya. Akun sendiri TIDAK
+ *   boleh dikelola (ubah/hapus) — hindari lingkup self OR descendant.
  * Sibling (atasan yang sama, role setara) TIDAK termasuk subtree — tidak bisa saling kelola.
  */
 export function canManageTarget(
@@ -237,7 +238,6 @@ export function canManageTarget(
   hierarchy: OrgRow[]
 ): { ok: boolean; error?: string } {
   if (manager.role === "admin") return { ok: true };
-  if (manager.id === target.id) return { ok: true };
   if (manager.role === "staf") {
     return { ok: false, error: "Staf tidak berwenang mengelola akun lain." };
   }

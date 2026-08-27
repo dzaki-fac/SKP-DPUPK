@@ -25,7 +25,7 @@ function sortEmps(a: Employee, b: Employee) {
   return a.name.localeCompare(b.name);
 }
 
-const inputCls = "w-full px-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-sm text-[#283338] focus:outline-none focus:border-[#a2cbcd] placeholder:text-[#283338]/40";
+const inputCls = "w-full px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-sm text-[#283338] focus:outline-none focus:border-[#059669] placeholder:text-[#283338]/40";
 
 export default function EmployeeManager() {
   const { employees, currentUser, createEmployee, updateEmployee, deleteEmployee } = useSKP();
@@ -40,11 +40,12 @@ export default function EmployeeManager() {
   const isAdmin = role === "admin";
   const canManage = !!role && canCreateAnyRole(role);
 
-  // Lingkup kewenangan: admin melihat seluruh organisasi; pimpinan hanya subtree-nya.
+  // Lingkup kewenangan: admin melihat seluruh organisasi; pimpinan HANYA subtree-nya
+  // (akun sendiri tidak tampil karena tidak boleh diubah/dihapus).
   const scopeIds = useMemo(() => {
     if (!currentUser) return new Set<string>();
     if (isAdmin) return new Set(employees.map(e => e.id));
-    return new Set<string>([currentUser.id, ...descendantIds(employees.map(e => ({ id: e.id, role: e.role, supervisorId: e.supervisorId })), currentUser.id)]);
+    return new Set<string>(descendantIds(employees.map(e => ({ id: e.id, role: e.role, supervisorId: e.supervisorId })), currentUser.id));
   }, [employees, currentUser, isAdmin]);
 
   const manageable = useMemo(() => employees.filter(e => scopeIds.has(e.id)), [employees, scopeIds]);
@@ -68,7 +69,7 @@ export default function EmployeeManager() {
 
   if (!canManage || !currentUser) {
     return (
-      <div className="border border-dashed border-[#a2cbcd] bg-white px-6 py-12 text-center" style={{ borderRadius: 8 }}>
+      <div className="border border-dashed border-[#d1d5db] bg-white px-6 py-12 text-center" style={{ borderRadius: 8 }}>
         <div className="heading-serif text-[20px]">Khusus pimpinan & administrator</div>
         <p className="mt-2 text-sm text-[#283338]/70 max-w-md mx-auto">Pengelolaan pegawai & akun hanya dapat dilakukan oleh administrator atau pimpinan sesuai lingkup kewenangannya.</p>
       </div>
@@ -137,25 +138,27 @@ export default function EmployeeManager() {
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Cari nama, email, atau NIP"
-            className="w-full pl-9 pr-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd] placeholder:text-[#283338]/40"
+            className="w-full pl-9 pr-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-sm focus:outline-none focus:border-[#059669] placeholder:text-[#283338]/40"
           />
         </div>
-        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value as "all" | Role)} className="px-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-sm text-[#283338] focus:outline-none focus:border-[#a2cbcd]">
+        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value as "all" | Role)} className="px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-sm text-[#283338] focus:outline-none focus:border-[#059669]">
           <option value="all">Semua jabatan</option>
           {ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
         </select>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as "all" | "active" | "inactive")} className="px-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-sm text-[#283338] focus:outline-none focus:border-[#a2cbcd]">
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as "all" | "active" | "inactive")} className="px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-sm text-[#283338] focus:outline-none focus:border-[#059669]">
           <option value="all">Semua status</option>
           <option value="active">Aktif</option>
           <option value="inactive">Non-aktif</option>
         </select>
-        <button onClick={openCreate} className="px-4 py-2 rounded-md bg-[#1c5d5f] text-white text-sm font-medium hover:bg-[#156152]">+ Tambah pegawai</button>
+        {isAdmin && (
+          <button onClick={openCreate} className="px-4 py-2 rounded-md bg-[#059669] text-white text-sm font-medium hover:bg-[#047857]">+ Tambah pegawai</button>
+        )}
       </div>
 
-      <div className="bg-white border border-[#e4f0f1] overflow-x-auto">
+      <div className="bg-white border border-[#e5e7eb] overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#e4f0f1] text-left font-mono text-[11px] uppercase tracking-[0.05em] text-[#283338]/50">
+            <tr className="border-b border-[#e5e7eb] text-left font-mono text-[11px] uppercase tracking-[0.05em] text-[#283338]/50">
               <th className="px-4 py-3 font-medium">Pegawai</th>
               <th className="px-4 py-3 font-medium">NIP</th>
               <th className="px-4 py-3 font-medium hidden md:table-cell">Email</th>
@@ -169,7 +172,7 @@ export default function EmployeeManager() {
             {list.map(e => {
               const sup = e.supervisorId ? employees.find(x => x.id === e.supervisorId) : null;
               return (
-                <tr key={e.id} className="border-b border-[#e4f0f1] last:border-0 hover:bg-[#f2f8f7]/60">
+                <tr key={e.id} className="border-b border-[#e5e7eb] last:border-0 hover:bg-[#f3f4f6]/60">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0 leading-none ${e.role === "admin" ? "bg-[#16325a]" : "bg-[#1c5d5f]"}`} style={{ borderRadius: 9999 }}>{e.avatar}</div>
@@ -187,7 +190,7 @@ export default function EmployeeManager() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => openEdit(e)} className="px-3 py-1.5 rounded-md border border-[#e4f0f1] text-[12px] font-medium text-[#1c5d5f] hover:border-[#a2cbcd] hover:bg-[#f2f8f7]">Ubah</button>
+                      <button onClick={() => openEdit(e)} className="px-3 py-1.5 rounded-md border border-[#e5e7eb] text-[12px] font-medium text-[#059669] hover:border-[#059669] hover:bg-[#f3f4f6]">Ubah</button>
                       {e.id !== currentUser?.id && (
                         <button onClick={() => remove(e)} className="px-3 py-1.5 rounded-md border border-[#eed8cd] text-[12px] font-medium text-[#b91c1c] hover:border-[#e3b5a3] hover:bg-[#fcf4f0]">Hapus</button>
                       )}
@@ -209,13 +212,13 @@ export default function EmployeeManager() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={close}>
-          <div className="w-full max-w-lg bg-white border border-[#e4f0f1]" style={{ borderRadius: 10 }} onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg bg-white border border-[#e5e7eb]" style={{ borderRadius: 10 }} onClick={e => e.stopPropagation()}>
             <div className="px-6 pt-6 flex items-start justify-between">
               <div>
-                <p className="eyebrow text-[#1c5d5f] text-[12px]">{modal.mode === "create" ? "Tambah pegawai" : "Ubah akun & jabatan"}</p>
+                <p className="eyebrow text-[#059669] text-[12px]">{modal.mode === "create" ? "Tambah pegawai" : "Ubah akun & jabatan"}</p>
                 <h3 className="heading-serif text-[22px] mt-1">{modal.mode === "create" ? "Pegawai baru" : form.name || "Perbarui data"}</h3>
               </div>
-              <button onClick={close} className="w-8 h-8 rounded-full border border-[#e4f0f1] text-[#283338]/60 hover:border-[#a2cbcd] hover:text-[#283338]" style={{ borderRadius: 9999 }}>✕</button>
+              <button onClick={close} className="w-8 h-8 rounded-full border border-[#e5e7eb] text-[#283338]/60 hover:border-[#059669] hover:text-[#283338]" style={{ borderRadius: 9999 }}>✕</button>
             </div>
 
             <div className="mt-5 px-6 space-y-3">
@@ -249,7 +252,7 @@ export default function EmployeeManager() {
                   {autoSupervisor ? (
                     <div className={`${inputCls} mt-1 flex items-center justify-between`}>
                       <span className="text-[#283338]">{currentUser.name.split(",")[0]} (Anda)</span>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#1c5d5f]">otomatis</span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#059669]">otomatis</span>
                     </div>
                   ) : (
                     <select value={effectiveSupervisorId} onChange={e => setForm({ ...form, supervisorId: e.target.value })} className={`${inputCls} mt-1`}>
@@ -264,15 +267,15 @@ export default function EmployeeManager() {
               )}
               <input placeholder={modal.mode === "edit" ? "Password baru (kosongkan jika tidak diubah)" : "Password default 'password'"} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className={inputCls} />
               <label className="flex items-center gap-2 text-sm text-[#283338]">
-                <input type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} className="w-4 h-4 accent-[#1c5d5f]" />
+                <input type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} className="w-4 h-4 accent-[#059669]" />
                 Akun aktif (dapat login)
               </label>
               {form.role === "pimpinan_1" && <p className="font-mono text-[11px] text-[#283338]/60">• Hanya boleh ada 1 Direktur (pimpinan_1).</p>}
             </div>
 
-            <div className="mt-6 px-6 py-5 border-t border-[#e4f0f1] flex gap-2 justify-end">
-              <button onClick={close} className="px-5 py-2 rounded-md border border-[#e4f0f1] text-sm font-medium text-[#283338] hover:border-[#a2cbcd]">Batal</button>
-              <button onClick={submit} disabled={busy} className="px-5 py-2 rounded-md bg-[#1c5d5f] text-white text-sm font-medium hover:bg-[#156152] disabled:opacity-50">
+            <div className="mt-6 px-6 py-5 border-t border-[#e5e7eb] flex gap-2 justify-end">
+              <button onClick={close} className="px-5 py-2 rounded-md border border-[#e5e7eb] text-sm font-medium text-[#283338] hover:border-[#059669]">Batal</button>
+              <button onClick={submit} disabled={busy} className="px-5 py-2 rounded-md bg-[#059669] text-white text-sm font-medium hover:bg-[#047857] disabled:opacity-50">
                 {busy ? "Menyimpan…" : (modal.mode === "create" ? "Simpan pegawai" : "Simpan perubahan")}
               </button>
             </div>
