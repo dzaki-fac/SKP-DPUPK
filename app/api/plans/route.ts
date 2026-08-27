@@ -29,6 +29,19 @@ export async function POST(req: Request) {
   const b = parsed.data;
   // Basic role check
   if (!["admin","direktur","supervisor"].includes(payload.role) && b.createdBy !== payload.id) return Response.json({ error: "Hanya atasan dapat membuat rencana" }, { status: 403 });
+  // Validasi porsi: total bawahan tidak boleh melebihi target induk
+  if (b.parentId) {
+    const parent = await prisma.performancePlan.findUnique({ where: { id: b.parentId } });
+    if (parent) {
+      const siblings = await prisma.performancePlan.findMany({ where: { parentId: b.parentId } });
+      const siblingsTotal = siblings.reduce((s,p)=> s + (parseFloat(String(p.target).replace(",","."))||0),0);
+      const newVal = parseFloat(String(b.target).replace(",","."))||0;
+      const parentTarget = parseFloat(String(parent.target).replace(",","."))||0;
+      if (parentTarget>0 && siblingsTotal + newVal > parentTarget) {
+        return Response.json({ error: `Total porsi delegasi penerima (${siblingsTotal}+${newVal}=${siblingsTotal+newVal}) melebihi target induk (${parentTarget}). Kurangi porsi.` }, { status: 400 });
+      }
+    }
+  }
   try {
     const plan = await prisma.performancePlan.create({ data: {
       parentId: b.parentId ?? null, skpPeriodId: b.skpPeriodId, createdBy: b.createdBy, assignedTo: b.assignedTo,
@@ -59,6 +72,22 @@ export async function PATCH(req: Request) {
   if (!payload) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const b = await req.json();
   if (!b.id) return Response.json({ error: "id required" }, { status: 400 });
+  // Validasi porsi saat update target child
+  if (b.target !== undefined) {
+    const existing = await prisma.performancePlan.findUnique({ where: { id: b.id } });
+    if (existing?.parentId) {
+      const parent = await prisma.performancePlan.findUnique({ where: { id: existing.parentId } });
+      if (parent) {
+        const siblings = await prisma.performancePlan.findMany({ where: { parentId: existing.parentId } });
+        const siblingsTotal = siblings.filter(p=>p.id!==b.id).reduce((s,p)=> s + (parseFloat(String(p.target).replace(",","."))||0),0);
+        const newVal = parseFloat(String(b.target).replace(",","."))||0;
+        const parentTarget = parseFloat(String(parent.target).replace(",","."))||0;
+        if (parentTarget>0 && siblingsTotal + newVal > parentTarget) {
+          return Response.json({ error: `Total porsi delegasi penerima (${siblingsTotal}+${newVal}) melebihi target induk (${parentTarget})` }, { status: 400 });
+        }
+      }
+    }
+  }
   const updated = await prisma.performancePlan.update({ where: { id: b.id }, data: {
     title: b.title, target: b.target ? String(b.target) : undefined,
     progress: b.progress !== undefined ? Number(b.progress) : undefined

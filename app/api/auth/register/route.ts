@@ -7,8 +7,6 @@ const schema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   employeeNumber: z.string().optional(),
-  positionId: z.string(),
-  departmentId: z.string(),
   supervisorId: z.string().nullable().optional(),
   role: z.enum(["admin","direktur","supervisor","staff"]),
 });
@@ -31,7 +29,7 @@ export async function POST(req: Request) {
     const emp = await prisma.employee.create({
       data: {
         userId: `u${Date.now()}`, employeeNumber: d.employeeNumber || `199${Math.floor(Math.random()*1e7)}`,
-        name: d.name, email: d.email, password: hashed, positionId: d.positionId, departmentId: d.departmentId,
+        name: d.name, email: d.email, password: hashed,
         supervisorId: d.supervisorId || null, role: d.role, avatar: d.name.slice(0,2).toUpperCase()
       }
     });

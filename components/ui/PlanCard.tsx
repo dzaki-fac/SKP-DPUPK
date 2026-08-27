@@ -1,9 +1,11 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useSKP } from "@/lib/store";
 import type { PerformancePlan } from "@/lib/types";
 
 export function PlanCard({ p }: { p: PerformancePlan }) {
-  const { employees, periods, plans, realizations, currentUser, setSelectedPlanDetail, setShowCascadeModal, setShowRealizationModal, setEditingPlan, setPlanForm, setShowPlanModal } = useSKP();
+  const { employees, periods, plans, realizations, currentUser, setShowCascadeModal, setShowRealizationModal, setEditingPlan, setPlanForm, setShowPlanModal } = useSKP();
+  const router = useRouter();
   const assignee = employees.find(e => e.id === p.assignedTo);
   const parent = p.parentId ? plans.find(x => x.id === p.parentId) : null;
   const period = periods.find(s => s.id === p.skpPeriodId);
@@ -50,7 +52,7 @@ export function PlanCard({ p }: { p: PerformancePlan }) {
         <span className="flex gap-2 items-center"><span className="text-[#1c5d5f] font-bold">✓</span> Target terukur & tervalidasi</span>
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
-        <button onClick={() => setSelectedPlanDetail(p)} className="px-4 py-2 rounded-full bg-white border border-[#0e4749] text-[#0e4749] text-xs font-medium hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>Detail</button>
+        <button onClick={() => router.push(`/rencana/${p.id}`)} className="px-4 py-2 rounded-full bg-white border border-[#0e4749] text-[#0e4749] text-xs font-medium hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>Detail</button>
         {(currentUser.role === "direktur" || currentUser.role === "supervisor" || currentUser.role === "admin") && (
           <button onClick={() => setShowCascadeModal(p)} className="px-4 py-2 rounded-full bg-[#1c5d5f] text-white text-xs font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>Limpahkan ↓</button>
         )}

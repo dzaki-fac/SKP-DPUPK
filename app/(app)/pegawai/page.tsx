@@ -1,6 +1,6 @@
 "use client";
 import { useSKP } from "@/lib/store";
-import { positions, departments, getPosition, getDept } from "@/lib/data";
+import { roleLabel } from "@/lib/data";
 
 export default function PegawaiPage() {
   const { employees, setEmployees, currentUser, empForm, setEmpForm, notify, addLog } = useSKP();
@@ -12,8 +12,8 @@ export default function PegawaiPage() {
       <div className="border bg-white overflow-hidden" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#f2f8f7] border-b border-[#e4f0f1] font-mono text-xs tracking-[0.04em] uppercase text-[#283338]/60"><tr><th className="text-left px-4 py-3">Pegawai</th><th className="text-left px-4 py-3">NIP</th><th className="text-left px-4 py-3">Jabatan / Unit</th><th className="text-left px-4 py-3">Atasan</th><th className="text-left px-4 py-3">Role</th></tr></thead>
-            <tbody>{employees.map(e => <tr key={e.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]"><td className="px-4 py-3 flex items-center gap-2"><span className="w-8 h-8 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{e.avatar}</span><span><div className="font-medium">{e.name}</div><div className="font-mono text-xs tracking-wide text-[#283338]/60">{e.email}</div></span></td><td className="px-4 py-3 font-mono text-xs">{e.employeeNumber}</td><td className="px-4 py-3 text-xs">{getPosition(e.positionId)}<br /><span className="font-mono tracking-wide text-[#283338]/60">{getDept(e.departmentId)}</span></td><td className="px-4 py-3 font-mono text-xs">{e.supervisorId ? employees.find(x => x.id === e.supervisorId)?.name.split(",")[0] : "—"}</td><td className="px-4 py-3"><span className="font-mono text-xs tracking-wide px-2 py-1 rounded-full bg-[#1c5d5f] text-white" style={{ borderRadius: 100 }}>{e.role.toUpperCase()}</span></td></tr>)}</tbody>
+            <thead className="bg-[#f2f8f7] border-b border-[#e4f0f1] font-mono text-xs tracking-[0.04em] uppercase text-[#283338]/60"><tr><th className="text-left px-4 py-3">Pegawai</th><th className="text-left px-4 py-3">NIP</th><th className="text-left px-4 py-3">Jabatan</th><th className="text-left px-4 py-3">Atasan</th><th className="text-left px-4 py-3">Role</th></tr></thead>
+            <tbody>{employees.map(e => <tr key={e.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]"><td className="px-4 py-3 flex items-center gap-2"><span className="w-8 h-8 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{e.avatar}</span><span><div className="font-medium">{e.name}</div><div className="font-mono text-xs tracking-wide text-[#283338]/60">{e.email}</div></span></td><td className="px-4 py-3 font-mono text-xs">{e.employeeNumber}</td><td className="px-4 py-3 text-xs">{roleLabel[e.role]}</td><td className="px-4 py-3 font-mono text-xs">{e.supervisorId ? employees.find(x => x.id === e.supervisorId)?.name.split(",")[0] : "—"}</td><td className="px-4 py-3"><span className="font-mono text-xs tracking-wide px-2 py-1 rounded-full bg-[#1c5d5f] text-white" style={{ borderRadius: 100 }}>{e.role.toUpperCase()}</span></td></tr>)}</tbody>
           </table>
         </div>
       </div>
@@ -23,28 +23,24 @@ export default function PegawaiPage() {
           <div className="mt-3 space-y-2">
             <input placeholder="Nama lengkap" value={empForm.name} onChange={e => setEmpForm({ ...empForm, name: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }} />
             <input placeholder="Email" value={empForm.email} onChange={e => setEmpForm({ ...empForm, email: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }} />
-            <div className="grid grid-cols-2 gap-2">
-              <select value={empForm.positionId} onChange={e => setEmpForm({ ...empForm, positionId: e.target.value })} className="px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }}>{positions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
-              <select value={empForm.departmentId} onChange={e => setEmpForm({ ...empForm, departmentId: e.target.value })} className="px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }}>{departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <select value={empForm.supervisorId} onChange={e => setEmpForm({ ...empForm, supervisorId: e.target.value })} className="px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }}><option value="">— Tanpa atasan —</option>{employees.map(em => <option key={em.id} value={em.id}>{em.name.split(",")[0]}</option>)}</select>
-              <select value={empForm.role} onChange={e => setEmpForm({ ...empForm, role: e.target.value as any })} className="px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }}><option value="staff">staff</option><option value="supervisor">supervisor</option><option value="direktur">direktur</option><option value="admin">admin</option></select>
-            </div>
+            <select value={empForm.role} onChange={e => setEmpForm({ ...empForm, role: e.target.value as any })} className="px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }}><option value="staff">staff</option><option value="supervisor">supervisor</option><option value="direktur">direktur</option><option value="admin">admin</option></select>
+            <select value={empForm.supervisorId} onChange={e => setEmpForm({ ...empForm, supervisorId: e.target.value })} className="px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 12 }}><option value="">— Tanpa atasan —</option>{employees.map(em => <option key={em.id} value={em.id}>{em.name.split(",")[0]}</option>)}</select>
             <button onClick={async () => {
               if (!empForm.name || !empForm.email) { notify("Nama & email wajib"); return; }
-              const ne = { id: "e" + Date.now(), userId: "u" + Date.now(), employeeNumber: "199" + Math.floor(Math.random() * 10000000), name: empForm.name, email: empForm.email, positionId: empForm.positionId, departmentId: empForm.departmentId, supervisorId: empForm.supervisorId || null, role: empForm.role, avatar: empForm.name.slice(0, 2).toUpperCase() };
+              const ne = { id: "e" + Date.now(), userId: "u" + Date.now(), employeeNumber: "199" + Math.floor(Math.random() * 10000000), name: empForm.name, email: empForm.email, supervisorId: empForm.supervisorId || null, role: empForm.role, avatar: empForm.name.slice(0, 2).toUpperCase() };
               setEmployees(prev => [...prev, ne]);
               try { await fetch("/api/employees", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify(ne) }); } catch {}
-              addLog("Menambah pegawai", `Menambah pegawai ${ne.name}`, "employee", ne.id); notify("Pegawai ditambahkan"); setEmpForm({ name: "", email: "", positionId: "p3", departmentId: "d2", supervisorId: "", role: "staff" });
+              addLog("Menambah pegawai", `Menambah pegawai ${ne.name}`, "employee", ne.id); notify("Pegawai ditambahkan"); setEmpForm({ name: "", email: "", supervisorId: "", role: "staff" });
             }} className="w-full py-2.5 rounded-full bg-[#1c5d5f] text-white text-sm font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>Tambah Pegawai</button>
           </div>
         </div>
         <div className="p-6 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
-          <div className="eyebrow">JABATAN & UNIT</div>
-          <div className="mt-3 space-y-3 text-sm">
-            <div><div className="font-semibold">Jabatan</div>{positions.map(p => <div key={p.id} className="flex justify-between py-1 border-b border-[#e4f0f1] font-mono text-xs tracking-wide"><span>{p.name}</span><span className="text-[#283338]/60">Level {p.level}</span></div>)}</div>
-            <div><div className="font-semibold">Unit Kerja</div>{departments.map(d => <div key={d.id} className="flex justify-between py-1 border-b border-[#e4f0f1] font-mono text-xs tracking-wide"><span>{d.name}</span><span>{d.code}</span></div>)}</div>
+          <div className="eyebrow">DISTRIBUSI ROLE</div>
+          <div className="mt-3 space-y-2 text-sm">
+            {(["direktur","supervisor","staff","admin"] as const).map(r => {
+              const count = employees.filter(e=>e.role===r).length;
+              return <div key={r} className="flex justify-between py-1 border-b border-[#e4f0f1] font-mono text-xs tracking-wide"><span>{roleLabel[r]}</span><span className="text-[#1c5d5f] font-bold">{count} orang</span></div>;
+            })}
           </div>
         </div>
       </div>

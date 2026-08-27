@@ -11,22 +11,7 @@ datasource db {
   provider = "sqlite"
 }
 
-// ── Master Data ──────────────────────────────────────────────
-model Position {
-  id    String @id @default(cuid())
-  name  String @unique
-  level Int
-  employees Employee[]
-}
-
-model Department {
-  id    String @id @default(cuid())
-  name  String
-  code  String @unique
-  employees Employee[]
-}
-
-// ── Organisasi (flexible, tidak hardcode role) ───────────────
+// ── Organisasi (role = jabatan tunggal) ───────────────
 model Employee {
   id             String  @id @default(cuid())
   userId         String  @unique @map("user_id")
@@ -34,17 +19,13 @@ model Employee {
   name           String
   email          String  @unique
   password       String  @default("$2b$10$49djtnPFASpNsPac7EGsNuFQIXbZy.ypISMj13WQ/o1SIUCYjXID2") // password
-  positionId     String  @map("position_id")
-  departmentId   String  @map("department_id")
   supervisorId   String? @map("supervisor_id")
-  role           String  // admin | direktur | supervisor | staff
+  role           String  // admin | direktur | supervisor | staff — dipakai sebagai jabatan tunggal
   avatar         String  @default("")
   isActive       Boolean @default(true) @map("is_active")
   lastLoginAt    String? @map("last_login_at")
   createdAt      String  @default("2026-01-01") @map("created_at")
 
-  position   Position   @relation(fields: [positionId], references: [id])
-  department Department @relation(fields: [departmentId], references: [id])
   supervisor Employee?  @relation("Supervisor", fields: [supervisorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   subordinates Employee[] @relation("Supervisor")
 

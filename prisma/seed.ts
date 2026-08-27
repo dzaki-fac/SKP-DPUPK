@@ -23,32 +23,18 @@ async function main() {
   await prisma.performancePlan.deleteMany();
   await prisma.skpPeriod.deleteMany();
   await prisma.employee.deleteMany();
-  await prisma.department.deleteMany();
-  await prisma.position.deleteMany();
 
-  // ===== Jabatan & Unit =====
-  const [pDir, pSup, pStaf] = await Promise.all([
-    prisma.position.create({ data: { id: "pos-direktur", name: "Direktur", level: 1 } }),
-    prisma.position.create({ data: { id: "pos-supervisor", name: "Supervisor", level: 2 } }),
-    prisma.position.create({ data: { id: "pos-staff", name: "Staff", level: 3 } }),
-  ]);
-  const [du, dp, dop] = await Promise.all([
-    prisma.department.create({ data: { id: "dep-du", name: "Direktorat Utama", code: "DU" } }),
-    prisma.department.create({ data: { id: "dep-dp", name: "Divisi Pelayanan", code: "DP" } }),
-    prisma.department.create({ data: { id: "dep-dop", name: "Divisi Operasional", code: "DO" } }),
-  ]);
-
-  // ===== Pegawai =====
+  // ===== Pegawai (role = jabatan tunggal) =====
   await prisma.employee.createMany({
     data: [
-      { id: "e-direktur", userId: "u-direktur", employeeNumber: "198001012006041001", name: "Dr. H. Bambang Wijaya, M.Si", email: "direktur@dpupk.go.id", positionId: pDir.id, departmentId: du.id, supervisorId: null, role: "direktur", avatar: "BW" },
-      { id: "e-siti", userId: "u-siti", employeeNumber: "198502152009031002", name: "Siti Rahayu, S.T., M.T", email: "siti.rahayu@dpupk.go.id", positionId: pSup.id, departmentId: dp.id, supervisorId: "e-direktur", role: "supervisor", avatar: "SR" },
-      { id: "e-agus", userId: "u-agus", employeeNumber: "198703202010011003", name: "Agus Prasetyo, S.E", email: "agus.p@dpupk.go.id", positionId: pSup.id, departmentId: dop.id, supervisorId: "e-direktur", role: "supervisor", avatar: "AP" },
-      { id: "e-rina", userId: "u-rina", employeeNumber: "199001052015031004", name: "Rina Marlina, A.Md", email: "rina.m@dpupk.go.id", positionId: pStaf.id, departmentId: dp.id, supervisorId: "e-siti", role: "staff", avatar: "RM" },
-      { id: "e-joko", userId: "u-joko", employeeNumber: "199205182016021005", name: "Joko Santoso, S.Kom", email: "joko.s@dpupk.go.id", positionId: pStaf.id, departmentId: dp.id, supervisorId: "e-siti", role: "staff", avatar: "JS" },
-      { id: "e-dewi", userId: "u-dewi", employeeNumber: "199310102017011006", name: "Dewi Lestari, S.T", email: "dewi.l@dpupk.go.id", positionId: pStaf.id, departmentId: dop.id, supervisorId: "e-agus", role: "staff", avatar: "DL" },
-      { id: "e-budi", userId: "u-budi", employeeNumber: "199408252018022007", name: "Budi Hermawan, S.E", email: "budi.h@dpupk.go.id", positionId: pStaf.id, departmentId: dop.id, supervisorId: "e-agus", role: "staff", avatar: "BH" },
-      { id: "e-admin", userId: "u-admin", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", positionId: pDir.id, departmentId: du.id, supervisorId: null, role: "admin", avatar: "AD" },
+      { id: "e-direktur", userId: "u-direktur", employeeNumber: "198001012006041001", name: "Dr. H. Bambang Wijaya, M.Si", email: "direktur@dpupk.go.id", supervisorId: null, role: "direktur", avatar: "BW" },
+      { id: "e-siti", userId: "u-siti", employeeNumber: "198502152009031002", name: "Siti Rahayu, S.T., M.T", email: "siti.rahayu@dpupk.go.id", supervisorId: "e-direktur", role: "supervisor", avatar: "SR" },
+      { id: "e-agus", userId: "u-agus", employeeNumber: "198703202010011003", name: "Agus Prasetyo, S.E", email: "agus.p@dpupk.go.id", supervisorId: "e-direktur", role: "supervisor", avatar: "AP" },
+      { id: "e-rina", userId: "u-rina", employeeNumber: "199001052015031004", name: "Rina Marlina, A.Md", email: "rina.m@dpupk.go.id", supervisorId: "e-siti", role: "staff", avatar: "RM" },
+      { id: "e-joko", userId: "u-joko", employeeNumber: "199205182016021005", name: "Joko Santoso, S.Kom", email: "joko.s@dpupk.go.id", supervisorId: "e-siti", role: "staff", avatar: "JS" },
+      { id: "e-dewi", userId: "u-dewi", employeeNumber: "199310102017011006", name: "Dewi Lestari, S.T", email: "dewi.l@dpupk.go.id", supervisorId: "e-agus", role: "staff", avatar: "DL" },
+      { id: "e-budi", userId: "u-budi", employeeNumber: "199408252018022007", name: "Budi Hermawan, S.E", email: "budi.h@dpupk.go.id", supervisorId: "e-agus", role: "staff", avatar: "BH" },
+      { id: "e-admin", userId: "u-admin", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", supervisorId: null, role: "admin", avatar: "AD" },
     ]
   });
 

@@ -10,6 +10,8 @@ type Ctx = {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   employees: Employee[]; setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>;
+  updateEmployeeOrg: (id: string, patch: { supervisorId?: string | null; role?: Role }) => Promise<boolean>;
+  deleteEmployee: (id: string) => Promise<boolean>;
   periods: SkpPeriod[]; setPeriods: React.Dispatch<React.SetStateAction<SkpPeriod[]>>;
   plans: PerformancePlan[]; setPlans: React.Dispatch<React.SetStateAction<PerformancePlan[]>>;
   realizations: Realization[]; setRealizations: React.Dispatch<React.SetStateAction<Realization[]>>;
@@ -27,17 +29,17 @@ type Ctx = {
   showCascadeModal: PerformancePlan | null; setShowCascadeModal: (p: PerformancePlan | null) => void;
   showRealizationModal: PerformancePlan | null; setShowRealizationModal: (p: PerformancePlan | null) => void;
   editingPlan: PerformancePlan | null; setEditingPlan: (p: PerformancePlan | null) => void;
-  selectedPlanDetail: PerformancePlan | null; setSelectedPlanDetail: (p: PerformancePlan | null) => void;
   planForm: PlanForm; setPlanForm: (f: PlanForm) => void;
   cascadeTargets: string[]; setCascadeTargets: (v: string[]) => void;
   cascadePortions: Record<string,string>; setCascadePortions: (v: Record<string,string>) => void;
+  cascadeTitles: Record<string,string>; setCascadeTitles: (v: Record<string,string>) => void;
   realForm: { title: string; value: string; description: string; fileName: string }; setRealForm: (v: { title: string; value: string; description: string; fileName: string }) => void;
   periodForm: { name: string; year: number; startDate: string; endDate: string }; setPeriodForm: (v: { name: string; year: number; startDate: string; endDate: string }) => void;
-  empForm: { name: string; email: string; positionId: string; departmentId: string; supervisorId: string; role: Role }; setEmpForm: (v: { name: string; email: string; positionId: string; departmentId: string; supervisorId: string; role: Role }) => void;
+  empForm: { name: string; email: string; supervisorId: string; role: Role }; setEmpForm: (v: { name: string; email: string; supervisorId: string; role: Role }) => void;
   // handlers
   handleCreatePlan: () => void;
   handleCascade: () => void;
-  handleUpdateDelegation: (id: string, target: string) => void;
+  handleUpdateDelegation: (id: string, target: string, title?: string) => void;
   handleDeleteDelegation: (id: string, title: string) => Promise<void>;
   handleSubmitRealization: () => void;
   handleDeletePlan: (id: string, title: string) => Promise<void>;
@@ -65,13 +67,13 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [showRealizationModal, setShowRealizationModal] = useState<PerformancePlan | null>(null);
   const [editingPlan, setEditingPlan] = useState<PerformancePlan | null>(null);
   const [search, setSearch] = useState("");
-  const [selectedPlanDetail, setSelectedPlanDetail] = useState<PerformancePlan | null>(null);
   const [planForm, setPlanForm] = useState<PlanForm>({ title: "", target: "", skpPeriodId: "sp2026" });
   const [cascadeTargets, setCascadeTargets] = useState<string[]>([]);
   const [cascadePortions, setCascadePortions] = useState<Record<string,string>>({});
+  const [cascadeTitles, setCascadeTitles] = useState<Record<string,string>>({});
   const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", fileName: "" });
   const [periodForm, setPeriodForm] = useState({ name: "", year: 2026, startDate: "", endDate: "" });
-  const [empForm, setEmpForm] = useState({ name: "", email: "", positionId: "p3", departmentId: "d2", supervisorId: "", role: "staff" as Role });
+  const [empForm, setEmpForm] = useState({ name: "", email: "", supervisorId: "", role: "staff" as Role });
 
   // Hydrate from SQLite via /api/db — keeps UI snappy with seed fallback
   useEffect(() => {
@@ -148,7 +150,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
     // fallback aman: jika skpPeriodId tidak ada di perioden aktif (mis. sp1 lama), pakai periode pertama
     const validPeriodId = periods.find(p => p.id === planForm.skpPeriodId)?.id ?? periods[0]?.id ?? "sp2026";
     const newPlan: PerformancePlan = {
-      id: "pl" + Date.now(), parentId: editingPlan ? editingPlan.parentId : (selectedPlanDetail ? selectedPlanDetail.id : null),
+      id: "pl" + Date.now(), parentId: editingPlan ? editingPlan.parentId : null,
       skpPeriodId: validPeriodId, createdBy: currentUser.id, assignedTo: currentUser.id,
       title: planForm.title!, target: planForm.target!, progress: 0
     };
@@ -187,11 +189,18 @@ export function SKPProvider({ children }: { children: ReactNode }) {
 
   const handleCascade = () => {
     if (!currentUser) return;
-    if (!showCascadeModal || cascadeTargets.length === 0) { notify("Pilih minimal satu bawahan"); return; }
-    // validasi porsi
+    if (!showCascadeModal || cascadeTargets.length === 0) { notify("Pilih minimal satu delegasi penerima"); return; }
+    // validasi porsi + judul
     const parentTarget = parseFloat(String(showCascadeModal.target).replace(",", ".")) || 0;
-    const portions = cascadeTargets.map(tid => ({ tid, val: parseFloat(String(cascadePortions[tid] ?? showCascadeModal.target).replace(",", ".")) || 0 }));
-    for (const p of portions) { if (p.val <= 0) { notify(`Porsi untuk ${employees.find(e=>e.id===p.tid)?.name ?? p.tid} harus >0`); return; } }
+    const portions = cascadeTargets.map(tid => ({
+      tid,
+      val: parseFloat(String(cascadePortions[tid] ?? showCascadeModal.target).replace(",", ".")) || 0,
+      title: (cascadeTitles[tid] ?? "").trim() || showCascadeModal.title
+    }));
+    for (const p of portions) {
+      if (!p.title || p.title.length < 3) { notify(`Judul untuk ${employees.find(e=>e.id===p.tid)?.name ?? p.tid} minimal 3 karakter`); return; }
+      if (p.val <= 0) { notify(`Porsi untuk ${employees.find(e=>e.id===p.tid)?.name ?? p.tid} harus >0`); return; }
+    }
     const total = portions.reduce((s,p)=>s+p.val,0);
     // juga hitung existing children agar total tidak melebihi parent
     const existing = plans.filter(pl=>pl.parentId===showCascadeModal.id);
@@ -200,22 +209,24 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       notify(`Total porsi (${existingTotal}+${total}=${existingTotal+total}) melebihi target induk (${parentTarget}). Kurangi porsi.`);
       return;
     }
-    const newPlans: PerformancePlan[] = portions.map(({tid,val}) => ({
+    const newPlans: PerformancePlan[] = portions.map(({tid,val,title}) => ({
       id: "pl" + Date.now() + tid, parentId: showCascadeModal.id, skpPeriodId: showCascadeModal.skpPeriodId, createdBy: currentUser.id, assignedTo: tid,
-      title: showCascadeModal.title, target: String(val), progress: 0
+      title, target: String(val), progress: 0
     } as PerformancePlan));
     setPlans(prev => [...newPlans, ...prev]);
     // persist each child
     newPlans.forEach(np => fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ ...np, log: false }) }).then(async r=>{ if(!r.ok){ const j=await r.json().catch(()=>({})); notify("Gagal simpan: "+(j.error||r.statusText)); }}).catch(() => notify("Gagal simpan pelimpahan ke database")));
-    portions.forEach(({tid,val}) => { const emp = employees.find(e => e.id === tid); addLog("Pelimpahan kinerja", `Melimpahkan '${showCascadeModal.title}' (${val}) kepada ${emp?.name}`, "performance_plan", showCascadeModal.id); });
-    notify(`Berhasil melimpahkan kepada ${portions.length} pegawai`); setShowCascadeModal(null); setCascadeTargets([]); setCascadePortions({});
+    portions.forEach(({tid,val,title}) => { const emp = employees.find(e => e.id === tid); addLog("Pelimpahan kinerja", `Melimpahkan '${title}' (${val}) kepada ${emp?.name}`, "performance_plan", showCascadeModal.id); });
+    notify(`Berhasil melimpahkan kepada ${portions.length} pegawai`); setShowCascadeModal(null); setCascadeTargets([]); setCascadePortions({}); setCascadeTitles({});
   };
 
-  const handleUpdateDelegation = (id: string, target: string) => {
+  const handleUpdateDelegation = (id: string, target: string, title?: string) => {
     const plan = plans.find(p=>p.id===id);
     if (!plan || !plan.parentId) { notify("Delegasi tidak ditemukan"); return; }
     const parent = plans.find(p=>p.id===plan.parentId);
-    const newVal = parseFloat(String(target).replace(",", ".")) || 0;
+    const newVal = target !== undefined ? parseFloat(String(target).replace(",", ".")) || 0 : parseFloat(String(plan.target).replace(",", "."))||0;
+    const newTitle = title !== undefined ? title.trim() : plan.title;
+    if (newTitle.length < 3) { notify("Judul minimal 3 karakter"); return; }
     if (newVal <= 0) { notify("Porsi harus >0"); return; }
     if (parent) {
       const parentTarget = parseFloat(String(parent.target).replace(",", ".")) || 0;
@@ -223,16 +234,17 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       const siblingsTotal = siblings.reduce((s,p)=> s + (parseFloat(String(p.target).replace(",", "."))||0),0);
       if (parentTarget>0 && siblingsTotal + newVal > parentTarget) { notify(`Total porsi bawahan (${siblingsTotal}+${newVal}) melebihi target induk (${parentTarget})`); return; }
     }
-    setPlans(prev=> prev.map(p=> p.id===id ? { ...p, target: String(newVal)} : p));
-    fetch("/api/plans", { method:"PATCH", headers:{ "Content-Type":"application/json"}, credentials:"include", body: JSON.stringify({ id, target: String(newVal)})}).then(async r=>{ if(!r.ok){ const j=await r.json().catch(()=>({})); notify("Gagal update: "+(j.error||r.statusText));}}).catch(()=> notify("Gagal update delegasi"));
+    setPlans(prev=> prev.map(p=> p.id===id ? { ...p, target: String(newVal), title: newTitle} : p));
+    const payload: any = { id, target: String(newVal), title: newTitle };
+    fetch("/api/plans", { method:"PATCH", headers:{ "Content-Type":"application/json"}, credentials:"include", body: JSON.stringify(payload)}).then(async r=>{ if(!r.ok){ const j=await r.json().catch(()=>({})); notify("Gagal update: "+(j.error||r.statusText));}}).catch(()=> notify("Gagal update delegasi"));
     // recalc parent progress (target berubah mempengaruhi %)
     const newProgParent = parent ? calcParentProgress(parent.id, plans.map(p=>p.id===id?{...p,target:String(newVal)}:p), realizations) : null;
     if (parent && newProgParent!==null && parent.progress!==newProgParent) {
       setPlans(prev=> prev.map(p=> p.id===parent.id ? { ...p, progress: newProgParent}:p));
       fetch("/api/plans", { method:"PATCH", headers:{ "Content-Type":"application/json"}, credentials:"include", body: JSON.stringify({ id: parent.id, progress: newProgParent})}).catch(()=>{});
     }
-    addLog("Ubah porsi delegasi", `Ubah '${plan.title}' → ${newVal} untuk ${employees.find(e=>e.id===plan.assignedTo)?.name}`, "performance_plan", id);
-    notify("Porsi diperbarui");
+    addLog("Ubah delegasi", `Ubah '${plan.title}' → '${newTitle}' (${newVal}) untuk ${employees.find(e=>e.id===plan.assignedTo)?.name}`, "performance_plan", id);
+    notify("Delegasi diperbarui");
   };
 
   const handleDeleteDelegation = async (id: string, title: string) => {
@@ -342,8 +354,53 @@ export function SKPProvider({ children }: { children: ReactNode }) {
     return plansSnapshot;
   };
 
+  // ===== CRUD Organisasi (admin/direktur) =====
+  const updateEmployeeOrg = async (id: string, patch: { supervisorId?: string | null; role?: Role }) => {
+    if (!currentUser || !["admin","direktur"].includes(currentUser.role)) { notify("Hanya admin/direktur"); return false; }
+    if (patch.supervisorId === id) { notify("Atasan tidak bisa dirinya sendiri"); return false; }
+    if (patch.supervisorId && isSubordinate(id, patch.supervisorId)) { notify("Tidak boleh: akan membentuk siklus (delegasi penerima jadi atasan)"); return false; }
+    const backup = employees;
+    setEmployees(prev => prev.map(e => e.id === id ? { ...e, ...patch } : e));
+    try {
+      const res = await fetch("/api/employees", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id, ...patch }) });
+      const j = await res.json().catch(()=>({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      addLog("Mengubah organisasi", `Update ${patch.supervisorId !== undefined ? "atasan" : ""}${patch.role ? " role" : ""} ${employees.find(e=>e.id===id)?.name}`.trim(), "employee", id);
+      notify("Data organisasi diperbarui");
+      return true;
+    } catch (e: any) {
+      setEmployees(backup);
+      notify("Gagal update: " + (e?.message || "error"));
+      return false;
+    }
+  };
+
+  const deleteEmployee = async (id: string) => {
+    if (!currentUser || currentUser.role !== "admin") { notify("Hanya admin dapat menghapus pegawai"); return false; }
+    const target = employees.find(e=>e.id===id);
+    if (!target) return false;
+    if (id === currentUser.id) { notify("Tidak bisa menghapus diri sendiri"); return false; }
+    const subs = getDirectSubordinates(id);
+    if (subs.length > 0) { notify(`Pegawai masih punya ${subs.length} delegasi penerima — pindahkan dulu`); return false; }
+    const hasPlans = plans.some(p=>p.assignedTo===id || p.createdBy===id);
+    if (hasPlans) { notify("Pegawai masih terkait rencana kinerja — hapus/pindahkan dulu"); return false; }
+    const backup = employees;
+    setEmployees(prev => prev.filter(e => e.id !== id));
+    try {
+      const res = await fetch("/api/employees", { method: "DELETE", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id }) });
+      const j = await res.json().catch(()=>({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      addLog("Menghapus pegawai", `Menghapus ${target.name}`, "employee", id);
+      notify(`${target.name.split(",")[0]} dihapus`);
+      return true;
+    } catch (e: any) {
+      setEmployees(backup);
+      notify("Gagal hapus: " + (e?.message || "error"));
+      return false;
+    }
+  };
+
   const handleDeletePlan = async (id: string, title: string) => {
-    if (!currentUser) return;
     // Kumpulkan id turunan secara lokal untuk optimistic remove
     const toDelete = new Set<string>([id]);
     let changed = true;
@@ -385,10 +442,12 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   };
 
   const value: Ctx = {
-    currentUser, setCurrentUser, authChecked, login, logout, employees, setEmployees, periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
+    currentUser, setCurrentUser, authChecked, login, logout, employees, setEmployees,
+    updateEmployeeOrg, deleteEmployee,
+    periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
     toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, search, setSearch,
     showPlanModal, setShowPlanModal, showCascadeModal, setShowCascadeModal, showRealizationModal, setShowRealizationModal,
-    editingPlan, setEditingPlan, selectedPlanDetail, setSelectedPlanDetail, planForm, setPlanForm, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, realForm, setRealForm, periodForm, setPeriodForm, empForm, setEmpForm,
+    editingPlan, setEditingPlan, planForm, setPlanForm, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, periodForm, setPeriodForm, empForm, setEmpForm,
     handleCreatePlan, handleCascade, handleUpdateDelegation, handleDeleteDelegation, handleSubmitRealization, handleDeletePlan,
   };
   return <SKPContext.Provider value={value}>{children}</SKPContext.Provider>;

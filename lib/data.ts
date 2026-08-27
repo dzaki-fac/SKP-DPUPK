@@ -1,36 +1,14 @@
-import type { Position, Department, Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog } from "./types";
-
-export const positions: Position[] = [
-  { id: "p1", name: "Direktur", level: 1 },
-  { id: "p2", name: "Supervisor", level: 2 },
-  { id: "p3", name: "Staff", level: 3 },
-  { id: "p4", name: "Manager", level: 2 },
-  // alias untuk DB seed (prisma/seed.ts) — sinkron agar getPosition tidak "-" setelah hydrate
-  { id: "pos-direktur", name: "Direktur", level: 1 },
-  { id: "pos-supervisor", name: "Supervisor", level: 2 },
-  { id: "pos-staff", name: "Staff", level: 3 },
-];
-
-export const departments: Department[] = [
-  { id: "d1", name: "Direktorat Utama", code: "DU" },
-  { id: "d2", name: "Divisi Pelayanan", code: "DP" },
-  { id: "d3", name: "Divisi Operasional", code: "DO" },
-  { id: "d4", name: "Divisi Keuangan", code: "DK" },
-  // alias untuk DB seed
-  { id: "dep-du", name: "Direktorat Utama", code: "DU" },
-  { id: "dep-dp", name: "Divisi Pelayanan", code: "DP" },
-  { id: "dep-dop", name: "Divisi Operasional", code: "DO" },
-];
+import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog } from "./types";
 
 export const seedEmployees: Employee[] = [
-  { id: "e1", userId: "u1", employeeNumber: "198001012006041001", name: "Dr. H. Bambang Wijaya, M.Si", email: "direktur@dpupk.go.id", positionId: "p1", departmentId: "d1", supervisorId: null, role: "direktur", avatar: "BW" },
-  { id: "e2", userId: "u2", employeeNumber: "198502152009031002", name: "Siti Rahayu, S.T., M.T", email: "siti.rahayu@dpupk.go.id", positionId: "p2", departmentId: "d2", supervisorId: "e1", role: "supervisor", avatar: "SR" },
-  { id: "e3", userId: "u3", employeeNumber: "198703202010011003", name: "Agus Prasetyo, S.E", email: "agus.p@dpupk.go.id", positionId: "p2", departmentId: "d3", supervisorId: "e1", role: "supervisor", avatar: "AP" },
-  { id: "e4", userId: "u4", employeeNumber: "199001052015031004", name: "Rina Marlina, A.Md", email: "rina.m@dpupk.go.id", positionId: "p3", departmentId: "d2", supervisorId: "e2", role: "staff", avatar: "RM" },
-  { id: "e5", userId: "u5", employeeNumber: "199205182016021005", name: "Joko Santoso, S.Kom", email: "joko.s@dpupk.go.id", positionId: "p3", departmentId: "d2", supervisorId: "e2", role: "staff", avatar: "JS" },
-  { id: "e6", userId: "u6", employeeNumber: "199310102017011006", name: "Dewi Lestari, S.T", email: "dewi.l@dpupk.go.id", positionId: "p3", departmentId: "d3", supervisorId: "e3", role: "staff", avatar: "DL" },
-  { id: "e7", userId: "u7", employeeNumber: "199408252018022007", name: "Budi Hermawan, S.E", email: "budi.h@dpupk.go.id", positionId: "p3", departmentId: "d3", supervisorId: "e3", role: "staff", avatar: "BH" },
-  { id: "e8", userId: "u8", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", positionId: "p1", departmentId: "d1", supervisorId: null, role: "admin", avatar: "AD" },
+  { id: "e1", userId: "u1", employeeNumber: "198001012006041001", name: "Dr. H. Bambang Wijaya, M.Si", email: "direktur@dpupk.go.id", supervisorId: null, role: "direktur", avatar: "BW" },
+  { id: "e2", userId: "u2", employeeNumber: "198502152009031002", name: "Siti Rahayu, S.T., M.T", email: "siti.rahayu@dpupk.go.id", supervisorId: "e1", role: "supervisor", avatar: "SR" },
+  { id: "e3", userId: "u3", employeeNumber: "198703202010011003", name: "Agus Prasetyo, S.E", email: "agus.p@dpupk.go.id", supervisorId: "e1", role: "supervisor", avatar: "AP" },
+  { id: "e4", userId: "u4", employeeNumber: "199001052015031004", name: "Rina Marlina, A.Md", email: "rina.m@dpupk.go.id", supervisorId: "e2", role: "staff", avatar: "RM" },
+  { id: "e5", userId: "u5", employeeNumber: "199205182016021005", name: "Joko Santoso, S.Kom", email: "joko.s@dpupk.go.id", supervisorId: "e2", role: "staff", avatar: "JS" },
+  { id: "e6", userId: "u6", employeeNumber: "199310102017011006", name: "Dewi Lestari, S.T", email: "dewi.l@dpupk.go.id", supervisorId: "e3", role: "staff", avatar: "DL" },
+  { id: "e7", userId: "u7", employeeNumber: "199408252018022007", name: "Budi Hermawan, S.E", email: "budi.h@dpupk.go.id", supervisorId: "e3", role: "staff", avatar: "BH" },
+  { id: "e8", userId: "u8", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", supervisorId: null, role: "admin", avatar: "AD" },
 ];
 
 export const seedPeriods: SkpPeriod[] = [
@@ -71,7 +49,5 @@ export const seedLogs: ActivityLog[] = [
   { id: "l5", userId: "e2", userName: "Siti Rahayu", action: "Menyetujui realisasi", description: "Menyetujui realisasi Rina Marlina", entityType: "realization", entityId: "r1", createdAt: "2026-04-18 09:05" },
 ];
 
-export const getPosition = (id: string) => positions.find(p => p.id === id)?.name ?? "-";
-export const getDept = (id: string) => departments.find(d => d.id === id)?.name ?? "-";
 export const roleLabel: Record<import("./types").Role, string> = { admin: "Administrator", direktur: "Direktur", supervisor: "Supervisor", staff: "Staff" };
 

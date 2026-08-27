@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSKP } from "@/lib/store";
 import { seedEmployees } from "@/lib/data";
-import { getPosition, getDept, roleLabel } from "@/lib/data";
+import { roleLabel } from "@/lib/data";
 import { IllustrationLeft, IllustrationRight } from "@/components/illustrations/BrowserIllustrations";
 
 export default function LandingPage() {
@@ -242,7 +242,7 @@ export default function LandingPage() {
                 <span className="text-[11px] font-mono tracking-[0.06em] uppercase px-2 py-1 rounded-full border text-[#0e4749] border-[#a2cbcd] bg-white">{e.role}</span>
               </div>
               <div className="mt-4 font-semibold text-[14px] leading-tight text-[#231e21] relative">{e.name}</div>
-              <div className="text-xs text-[#283338]/60 mt-1 relative">{getPosition(e.positionId)} • {getDept(e.departmentId)}</div>
+              <div className="text-xs text-[#283338]/60 mt-1 relative">{roleLabel[e.role]}</div>
               <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#1c5d5f] relative">Masuk sebagai {roleLabel[e.role]} <span>→</span></div>
             </button>
           ))}
