@@ -1,14 +1,19 @@
 import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog } from "./types";
+import { ROLE_SHORT } from "./roles";
 
 export const seedEmployees: Employee[] = [
-  { id: "e1", userId: "u1", employeeNumber: "198001012006041001", name: "Dr. H. Bambang Wijaya, M.Si", email: "direktur@dpupk.go.id", supervisorId: null, role: "direktur", avatar: "BW" },
-  { id: "e2", userId: "u2", employeeNumber: "198502152009031002", name: "Siti Rahayu, S.T., M.T", email: "siti.rahayu@dpupk.go.id", supervisorId: "e1", role: "supervisor", avatar: "SR" },
-  { id: "e3", userId: "u3", employeeNumber: "198703202010011003", name: "Agus Prasetyo, S.E", email: "agus.p@dpupk.go.id", supervisorId: "e1", role: "supervisor", avatar: "AP" },
-  { id: "e4", userId: "u4", employeeNumber: "199001052015031004", name: "Rina Marlina, A.Md", email: "rina.m@dpupk.go.id", supervisorId: "e2", role: "staff", avatar: "RM" },
-  { id: "e5", userId: "u5", employeeNumber: "199205182016021005", name: "Joko Santoso, S.Kom", email: "joko.s@dpupk.go.id", supervisorId: "e2", role: "staff", avatar: "JS" },
-  { id: "e6", userId: "u6", employeeNumber: "199310102017011006", name: "Dewi Lestari, S.T", email: "dewi.l@dpupk.go.id", supervisorId: "e3", role: "staff", avatar: "DL" },
-  { id: "e7", userId: "u7", employeeNumber: "199408252018022007", name: "Budi Hermawan, S.E", email: "budi.h@dpupk.go.id", supervisorId: "e3", role: "staff", avatar: "BH" },
-  { id: "e8", userId: "u8", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", supervisorId: null, role: "admin", avatar: "AD" },
+  // Penting: indeks array dipakai landing page (zidan) & demo login —
+  // indeks 0 wajib pimpinan_1 (Direktur), indeks 7 wajib admin.
+  { id: "e1", userId: "u1", employeeNumber: "198001012006041001", name: "Dr. H. Bambang Wijaya, M.Si", email: "direktur@dpupk.go.id", supervisorId: null, role: "pimpinan_1", avatar: "BW", isActive: true },
+  { id: "e2", userId: "u2", employeeNumber: "198502152009031002", name: "Siti Rahayu, S.T., M.T", email: "siti.rahayu@dpupk.go.id", supervisorId: "e1", role: "pimpinan_2", avatar: "SR", isActive: true },
+  { id: "e3", userId: "u3", employeeNumber: "198703202010011003", name: "Agus Prasetyo, S.E", email: "agus.p@dpupk.go.id", supervisorId: "e1", role: "pimpinan_2", avatar: "AP", isActive: true },
+  { id: "e4", userId: "u4", employeeNumber: "199001052015031004", name: "Rina Marlina, A.Md", email: "rina.m@dpupk.go.id", supervisorId: "e2", role: "pimpinan_3", avatar: "RM", isActive: true },
+  { id: "e5", userId: "u5", employeeNumber: "199205182016021005", name: "Joko Santoso, S.Kom", email: "joko.s@dpupk.go.id", supervisorId: "e2", role: "pimpinan_3", avatar: "JS", isActive: true },
+  { id: "e6", userId: "u6", employeeNumber: "199310102017011006", name: "Dewi Lestari, S.T", email: "dewi.l@dpupk.go.id", supervisorId: "e4", role: "staf", avatar: "DL", isActive: true },
+  { id: "e7", userId: "u7", employeeNumber: "199408252018022007", name: "Budi Hermawan, S.E", email: "budi.h@dpupk.go.id", supervisorId: "e5", role: "staf", avatar: "BH", isActive: true },
+  { id: "e8", userId: "u8", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", supervisorId: null, role: "admin", avatar: "AD", isActive: true },
+  { id: "e9", userId: "u9", employeeNumber: "199601152019022009", name: "Fitri Handayani, A.Md", email: "fitri.h@dpupk.go.id", supervisorId: "e4", role: "staf", avatar: "FH", isActive: true },
+  { id: "e10", userId: "u10", employeeNumber: "199702202020012010", name: "Gunawan Saputra, S.E", email: "gunawan.s@dpupk.go.id", supervisorId: "e5", role: "staf", avatar: "GS", isActive: true },
 ];
 
 export const seedPeriods: SkpPeriod[] = [
@@ -27,6 +32,9 @@ export const seedPlans: PerformancePlan[] = [
   { id: "pl5", parentId: "pl2", skpPeriodId: "sp2026", createdBy: "e2", assignedTo: "e5", title: "Melakukan verifikasi berkas harian", target: "120", progress: 92 },
   { id: "pl6", parentId: "pl3", skpPeriodId: "sp2026", createdBy: "e3", assignedTo: "e6", title: "Meningkatkan kepuasan pelanggan melalui survey", target: "200", progress: 70 },
   { id: "pl7", parentId: "pl3", skpPeriodId: "sp2026", createdBy: "e3", assignedTo: "e7", title: "Pengelolaan arsip pelayanan", target: "500", progress: 45 },
+  // Rencana staf (di luar cascade) agar "input kegiatan" staf bisa ditest
+  { id: "pl8", parentId: null, skpPeriodId: "sp2026", createdBy: "e6", assignedTo: "e6", title: "Penyusunan laporan harian pelayanan", target: "200", progress: 60 },
+  { id: "pl9", parentId: null, skpPeriodId: "sp2026", createdBy: "e9", assignedTo: "e9", title: "Pemutakhiran data kepegawaian", target: "150", progress: 40 },
 ];
 
 export const seedRealizations: Realization[] = [
@@ -49,5 +57,4 @@ export const seedLogs: ActivityLog[] = [
   { id: "l5", userId: "e2", userName: "Siti Rahayu", action: "Menyetujui realisasi", description: "Menyetujui realisasi Rina Marlina", entityType: "realization", entityId: "r1", createdAt: "2026-04-18 09:05" },
 ];
 
-export const roleLabel: Record<import("./types").Role, string> = { admin: "Administrator", direktur: "Direktur", supervisor: "Supervisor", staff: "Staff" };
-
+export const roleLabel = ROLE_SHORT;

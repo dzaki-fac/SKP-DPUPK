@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   }
   const b = parsed.data;
   // Basic role check
-  if (!["admin","direktur","supervisor"].includes(payload.role) && b.createdBy !== payload.id) return Response.json({ error: "Hanya atasan dapat membuat rencana" }, { status: 403 });
+  if (!["admin","pimpinan_1","pimpinan_2","pimpinan_3"].includes(payload.role) && b.createdBy !== payload.id) return Response.json({ error: "Hanya atasan dapat membuat rencana" }, { status: 403 });
   // Validasi porsi: total bawahan tidak boleh melebihi target induk
   if (b.parentId) {
     const parent = await prisma.performancePlan.findUnique({ where: { id: b.parentId } });
@@ -106,7 +106,7 @@ export async function DELETE(req: Request) {
   if (!plan) return Response.json({ error: "Rencana tidak ditemukan" }, { status: 404 });
 
   // Hanya pembuat, admin, atau direktur yang boleh hapus
-  const canDelete = payload.role === "admin" || payload.role === "direktur" || plan.createdBy === payload.id;
+  const canDelete = payload.role === "admin" || payload.role === "pimpinan_1" || plan.createdBy === payload.id;
   if (!canDelete) return Response.json({ error: "Hanya pembuat/admin/direktur dapat menghapus rencana" }, { status: 403 });
 
   // Kumpulkan semua turunan (BFS parent -> children)

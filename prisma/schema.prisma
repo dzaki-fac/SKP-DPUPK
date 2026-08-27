@@ -20,7 +20,7 @@ model Employee {
   email          String  @unique
   password       String  @default("$2b$10$49djtnPFASpNsPac7EGsNuFQIXbZy.ypISMj13WQ/o1SIUCYjXID2") // password
   supervisorId   String? @map("supervisor_id")
-  role           String  // admin | direktur | supervisor | staff — dipakai sebagai jabatan tunggal
+  role           String  // pimpinan_1 | pimpinan_2 | pimpinan_3 | staf | admin — jabatan tunggal (tepat 1 pimpinan_1)
   avatar         String  @default("")
   isActive       Boolean @default(true) @map("is_active")
   lastLoginAt    String? @map("last_login_at")

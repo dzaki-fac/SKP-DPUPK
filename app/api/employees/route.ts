@@ -1,91 +1,163 @@
 import { prisma } from "@/lib/prisma";
 import { getTokenFromHeader, verifyToken, hashPassword } from "@/lib/auth";
+import { validateOrgChange, validateOrgCreate, isValidRole } from "@/lib/roles";
+import type { OrgRow } from "@/lib/roles";
 import { z } from "zod";
+
+function toDTO(e: { id: string; userId: string; employeeNumber: string; name: string; email: string; supervisorId: string | null; role: string; avatar: string | null; isActive: boolean }) {
+  return {
+    id: e.id, userId: e.userId, employeeNumber: e.employeeNumber, name: e.name, email: e.email,
+    supervisorId: e.supervisorId, role: e.role as string, avatar: e.avatar, isActive: e.isActive,
+  };
+}
+
+function audit(userId: string, userName: string, action: string, description: string, entityId: string) {
+  return prisma.activityLog.create({ data: { userId, userName: userName.split(",")[0], action, description, entityType: "employee", entityId, createdAt: new Date().toISOString().slice(0, 16).replace("T", " ") } }).catch(() => { });
+}
 
 export async function GET() {
   const employees = await prisma.employee.findMany({ orderBy: { id: "asc" } });
-  return Response.json(employees.map(e => ({
-    id: e.id, userId: e.userId, employeeNumber: e.employeeNumber, name: e.name, email: e.email,
-    supervisorId: e.supervisorId, role: e.role, avatar: e.avatar
-  })));
+  return Response.json(employees.map(toDTO));
 }
 
 const createSchema = z.object({
-  name: z.string().min(3), email: z.string().email(), password: z.string().min(6).optional(),
+  name: z.string().min(3, "Nama minimal 3 karakter"),
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter").optional(),
   employeeNumber: z.string().optional(),
-  supervisorId: z.string().nullable().optional(), role: z.enum(["admin","direktur","supervisor","staff"]), avatar: z.string().optional()
+  supervisorId: z.string().nullable().optional(),
+  role: z.enum(["admin", "pimpinan_1", "pimpinan_2", "pimpinan_3", "staf"]),
+  avatar: z.string().optional(),
 });
 
 export async function POST(req: Request) {
   const token = getTokenFromHeader(req);
   const payload = token ? verifyToken(token) : null;
-  if (!payload || !["admin","direktur"].includes(payload.role)) return Response.json({ error: "Hanya admin/direktur" }, { status: 403 });
-  const body = await req.json();
+  if (!payload || payload.role !== "admin") return Response.json({ error: "Hanya administrator yang dapat menambah pegawai" }, { status: 403 });
+
+  const body = await req.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return Response.json({ error: "Validasi gagal", details: parsed.error.flatten() }, { status: 400 });
   const b = parsed.data;
-  const exists = await prisma.employee.findUnique({ where: { email: b.email } });
-  if (exists) return Response.json({ error: "Email sudah terdaftar" }, { status: 409 });
-  const hashed = b.password ? await hashPassword(b.password) : "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi";
-  const emp = await prisma.employee.create({ data: {
-    userId: `u${Date.now()}`, employeeNumber: b.employeeNumber ?? `199${Math.floor(Math.random()*1e7)}`,
-    name: b.name, email: b.email, password: hashed, supervisorId: b.supervisorId || null, role: b.role, avatar: b.avatar ?? b.name.slice(0,2).toUpperCase()
-  }});
-  await prisma.activityLog.create({ data: { userId: payload.id, userName: payload.name.split(",")[0], action: "Menambah pegawai", description: `Menambah pegawai ${emp.name}`, entityType: "employee", entityId: emp.id, createdAt: new Date().toISOString().slice(0,16).replace("T"," ") } });
-  return Response.json(emp, { status: 201 });
+
+  if (b.email) {
+    const exists = await prisma.employee.findUnique({ where: { email: b.email } });
+    if (exists) return Response.json({ error: "Email sudah terdaftar" }, { status: 409 });
+  }
+  if (b.employeeNumber) {
+    const dupNip = await prisma.employee.findUnique({ where: { employeeNumber: b.employeeNumber } });
+    if (dupNip) return Response.json({ error: "NIP sudah terdaftar" }, { status: 409 });
+  }
+
+  const all = (await prisma.employee.findMany({ select: { id: true, role: true, supervisorId: true } })) as OrgRow[];
+  const next: OrgRow = { id: "__new__", role: b.role, supervisorId: b.supervisorId || null };
+  const check = validateOrgCreate(all, next);
+  if (!check.ok) return Response.json({ error: check.error }, { status: 400 });
+
+  const hashed = await hashPassword(b.password ?? "password");
+  const emp = await prisma.employee.create({
+    data: {
+      userId: `u${Date.now()}`,
+      employeeNumber: b.employeeNumber ?? `199${Math.floor(Math.random() * 1e7)}`,
+      name: b.name, email: b.email, password: hashed,
+      supervisorId: b.supervisorId || null, role: b.role,
+      avatar: b.avatar ?? b.name.slice(0, 2).toUpperCase(),
+    },
+  });
+  await audit(payload.id, payload.name, "Menambah pegawai", `Menambah pegawai ${emp.name} (${b.role})`, emp.id);
+  return Response.json(toDTO(emp), { status: 201 });
 }
 
 const patchSchema = z.object({
   id: z.string().min(1),
+  name: z.string().min(3, "Nama minimal 3 karakter").optional(),
+  email: z.string().email("Email tidak valid").optional(),
+  employeeNumber: z.string().optional(),
+  password: z.string().min(6, "Password minimal 6 karakter").optional(),
   supervisorId: z.string().nullable().optional(),
-  role: z.enum(["admin","direktur","supervisor","staff"]).optional(),
+  role: z.enum(["admin", "pimpinan_1", "pimpinan_2", "pimpinan_3", "staf"]).optional(),
+  isActive: z.boolean().optional(),
+  avatar: z.string().optional(),
 });
 
 export async function PATCH(req: Request) {
   const token = getTokenFromHeader(req);
   const payload = token ? verifyToken(token) : null;
-  if (!payload || !["admin","direktur"].includes(payload.role)) return Response.json({ error: "Hanya admin/direktur" }, { status: 403 });
-  const parsed = patchSchema.safeParse(await req.json());
+  if (!payload || payload.role !== "admin") return Response.json({ error: "Hanya administrator yang dapat mengubah pegawai" }, { status: 403 });
+
+  const parsed = patchSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Validasi gagal", details: parsed.error.flatten() }, { status: 400 });
   const b = parsed.data;
-  // cegah siklus: atasan baru tidak boleh bawahan dari pegawai tsb
-  if (b.supervisorId) {
-    let cur: string | null = b.supervisorId;
-    const visited = new Set<string>();
-    while (cur) {
-      if (cur === b.id) return Response.json({ error: "Tidak boleh: membentuk siklus hierarki" }, { status: 400 });
-      if (visited.has(cur)) break;
-      visited.add(cur);
-      const row: { supervisorId: string | null } | null = await prisma.employee.findUnique({ where: { id: cur }, select: { supervisorId: true } });
-      cur = row?.supervisorId ?? null;
-    }
+
+  const target = await prisma.employee.findUnique({ where: { id: b.id } });
+  if (!target) return Response.json({ error: "Pegawai tidak ditemukan" }, { status: 404 });
+
+  if (!isValidRole(target.role)) return Response.json({ error: "Role tidak valid" }, { status: 400 });
+
+  if (b.email && b.email !== target.email) {
+    const exists = await prisma.employee.findUnique({ where: { email: b.email } });
+    if (exists) return Response.json({ error: "Email sudah terdaftar" }, { status: 409 });
   }
+  if (b.employeeNumber && b.employeeNumber !== target.employeeNumber) {
+    const dupNip = await prisma.employee.findUnique({ where: { employeeNumber: b.employeeNumber } });
+    if (dupNip) return Response.json({ error: "NIP sudah terdaftar" }, { status: 409 });
+  }
+
+  // Validasi relasi organisasi bila role / supervisor berubah
+  if (b.role !== undefined || b.supervisorId !== undefined) {
+    const all = (await prisma.employee.findMany({ select: { id: true, role: true, supervisorId: true } })) as OrgRow[];
+    const check = validateOrgChange(all, target.id, { id: target.id, role: target.role as OrgRow["role"], supervisorId: target.supervisorId }, { role: b.role, supervisorId: b.supervisorId });
+    if (!check.ok) return Response.json({ error: check.error }, { status: 400 });
+  }
+
   try {
-    const emp = await prisma.employee.update({ where: { id: b.id }, data: {
-      supervisorId: b.supervisorId !== undefined ? (b.supervisorId || null) : undefined,
-      role: b.role,
-    }});
-    await prisma.activityLog.create({ data: { userId: payload.id, userName: payload.name.split(",")[0], action: "Mengubah organisasi", description: `Update ${emp.name}`, entityType: "employee", entityId: emp.id, createdAt: new Date().toISOString().slice(0,16).replace("T"," ") } }).catch(()=>{});
-    return Response.json(emp);
-  } catch (e: any) {
-    return Response.json({ error: "Gagal update pegawai", details: String(e?.message).slice(0,300) }, { status: 500 });
+    const emp = await prisma.employee.update({
+      where: { id: b.id },
+      data: {
+        name: b.name,
+        email: b.email,
+        employeeNumber: b.employeeNumber,
+        password: b.password ? await hashPassword(b.password) : undefined,
+        supervisorId: b.supervisorId !== undefined ? (b.supervisorId || null) : undefined,
+        role: b.role,
+        isActive: b.isActive,
+        avatar: b.avatar,
+      },
+    });
+    const changes: string[] = [];
+    if (b.name) changes.push("nama");
+    if (b.email) changes.push("email");
+    if (b.password) changes.push("password");
+    if (b.isActive !== undefined) changes.push(b.isActive ? "aktif" : "non-aktif");
+    if (b.role) changes.push(`role ${b.role}`);
+    if (b.supervisorId !== undefined) changes.push("atasan");
+    const desc = changes.length ? `Perbarui ${emp.name}: ${changes.join(", ")}` : `Perbarui data ${emp.name}`;
+    await audit(payload.id, payload.name, "Mengubah akun/pegawai", desc, emp.id);
+    return Response.json(toDTO(emp));
+  } catch (e: unknown) {
+    return Response.json({ error: "Gagal update pegawai", details: String(e instanceof Error ? e.message : e).slice(0, 300) }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   const token = getTokenFromHeader(req);
   const payload = token ? verifyToken(token) : null;
-  if (!payload || payload.role !== "admin") return Response.json({ error: "Hanya admin dapat menghapus pegawai" }, { status: 403 });
-  const b = await req.json();
-  if (!b.id) return Response.json({ error: "id wajib" }, { status: 400 });
+  if (!payload || payload.role !== "admin") return Response.json({ error: "Hanya administrator yang dapat menghapus pegawai" }, { status: 403 });
+
+  const b = await req.json().catch(() => null);
+  if (!b?.id) return Response.json({ error: "id wajib" }, { status: 400 });
   if (b.id === payload.id) return Response.json({ error: "Tidak bisa menghapus diri sendiri" }, { status: 400 });
+
   const target = await prisma.employee.findUnique({ where: { id: b.id } });
   if (!target) return Response.json({ error: "Pegawai tidak ditemukan" }, { status: 404 });
+  if (target.role === "pimpinan_1") return Response.json({ error: "Tidak bisa menghapus Direktur (pimpinan_1) — harus selalu ada 1 Direktur" }, { status: 400 });
+
   const subs = await prisma.employee.count({ where: { supervisorId: b.id } });
   if (subs > 0) return Response.json({ error: `Masih ${subs} delegasi penerima — pindahkan dulu` }, { status: 400 });
   const planCount = await prisma.performancePlan.count({ where: { OR: [{ assignedTo: b.id }, { createdBy: b.id }] } });
   if (planCount > 0) return Response.json({ error: `Masih terkait ${planCount} rencana kinerja — hapus/pindahkan dulu` }, { status: 400 });
+
   await prisma.employee.delete({ where: { id: b.id } });
-  await prisma.activityLog.create({ data: { userId: payload.id, userName: payload.name.split(",")[0], action: "Menghapus pegawai", description: `Menghapus ${target.name}`, entityType: "employee", entityId: target.id, createdAt: new Date().toISOString().slice(0,16).replace("T"," ") } }).catch(()=>{});
+  await audit(payload.id, payload.name, "Menghapus pegawai", `Menghapus ${target.name}`, target.id);
   return Response.json({ ok: true });
 }

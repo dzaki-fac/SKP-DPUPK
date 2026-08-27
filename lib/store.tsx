@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
 import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog, Role } from "./types";
+import { validateOrgChange, validateOrgCreate } from "./roles";
 import { seedEmployees, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
 
 type PlanForm = Partial<PerformancePlan>;
@@ -10,8 +11,9 @@ type Ctx = {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   employees: Employee[]; setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>;
-  updateEmployeeOrg: (id: string, patch: { supervisorId?: string | null; role?: Role }) => Promise<boolean>;
-  deleteEmployee: (id: string) => Promise<boolean>;
+  updateEmployee: (id: string, patch: { name?: string; email?: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role?: Role; isActive?: boolean; avatar?: string }) => Promise<{ ok: boolean; error?: string }>;
+  createEmployee: (data: { name: string; email: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role: Role; isActive?: boolean; avatar?: string }) => Promise<{ ok: boolean; error?: string; id?: string }>;
+  deleteEmployee: (id: string) => Promise<{ ok: boolean; error?: string }>;
   periods: SkpPeriod[]; setPeriods: React.Dispatch<React.SetStateAction<SkpPeriod[]>>;
   plans: PerformancePlan[]; setPlans: React.Dispatch<React.SetStateAction<PerformancePlan[]>>;
   realizations: Realization[]; setRealizations: React.Dispatch<React.SetStateAction<Realization[]>>;
@@ -35,7 +37,6 @@ type Ctx = {
   cascadeTitles: Record<string,string>; setCascadeTitles: (v: Record<string,string>) => void;
   realForm: { title: string; value: string; description: string; fileName: string }; setRealForm: (v: { title: string; value: string; description: string; fileName: string }) => void;
   periodForm: { name: string; year: number; startDate: string; endDate: string }; setPeriodForm: (v: { name: string; year: number; startDate: string; endDate: string }) => void;
-  empForm: { name: string; email: string; supervisorId: string; role: Role }; setEmpForm: (v: { name: string; email: string; supervisorId: string; role: Role }) => void;
   // handlers
   handleCreatePlan: () => void;
   handleCascade: () => void;
@@ -73,7 +74,6 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [cascadeTitles, setCascadeTitles] = useState<Record<string,string>>({});
   const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", fileName: "" });
   const [periodForm, setPeriodForm] = useState({ name: "", year: 2026, startDate: "", endDate: "" });
-  const [empForm, setEmpForm] = useState({ name: "", email: "", supervisorId: "", role: "staff" as Role });
 
   // Hydrate from SQLite via /api/db — keeps UI snappy with seed fallback
   useEffect(() => {
@@ -134,8 +134,11 @@ export function SKPProvider({ children }: { children: ReactNode }) {
 
   const visiblePlans = useMemo(() => {
     if (!currentUser) return [];
-    if (currentUser.role === "admin" || currentUser.role === "direktur") return plans;
-    if (currentUser.role === "supervisor") { const subs = getSubordinates(currentUser.id).map(s => s.id); return plans.filter(p => p.assignedTo === currentUser.id || subs.includes(p.assignedTo) || p.createdBy === currentUser.id); }
+    if (currentUser.role === "admin" || currentUser.role === "pimpinan_1") return plans;
+    if (currentUser.role === "pimpinan_2" || currentUser.role === "pimpinan_3") {
+      const subs = getSubordinates(currentUser.id).map(s => s.id);
+      return plans.filter(p => p.assignedTo === currentUser.id || subs.includes(p.assignedTo) || p.createdBy === currentUser.id);
+    }
     return plans.filter(p => p.assignedTo === currentUser.id);
   }, [currentUser, plans, employees]);
 
@@ -354,49 +357,85 @@ export function SKPProvider({ children }: { children: ReactNode }) {
     return plansSnapshot;
   };
 
-  // ===== CRUD Organisasi (admin/direktur) =====
-  const updateEmployeeOrg = async (id: string, patch: { supervisorId?: string | null; role?: Role }) => {
-    if (!currentUser || !["admin","direktur"].includes(currentUser.role)) { notify("Hanya admin/direktur"); return false; }
-    if (patch.supervisorId === id) { notify("Atasan tidak bisa dirinya sendiri"); return false; }
-    if (patch.supervisorId && isSubordinate(id, patch.supervisorId)) { notify("Tidak boleh: akan membentuk siklus (delegasi penerima jadi atasan)"); return false; }
+  // ===== CRUD Akun & Organisasi (khusus admin — pimpinan hanya melihat) =====
+  const updateEmployee = async (id: string, patch: { name?: string; email?: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role?: Role; isActive?: boolean; avatar?: string }) => {
+    if (!currentUser || currentUser.role !== "admin") { notify("Hanya administrator yang dapat mengubah akun pegawai"); return { ok: false, error: "only_admin" }; }
+    const target = employees.find(e => e.id === id);
+    if (!target) return { ok: false, error: "Pegawai tidak ditemukan" };
+    if (patch.role !== undefined || patch.supervisorId !== undefined) {
+      const check = validateOrgChange(employees, id, target, { role: patch.role, supervisorId: patch.supervisorId });
+      if (!check.ok) { notify(check.error || "Relasi organisasi tidak valid"); return { ok: false, error: check.error }; }
+    }
     const backup = employees;
     setEmployees(prev => prev.map(e => e.id === id ? { ...e, ...patch } : e));
     try {
       const res = await fetch("/api/employees", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id, ...patch }) });
-      const j = await res.json().catch(()=>({}));
+      const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || res.statusText);
-      addLog("Mengubah organisasi", `Update ${patch.supervisorId !== undefined ? "atasan" : ""}${patch.role ? " role" : ""} ${employees.find(e=>e.id===id)?.name}`.trim(), "employee", id);
-      notify("Data organisasi diperbarui");
-      return true;
-    } catch (e: any) {
+      addLog("Mengubah akun/pegawai", `Perbarui ${target.name.split(",")[0]}${patch.role ? " → " + patch.role : ""}`, "employee", id);
+      notify("Data akun & organisasi diperbarui");
+      return { ok: true };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
       setEmployees(backup);
-      notify("Gagal update: " + (e?.message || "error"));
-      return false;
+      notify("Gagal update: " + msg);
+      return { ok: false, error: msg };
+    }
+  };
+
+  const createEmployee = async (data: { name: string; email: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role: Role; isActive?: boolean; avatar?: string }) => {
+    if (!currentUser || currentUser.role !== "admin") { notify("Hanya administrator yang dapat menambah pegawai"); return { ok: false, error: "only_admin" }; }
+    const optimisticId = "e-new-" + Date.now();
+    const check = validateOrgCreate(employees, { id: optimisticId, role: data.role, supervisorId: data.supervisorId || null });
+    if (!check.ok) { notify(check.error || "Relasi organisasi tidak valid"); return { ok: false, error: check.error }; }
+    const newEmp: Employee = {
+      id: optimisticId, userId: "u-new-" + Date.now(),
+      employeeNumber: data.employeeNumber ?? "199" + Math.floor(Math.random() * 1e7),
+      name: data.name, email: data.email, supervisorId: data.supervisorId || null,
+      role: data.role, avatar: data.avatar ?? data.name.slice(0, 2).toUpperCase(), isActive: data.isActive ?? true,
+    };
+    const backup = employees;
+    setEmployees(prev => [newEmp, ...prev]);
+    try {
+      const res = await fetch("/api/employees", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify(data) });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      if (j.id && j.id !== optimisticId) setEmployees(prev => prev.map(e => e.id === optimisticId ? { ...e, id: j.id } : e));
+      addLog("Menambah pegawai", `Menambah pegawai ${newEmp.name}`, "employee", j.id || optimisticId);
+      notify(`Pegawai ${newEmp.name.split(",")[0]} ditambahkan`);
+      return { ok: true, id: j.id || optimisticId };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setEmployees(backup);
+      notify("Gagal tambah: " + msg);
+      return { ok: false, error: msg };
     }
   };
 
   const deleteEmployee = async (id: string) => {
-    if (!currentUser || currentUser.role !== "admin") { notify("Hanya admin dapat menghapus pegawai"); return false; }
-    const target = employees.find(e=>e.id===id);
-    if (!target) return false;
-    if (id === currentUser.id) { notify("Tidak bisa menghapus diri sendiri"); return false; }
+    if (!currentUser || currentUser.role !== "admin") { notify("Hanya administrator yang dapat menghapus pegawai"); return { ok: false, error: "only_admin" }; }
+    const target = employees.find(e => e.id === id);
+    if (!target) return { ok: false, error: "Pegawai tidak ditemukan" };
+    if (id === currentUser.id) { notify("Tidak bisa menghapus diri sendiri"); return { ok: false, error: "self" }; }
+    if (target.role === "pimpinan_1") { notify("Tidak bisa menghapus Direktur (pimpinan_1) — harus selalu ada 1 Direktur"); return { ok: false, error: "satu direktur wajib" }; }
     const subs = getDirectSubordinates(id);
-    if (subs.length > 0) { notify(`Pegawai masih punya ${subs.length} delegasi penerima — pindahkan dulu`); return false; }
-    const hasPlans = plans.some(p=>p.assignedTo===id || p.createdBy===id);
-    if (hasPlans) { notify("Pegawai masih terkait rencana kinerja — hapus/pindahkan dulu"); return false; }
+    if (subs.length > 0) { notify(`Pegawai masih punya ${subs.length} bawahan — pindahkan dulu`); return { ok: false, error: "masih ada bawahan" }; }
+    const hasPlans = plans.some(p => p.assignedTo === id || p.createdBy === id);
+    if (hasPlans) { notify("Pegawai masih terkait rencana kinerja — hapus/pindahkan dulu"); return { ok: false, error: "masih terkait rencana" }; }
     const backup = employees;
     setEmployees(prev => prev.filter(e => e.id !== id));
     try {
       const res = await fetch("/api/employees", { method: "DELETE", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id }) });
-      const j = await res.json().catch(()=>({}));
+      const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || res.statusText);
       addLog("Menghapus pegawai", `Menghapus ${target.name}`, "employee", id);
       notify(`${target.name.split(",")[0]} dihapus`);
-      return true;
-    } catch (e: any) {
+      return { ok: true };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
       setEmployees(backup);
-      notify("Gagal hapus: " + (e?.message || "error"));
-      return false;
+      notify("Gagal hapus: " + msg);
+      return { ok: false, error: msg };
     }
   };
 
@@ -443,11 +482,11 @@ export function SKPProvider({ children }: { children: ReactNode }) {
 
   const value: Ctx = {
     currentUser, setCurrentUser, authChecked, login, logout, employees, setEmployees,
-    updateEmployeeOrg, deleteEmployee,
+    updateEmployee, createEmployee, deleteEmployee,
     periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
     toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, search, setSearch,
     showPlanModal, setShowPlanModal, showCascadeModal, setShowCascadeModal, showRealizationModal, setShowRealizationModal,
-    editingPlan, setEditingPlan, planForm, setPlanForm, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, periodForm, setPeriodForm, empForm, setEmpForm,
+    editingPlan, setEditingPlan, planForm, setPlanForm, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, periodForm, setPeriodForm,
     handleCreatePlan, handleCascade, handleUpdateDelegation, handleDeleteDelegation, handleSubmitRealization, handleDeletePlan,
   };
   return <SKPContext.Provider value={value}>{children}</SKPContext.Provider>;

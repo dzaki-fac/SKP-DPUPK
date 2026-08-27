@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     });
 
     const token = signToken({ id: user.id, email: user.email, role: user.role, name: user.name });
-    const safeUser = { id: user.id, userId: user.userId, employeeNumber: user.employeeNumber, name: user.name, email: user.email, supervisorId: user.supervisorId, role: user.role, avatar: user.avatar };
+    const safeUser = { id: user.id, userId: user.userId, employeeNumber: user.employeeNumber, name: user.name, email: user.email, supervisorId: user.supervisorId, role: user.role, avatar: user.avatar, isActive: user.isActive };
     return authResponse({ ok: true, user: safeUser, token }, token);
   } catch (e: any) {
     return Response.json({ error: "Gagal login", details: e?.message }, { status: 500 });

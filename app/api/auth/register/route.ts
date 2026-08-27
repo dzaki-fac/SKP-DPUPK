@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { hashPassword, getTokenFromHeader, verifyToken } from "@/lib/auth";
+import { validateOrgCreate } from "@/lib/roles";
+import type { OrgRow } from "@/lib/roles";
 import { z } from "zod";
 
 const schema = z.object({
@@ -8,15 +10,14 @@ const schema = z.object({
   password: z.string().min(6),
   employeeNumber: z.string().optional(),
   supervisorId: z.string().nullable().optional(),
-  role: z.enum(["admin","direktur","supervisor","staff"]),
+  role: z.enum(["admin", "pimpinan_1", "pimpinan_2", "pimpinan_3", "staf"]),
 });
 
 export async function POST(req: Request) {
-  // Only admin/direktur can register new users — check token
   const token = getTokenFromHeader(req);
   const payload = token ? verifyToken(token) : null;
-  if (!payload || !["admin","direktur"].includes(payload.role)) {
-    return Response.json({ error: "Hanya admin/direktur dapat menambah pegawai" }, { status: 403 });
+  if (!payload || payload.role !== "admin") {
+    return Response.json({ error: "Hanya administrator yang dapat menambah pegawai" }, { status: 403 });
   }
   try {
     const body = await req.json();
@@ -25,6 +26,13 @@ export async function POST(req: Request) {
     const d = parsed.data;
     const exists = await prisma.employee.findUnique({ where: { email: d.email } });
     if (exists) return Response.json({ error: "Email sudah terdaftar" }, { status: 409 });
+    if (d.employeeNumber) {
+      const dupNip = await prisma.employee.findUnique({ where: { employeeNumber: d.employeeNumber } });
+      if (dupNip) return Response.json({ error: "NIP sudah terdaftar" }, { status: 409 });
+    }
+    const all = (await prisma.employee.findMany({ select: { id: true, role: true, supervisorId: true } })) as unknown as OrgRow[];
+    const check = validateOrgCreate(all, { id: "__new__", role: d.role, supervisorId: d.supervisorId || null });
+    if (!check.ok) return Response.json({ error: check.error }, { status: 400 });
     const hashed = await hashPassword(d.password);
     const emp = await prisma.employee.create({
       data: {

@@ -1,14 +1,16 @@
 "use client";
 import { useSKP } from "@/lib/store";
+import { ROLE_SHORT } from "@/lib/roles";
 
 export default function DashboardPage() {
   const { currentUser, employees, plans, realizations, periods } = useSKP();
   if (!currentUser) return null;
 
   const totalPegawai = employees.length;
-  const totalSupervisor = employees.filter(e => e.role === "supervisor").length;
-  const totalStaff = employees.filter(e => e.role === "staff").length;
-  const totalDirektur = employees.filter(e => e.role === "direktur").length;
+  const totalPimpinan2 = employees.filter(e => e.role === "pimpinan_2").length;
+  const totalPimpinan3 = employees.filter(e => e.role === "pimpinan_3").length;
+  const totalStaff = employees.filter(e => e.role === "staf").length;
+  const totalPimpinan1 = employees.filter(e => e.role === "pimpinan_1").length;
   const totalAdmin = employees.filter(e => e.role === "admin").length;
   const totalRencana = plans.length;
   const selesaiCount = plans.filter(p => p.progress >= 100).length;
@@ -19,7 +21,7 @@ export default function DashboardPage() {
   const avgRealisasiPerRencana = totalRencana ? (totalRealisasi / totalRencana).toFixed(1) : "0";
 
   // Statistik per role (jabatan = role)
-  const perRole = (["direktur","supervisor","staff","admin"] as const).map(role => {
+  const perRole = (["pimpinan_1","pimpinan_2","pimpinan_3","staf","admin"] as const).map(role => {
     const emps = employees.filter(e => e.role === role);
     const pls = plans.filter(p => emps.some(e => e.id === p.assignedTo));
     const avg = pls.length ? Math.round(pls.reduce((a, b) => a + b.progress, 0) / pls.length) : 0;
@@ -67,7 +69,7 @@ export default function DashboardPage() {
         <div className="p-5 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
           <div className="eyebrow text-[11px]">PEGAWAI</div>
           <div className="heading-serif text-[30px] leading-none mt-1">{totalPegawai}</div>
-          <div className="font-mono text-xs text-[#283338]/60 mt-1">{totalDirektur} Direktur • {totalSupervisor} Supervisor • {totalStaff} Staff • {totalAdmin} Admin</div>
+          <div className="font-mono text-xs text-[#283338]/60 mt-1">{totalPimpinan1} Direktur • {totalPimpinan2} Pimpinan 2 • {totalPimpinan3} Pimpinan 3 • {totalStaff} Staf • {totalAdmin} Admin</div>
         </div>
         <div className="p-5 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
           <div className="eyebrow text-[11px]">RENCANA</div>
@@ -96,7 +98,7 @@ export default function DashboardPage() {
             <tbody>
               {perRole.map(j => (
                 <tr key={j.role} className="border-b border-[#e4f0f1]/60">
-                  <td className="py-2.5 font-medium capitalize">{j.role}</td>
+                  <td className="py-2.5 font-medium">{ROLE_SHORT[j.role]}</td>
                   <td className="py-2.5 text-center font-mono text-xs">{j.emps}</td>
                   <td className="py-2.5 text-center font-mono text-xs">{j.pls}</td>
                   <td className="py-2.5 text-right"><span className={`font-mono text-xs font-bold px-2 py-1 rounded-full ${j.avg >= 70 ? "bg-[#e4f0f1] text-[#1c5d5f]" : j.avg >= 40 ? "bg-[#f2e8e2] text-[#283338]" : "bg-[#f2f8f7] text-[#283338]/60"}`} style={{ borderRadius: 100 }}>{j.avg}%</span></td>

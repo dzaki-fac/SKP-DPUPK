@@ -29,9 +29,8 @@ export function AppNav() {
   ].filter(n => {
     if (!currentUser) return false;
     if (n.adminOnly && currentUser.role !== "admin") return false;
-    if (n.href === "/tree" && currentUser.role === "staff") return false;
-    if (n.href === "/organisasi" && currentUser.role === "staff") return false;
-    if (n.href === "/periode" && !["admin","direktur"].includes(currentUser.role)) return false;
+    if (n.href === "/tree" && currentUser.role === "staf") return false;
+    if (n.href === "/periode" && !["admin","pimpinan_1"].includes(currentUser.role)) return false;
     return true;
   });
 

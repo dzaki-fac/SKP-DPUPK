@@ -12,7 +12,7 @@ const schema = z.object({ name: z.string().min(3), year: z.coerce.number().int()
 export async function POST(req: Request) {
   const token = getTokenFromHeader(req);
   const payload = token ? verifyToken(token) : null;
-  if (!payload || !["admin","direktur"].includes(payload.role)) return Response.json({ error: "Hanya admin/direktur" }, { status: 403 });
+  if (!payload || !["admin","pimpinan_1"].includes(payload.role)) return Response.json({ error: "Hanya admin/direktur" }, { status: 403 });
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return Response.json({ error: "Validasi gagal", details: parsed.error.flatten() }, { status: 400 });
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const token = getTokenFromHeader(req);
   const payload = token ? verifyToken(token) : null;
-  if (!payload || !["admin","direktur"].includes(payload.role)) return Response.json({ error: "Hanya admin/direktur" }, { status: 403 });
+  if (!payload || !["admin","pimpinan_1"].includes(payload.role)) return Response.json({ error: "Hanya admin/direktur" }, { status: 403 });
   const body = await req.json();
   if (!body.id) return Response.json({ error: "id wajib" }, { status: 400 });
   const updated = await prisma.skpPeriod.update({ where: { id: body.id }, data: { name: body.name, year: body.year ? Number(body.year) : undefined, startDate: body.startDate, endDate: body.endDate } });

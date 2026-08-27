@@ -27,7 +27,7 @@ export default function RencanaDetailPage() {
   const assignee = employees.find(e => e.id === plan.assignedTo);
   const period = periods.find(p => p.id === plan.skpPeriodId);
   const parentPlan = plan.parentId ? plans.find(p => p.id === plan.parentId) : null;
-  const canManage = ["direktur","supervisor","admin"].includes(currentUser.role);
+  const canManage = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
 
   // Delegasi penerima
   const children = plans.filter(c => c.parentId === plan.id).sort((a,b) => {

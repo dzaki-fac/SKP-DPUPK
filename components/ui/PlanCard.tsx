@@ -53,7 +53,7 @@ export function PlanCard({ p }: { p: PerformancePlan }) {
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
         <button onClick={() => router.push(`/rencana/${p.id}`)} className="px-4 py-2 rounded-full bg-white border border-[#0e4749] text-[#0e4749] text-xs font-medium hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>Detail</button>
-        {(currentUser.role === "direktur" || currentUser.role === "supervisor" || currentUser.role === "admin") && (
+        {(currentUser.role === "pimpinan_1" || currentUser.role === "pimpinan_2" || currentUser.role === "pimpinan_3" || currentUser.role === "admin") && (
           <button onClick={() => setShowCascadeModal(p)} className="px-4 py-2 rounded-full bg-[#1c5d5f] text-white text-xs font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>Limpahkan ↓</button>
         )}
         {p.assignedTo === currentUser.id && <button onClick={() => setShowRealizationModal(p)} className="px-4 py-2 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90" style={{ borderRadius: 48 }}>Isi Realisasi</button>}

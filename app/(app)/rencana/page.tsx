@@ -22,10 +22,10 @@ export default function RencanaPage() {
   const menuRef = useRef<HTMLDivElement>(null);
   if (!currentUser) return null;
 
-  const isStaff = currentUser.role === "staff";
+  const isStaff = currentUser.role === "staf";
   // Staff selalu "mine"; atasan bisa pilih
   const activeScope: Scope = isStaff ? "mine" : scope;
-  const canManage = ["direktur","supervisor","admin"].includes(currentUser.role);
+  const canManage = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
 
   const basePlans = activeScope === "mine" ? myPlans : filteredPlans;
   const shown = basePlans.filter(p => !search || p.title.toLowerCase().includes(search.toLowerCase()));
@@ -74,11 +74,11 @@ export default function RencanaPage() {
       byEmp.set(p.assignedTo, arr);
     }
     // kelompokkan per role, urut hierarki lalu nama
-    const order: Record<string, number> = { direktur: 1, supervisor: 2, staff: 3, admin: 4 };
+    const order: Record<string, number> = { pimpinan_1: 1, pimpinan_2: 2, pimpinan_3: 3, staf: 4, admin: 5 };
     const byRole = new Map<string, { empId: string; items: PerformancePlan[] }[]>();
     for (const [empId, items] of byEmp) {
       const emp = employees.find(e => e.id === empId);
-      const roleId = emp?.role ?? "staff";
+      const roleId = emp?.role ?? "staf";
       const arr = byRole.get(roleId) ?? [];
       arr.push({ empId, items });
       byRole.set(roleId, arr);
@@ -143,7 +143,7 @@ export default function RencanaPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
             {activeScope === "mine" ? (() => {
-              const canCascade = ["direktur","supervisor","admin"].includes(currentUser.role);
+              const canCascade = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
               const canEdit = p.createdBy === currentUser.id || currentUser.role === "admin";
               const canDelete = canEdit;
               return (
@@ -193,7 +193,7 @@ export default function RencanaPage() {
         </div>
         <div className="flex gap-2">
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari..." className="px-3 py-1.5 rounded-full border bg-white text-sm border-[#e4f0f1] w-40 focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 100 }} />
-          {(currentUser.role === "direktur" || currentUser.role === "admin" || currentUser.role === "supervisor") && (
+          {(currentUser.role === "pimpinan_1" || currentUser.role === "pimpinan_2" || currentUser.role === "pimpinan_3" || currentUser.role === "admin") && (
             <button onClick={() => { setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026" }); setShowPlanModal(true); }} className="px-4 py-1.5 rounded-full bg-[#1c5d5f] text-white text-xs font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>+ Buat</button>
           )}
         </div>
@@ -256,7 +256,7 @@ export default function RencanaPage() {
         <div ref={menuRef} className="fixed z-50 w-44 bg-white border border-[#e4f0f1] shadow-sm overflow-hidden" style={{ borderRadius: 12, left: openMenu.x, top: openMenu.y }}>
           {(() => {
             const p = openMenu.plan;
-            const canCascade = ["direktur","supervisor","admin"].includes(currentUser.role);
+            const canCascade = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
             const canRealize = p.assignedTo === currentUser.id;
             const canEdit = p.createdBy === currentUser.id || currentUser.role === "admin";
             const canDelete = canEdit;

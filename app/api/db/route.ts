@@ -11,7 +11,7 @@ export async function GET() {
     prisma.activityLog.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
   return Response.json({
-    employees: employees.map(e => ({ id: e.id, userId: e.userId, employeeNumber: e.employeeNumber, name: e.name, email: e.email, supervisorId: e.supervisorId, role: e.role, avatar: e.avatar })),
+    employees: employees.map(e => ({ id: e.id, userId: e.userId, employeeNumber: e.employeeNumber, name: e.name, email: e.email, supervisorId: e.supervisorId, role: e.role, avatar: e.avatar, isActive: e.isActive })),
     periods: periods.map(p => ({ id: p.id, name: p.name, year: p.year, startDate: p.startDate, endDate: p.endDate })),
     plans: plans.map(p => ({ id: p.id, parentId: p.parentId, skpPeriodId: p.skpPeriodId, createdBy: p.createdBy, assignedTo: p.assignedTo, title: p.title, target: p.target, progress: p.progress })),
     realizations: realizations.map(r => ({ id: r.id, planId: r.performancePlanId, title: (r as any).title ?? "Realisasi", value: r.realizationValue, description: r.realizationDescription, date: r.realizationDate })),
