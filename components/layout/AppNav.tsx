@@ -8,7 +8,7 @@ import { roleLabel } from "@/lib/data";
 export function AppNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, setCurrentUser, employees, login, logout } = useSKP();
+  const { currentUser, employees, login, logout } = useSKP();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -24,11 +24,9 @@ export function AppNav() {
     { href: "/realisasi", label: "Realisasi" },
     { href: "/organisasi", label: "Organisasi" },
     { href: "/periode", label: "Periode" },
-    { href: "/pegawai", label: "Pegawai", adminOnly: true },
     { href: "/audit", label: "Audit" },
   ].filter(n => {
     if (!currentUser) return false;
-    if (n.adminOnly && currentUser.role !== "admin") return false;
     if (n.href === "/tree" && currentUser.role === "staf") return false;
     if (n.href === "/periode" && !["admin","pimpinan_1"].includes(currentUser.role)) return false;
     return true;

@@ -4,12 +4,12 @@ import { useSKP } from "@/lib/store";
 import { ROLE_SHORT, ROLE_LABEL } from "@/lib/roles";
 import type { Employee } from "@/lib/types";
 
-const ROLE_CHIP: Record<string, string> = {
-  admin: "bg-[#16325a] text-white",
-  pimpinan_1: "bg-[#1c5d5f] text-white",
-  pimpinan_2: "bg-[#e4f0f1] text-[#1c5d5f] border border-[#a2cbcd]",
-  pimpinan_3: "bg-[#f2f8f7] text-[#1c5d5f] border border-[#d5e6e8]",
-  staf: "bg-white text-[#283338] border border-[#e4f0f1]",
+const ROLE_TEXT: Record<string, string> = {
+  admin: "text-[#16325a]",
+  pimpinan_1: "text-[#1c5d5f]",
+  pimpinan_2: "text-[#1c5d5f]",
+  pimpinan_3: "text-[#1c5d5f]",
+  staf: "text-[#283338]/70",
 };
 
 export default function OrgStructure() {
@@ -75,6 +75,55 @@ export default function OrgStructure() {
 
   const planCountOf = (id: string) => plans.filter(p => p.assignedTo === id).length;
 
+  const detailEmp = detailId ? employees.find(e => e.id === detailId) : null;
+  const renderDetail = (e: Employee) => {
+    if (!currentUser) return null;
+    if (!detailEmp || detailEmp.id !== e.id) return null;
+    const sup = e.supervisorId ? employees.find(x => x.id === e.supervisorId) : null;
+    const rows: Array<{ label: string; value: string }> = [
+      { label: "NIP", value: e.employeeNumber || "—" },
+      { label: "Email", value: e.email },
+      { label: "Jabatan", value: ROLE_LABEL[e.role] },
+      { label: "Atasan langsung", value: sup ? sup.name : "—" },
+      { label: "Status", value: e.isActive ? "Aktif" : "Non-aktif" },
+      { label: "Rencana aktif", value: `${planCountOf(e.id)} rencana` },
+    ];
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0e4749]/30" onClick={() => setDetailId(null)}>
+        <div className="absolute inset-y-0 right-0 w-full max-w-md bg-white border-l border-[#e4f0f1] overflow-y-auto" onClick={e2 => e2.stopPropagation()}>
+          <div className="sticky top-0 bg-white border-b border-[#e4f0f1] px-6 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-[#1c5d5f] text-white flex items-center justify-center text-sm font-bold leading-none shrink-0" style={{ borderRadius: 9999 }}>{e.avatar}</div>
+              <div>
+                <div className="font-medium text-[15px] text-[#283338]">{e.name}</div>
+                <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#1c5d5f]">{ROLE_SHORT[e.role]}</div>
+              </div>
+            </div>
+            <button type="button" onClick={() => setDetailId(null)} className="w-8 h-8 rounded-full border border-[#e4f0f1] text-[#283338]/60 hover:border-[#a2cbcd] hover:text-[#283338]" style={{ borderRadius: 9999 }}>✕</button>
+          </div>
+          <div className="p-6 space-y-5">
+            <div className="space-y-4">
+              {rows.map(r => (
+                <div key={r.label}>
+                  <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">{r.label}</div>
+                  <div className="mt-1 text-[14px] text-[#283338]">{r.value}</div>
+                </div>
+              ))}
+            </div>
+            <div className="pt-4 border-t border-[#e4f0f1]">
+              <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Lingkup</div>
+              <p className="mt-1 text-[13px] text-[#283338]/70">
+                {currentUser.role === "pimpinan_1" || currentUser.role === "admin"
+                  ? "Terlihat dalam struktur organisasi secara penuh."
+                  : "Terlihat dalam subtree jabatan Anda."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderNode = (e: Employee, depth: number): React.ReactNode => {
     if (!inScope(e)) return null;
     const kids = (childrenOf.get(e.id) ?? []).filter(inScope);
@@ -83,53 +132,52 @@ export default function OrgStructure() {
     const open = search ? (hasMatchDescendant(e) || matches(e)) : (expanded.has(e.id) || isRootOfScope || depth === 0);
     const showKids = hasKids && open;
     const isMatchHere = matches(e);
-    // ketika searching: sembunyikan node yang tidak relevan (tapi tampilkan leluhurnya)
     if (search && !isMatchHere && !hasMatchDescendant(e)) return null;
 
     return (
       <div key={e.id}>
         <div
-          className={`flex items-center gap-3 p-3 rounded-xl border bg-white transition-colors ${isMatchHere ? "border-[#a2cbcd] bg-[#f2f8f7]" : "border-[#e4f0f1] hover:border-[#a2cbcd]"}`}
-          style={{ borderRadius: 12, marginLeft: depth * 28 }}
+          className={`flex items-center gap-3 py-2.5 pr-3 group transition-colors ${depth === 0 ? "border-b border-[#d5e6e8]" : ""} ${isMatchHere ? "bg-[#f2f8f7]" : "hover:bg-[#f2f8f7]/60"}`}
+          style={{ paddingLeft: depth * 24 + 4 }}
         >
-          <button type="button" onClick={() => hasKids && toggle(e.id)} className={`w-6 h-6 shrink-0 flex items-center justify-center rounded-full text-xs ${hasKids ? "bg-[#e4f0f1] text-[#1c5d5f] hover:bg-[#a2cbcd]" : "text-transparent cursor-default"}`} style={{ borderRadius: 9999 }}>
-            {hasKids ? (showKids ? "▾" : "▸") : "•"}
-          </button>
-          <div className="w-9 h-9 rounded-full bg-[#1c5d5f] text-white flex items-center justify-center text-xs font-bold shrink-0" style={{ borderRadius: 9999 }}>{e.avatar}</div>
+          {hasKids ? (
+            <button
+              type="button"
+              onClick={() => toggle(e.id)}
+              aria-label={showKids ? "Ciutkan" : "Bentangkan"}
+              className="w-4 shrink-0 text-center text-[12px] text-[#1c5d5f] hover:text-[#0e4749] select-none"
+            >
+              {showKids ? "▾" : "▸"}
+            </button>
+          ) : (
+            <span className="w-4 shrink-0 text-center text-[12px] text-[#a2cbcd] select-none" aria-hidden>·</span>
+          )}
+          <div className="w-8 h-8 rounded-full bg-[#1c5d5f] text-white flex items-center justify-center text-[11px] font-bold shrink-0 leading-none" style={{ borderRadius: 9999 }}>{e.avatar}</div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium text-[13px] text-[#283338]">{e.name}</span>
-              {!e.isActive && <span className="font-mono text-[10px] uppercase px-1.5 py-0.5 rounded-full bg-[#f2e8e2] text-[#b91c1c] border border-[#edd5c9]" style={{ borderRadius: 100 }}>non-aktif</span>}
+              <span className={`text-[14px] ${depth === 0 ? "font-semibold text-[#283338]" : "font-medium text-[#283338]"}`}>{e.name}</span>
+              {!e.isActive && <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#b91c1c]">non-aktif</span>}
             </div>
-            <div className="font-mono text-[11px] text-[#283338]/50">{e.employeeNumber}</div>
+            <div className="font-mono text-[11px] text-[#283338]/50">{e.employeeNumber || "Tanpa NIP"}</div>
           </div>
-          <span className={`hidden sm:inline-block font-mono text-[11px] px-2.5 py-1 rounded-full whitespace-nowrap ${ROLE_CHIP[e.role] || "bg-white border border-[#e4f0f1] text-[#283338]"}`} style={{ borderRadius: 100 }}>{ROLE_SHORT[e.role]}</span>
-          {depth === 0 && (e.role === "pimpinan_1" || e.role === "admin") && (
-            <span className="hidden md:inline-block font-mono text-[10px] uppercase text-[#283338]/50">tertinggi</span>
-          )}
+          <span className={`hidden sm:inline font-mono text-[12px] whitespace-nowrap ${ROLE_TEXT[e.role] || "text-[#283338]/70"}`}>{ROLE_SHORT[e.role]}</span>
           {showCounts && (
-            <div className="hidden md:flex items-center gap-1.5 font-mono text-[11px] text-[#283338]/60">
-              <span className="px-2 py-1 rounded-full bg-[#f2f8f7] border border-[#e4f0f1]" style={{ borderRadius: 100 }}>{kids.length} bawahan</span>
-              <span className="px-2 py-1 rounded-full bg-[#f2f8f7] border border-[#e4f0f1]" style={{ borderRadius: 100 }}>{planCountOf(e.id)} rencana</span>
-            </div>
+            <span className="hidden md:inline font-mono text-[11px] text-[#283338]/45 whitespace-nowrap">
+              {kids.length > 0 && `${kids.length} bawahan`}
+              {kids.length > 0 && " · "}
+              {planCountOf(e.id)} rencana
+            </span>
           )}
-          <button type="button" onClick={() => setDetailId(detailId === e.id ? null : e.id)} className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium border border-[#e4f0f1] text-[#1c5d5f] hover:border-[#a2cbcd]" style={{ borderRadius: 48 }}>
-            {detailId === e.id ? "Tutup" : "Detail"}
+          <button
+            type="button"
+            onClick={() => setDetailId(detailId === e.id ? null : e.id)}
+            className="shrink-0 px-3 py-1 rounded-md border border-[#e4f0f1] text-[12px] font-medium text-[#1c5d5f] hover:border-[#a2cbcd] hover:bg-[#f2f8f7]"
+          >
+            Detail
           </button>
         </div>
 
-        {detailId === e.id && (
-          <div className="ml-[64px] mt-1 p-3 rounded-xl bg-[#f2f8f7] border border-[#d5e6e8] text-sm text-[#283338]/80" style={{ borderRadius: 12, marginLeft: depth * 28 + 60 }}>
-            <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1 font-mono text-xs">
-              <div><span className="text-[#283338]/50">Email</span><br />{e.email}</div>
-              <div><span className="text-[#283338]/50">NIP</span><br />{e.employeeNumber}</div>
-              <div><span className="text-[#283338]/50">Jabatan</span><br />{ROLE_LABEL[e.role]}</div>
-              <div><span className="text-[#283338]/50">Atasan langsung</span><br />{e.supervisorId ? (employees.find(x => x.id === e.supervisorId)?.name ?? "—") : "—"}</div>
-              <div><span className="text-[#283338]/50">Status</span><br />{e.isActive ? "Aktif" : "Non-aktif"}</div>
-              <div><span className="text-[#283338]/50">Rencana</span><br />{planCountOf(e.id)} rencana</div>
-            </div>
-          </div>
-        )}
+        {renderDetail(e)}
 
         {showKids && kids.map(k => renderNode(k, depth + 1))}
       </div>
@@ -137,39 +185,42 @@ export default function OrgStructure() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Cari nama, NIP, email, jabatan…"
-          className="flex-1 min-w-[220px] px-3 py-2 rounded-xl border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]"
-          style={{ borderRadius: 12 }}
-        />
+        <div className="relative flex-1 min-w-[220px]">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#283338]/40 text-[14px]" aria-hidden>⌕</span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Cari nama, NIP, email, atau jabatan"
+            className="w-full pl-9 pr-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]"
+          />
+        </div>
         <button
           type="button"
           onClick={() => setShowCounts(v => !v)}
-          className="px-3 py-2 rounded-full border border-[#e4f0f1] bg-white text-xs font-medium text-[#283338] hover:border-[#a2cbcd]"
-          style={{ borderRadius: 48 }}
+          className="px-3 py-2 rounded-md border border-[#e4f0f1] bg-white text-xs font-medium text-[#283338]/70 hover:border-[#a2cbcd] hover:text-[#283338]"
         >
-          {showCounts ? "Sembunyikan penghitung" : "Tampilkan penghitung"}
+          {showCounts ? "Sembunyikan rincian" : "Tampilkan rincian"}
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {(["pimpinan_1", "pimpinan_2", "pimpinan_3", "staf", "admin"] as const).map(r => (
-          <span key={r} className="font-mono text-[11px] px-2.5 py-1 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/70" style={{ borderRadius: 100 }}>
-            {ROLE_LABEL[r]}
-          </span>
-        ))}
-      </div>
-
-      <div className="space-y-1.5">
-        {roots.length === 0 && <div className="p-8 text-center border border-dashed bg-white text-[#283338]/60" style={{ borderRadius: 12, borderColor: "#a2cbcd" }}>Belum ada struktur organisasi.</div>}
-        {roots.map(r => renderNode(r, 0))}
+      <div>
+        <div className="border border-[#e4f0f1] bg-white">
+          <div className="px-4 py-3 border-b border-[#e4f0f1] flex items-center justify-between">
+            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Struktur organisasi</span>
+            <span className="font-mono text-[11px] text-[#283338]/45">{scope.size} node</span>
+          </div>
+          {roots.length === 0 && (
+            <div className="px-4 py-12 text-center text-[#283338]/60 text-sm">Belum ada struktur organisasi.</div>
+          )}
+          <div className="px-2 py-2">
+            {roots.map(r => renderNode(r, 0))}
+          </div>
+        </div>
 
         {currentUser && currentUser.role !== "admin" && currentUser.role !== "pimpinan_1" && (
-          <p className="font-mono text-[11px] text-[#283338]/50 pt-1">
+          <p className="font-mono text-[11px] text-[#283338]/50 pt-3">
             • Anda melihat subtree untuk jabatan Anda saat ini. Direktur (pimpinan_1) & administrator melihat seluruh struktur.
           </p>
         )}
