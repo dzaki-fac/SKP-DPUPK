@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useSKP } from "@/lib/store";
-import { ROLES, ROLE_LABEL, ROLE_LEVEL, ROLE_SHORT, roleAbove } from "@/lib/roles";
+import { ROLES, ROLE_LABEL, ROLE_LEVEL, ROLE_SHORT, roleAbove, CREATEABLE_ROLES, canCreateAnyRole, descendantIds } from "@/lib/roles";
 import type { Employee, Role } from "@/lib/types";
 
 type Modal = { mode: "create" } | { mode: "edit"; emp: Employee } | null;
@@ -36,31 +36,61 @@ export default function EmployeeManager() {
   const [form, setForm] = useState<Form>(EMPTY);
   const [busy, setBusy] = useState(false);
 
-  const isAdmin = currentUser?.role === "admin";
+  const role = currentUser?.role;
+  const isAdmin = role === "admin";
+  const canManage = !!role && canCreateAnyRole(role);
+
+  // Lingkup kewenangan: admin melihat seluruh organisasi; pimpinan hanya subtree-nya.
+  const scopeIds = useMemo(() => {
+    if (!currentUser) return new Set<string>();
+    if (isAdmin) return new Set(employees.map(e => e.id));
+    return new Set<string>([currentUser.id, ...descendantIds(employees.map(e => ({ id: e.id, role: e.role, supervisorId: e.supervisorId })), currentUser.id)]);
+  }, [employees, currentUser, isAdmin]);
+
+  const manageable = useMemo(() => employees.filter(e => scopeIds.has(e.id)), [employees, scopeIds]);
+
+  const neededRole = roleAbove(form.role);
+  const manualSupervisorOptions = useMemo(() => {
+    if (!neededRole) return [];
+    let opts = employees.filter(e => e.role === neededRole);
+    if (!isAdmin) opts = opts.filter(e => scopeIds.has(e.id) && e.id !== currentUser?.id);
+    return opts.sort(sortEmps);
+  }, [employees, neededRole, isAdmin, scopeIds, currentUser]);
 
   const list = useMemo(() => {
     const query = q.trim().toLowerCase();
-    return employees
+    return manageable
       .filter(e => (roleFilter === "all" || e.role === roleFilter))
       .filter(e => (statusFilter === "all" || ((e.isActive ?? true) === (statusFilter === "active"))))
       .filter(e => !query || e.name.toLowerCase().includes(query) || e.email.toLowerCase().includes(query) || e.employeeNumber.includes(query))
       .sort(sortEmps);
-  }, [employees, q, roleFilter, statusFilter]);
+  }, [manageable, q, roleFilter, statusFilter]);
 
-  if (!isAdmin) {
+  if (!canManage || !currentUser) {
     return (
       <div className="border border-dashed border-[#a2cbcd] bg-white px-6 py-12 text-center" style={{ borderRadius: 8 }}>
-        <div className="heading-serif text-[20px]">Khusus administrator</div>
-        <p className="mt-2 text-sm text-[#283338]/70 max-w-md mx-auto">Kelola pegawai & akun (tambah, ubah, reset password, non-aktifkan) hanya dapat dilakukan oleh administrator.</p>
+        <div className="heading-serif text-[20px]">Khusus pimpinan & administrator</div>
+        <p className="mt-2 text-sm text-[#283338]/70 max-w-md mx-auto">Pengelolaan pegawai & akun hanya dapat dilakukan oleh administrator atau pimpinan sesuai lingkup kewenangannya.</p>
       </div>
     );
   }
 
-  const neededRole = roleAbove(form.role);
-  const supervisorOptions = neededRole ? employees.filter(e => e.role === neededRole) : [];
-  const effectiveSupervisorId = supervisorOptions.some(s => s.id === form.supervisorId) ? form.supervisorId : "";
+  // --- Kandidat atasan untuk akun baru ---
+  const createableRoles = CREATEABLE_ROLES[role as Role] ?? [];
 
-  const openCreate = () => { setForm(EMPTY); setModal({ mode: "create" }); };
+  // Atasan otomatis = pembuat ketika role target tepat satu tingkat di bawah pembuat.
+  const autoSupervisor = modal?.mode === "create" && !isAdmin && neededRole === role && currentUser.id;
+
+  const supervisorOptions = autoSupervisor ? [] : manualSupervisorOptions;
+  const effectiveSupervisorId = autoSupervisor ? currentUser.id : (supervisorOptions.some(s => s.id === form.supervisorId) ? form.supervisorId : "");
+
+  const openCreate = () => {
+    const initial = { ...EMPTY, role: createableRoles[0] ?? "staf" };
+    const firstNeed = roleAbove(initial.role);
+    if (!isAdmin && firstNeed === role && currentUser) initial.supervisorId = currentUser.id;
+    setForm(initial);
+    setModal({ mode: "create" });
+  };
   const openEdit = (e: Employee) => { setForm({ name: e.name, email: e.email, employeeNumber: e.employeeNumber, role: e.role, supervisorId: e.supervisorId ?? "", password: "", isActive: e.isActive ?? true }); setModal({ mode: "edit", emp: e }); };
   const close = () => { setModal(null); setBusy(false); };
 
@@ -158,7 +188,9 @@ export default function EmployeeManager() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => openEdit(e)} className="px-3 py-1.5 rounded-md border border-[#e4f0f1] text-[12px] font-medium text-[#1c5d5f] hover:border-[#a2cbcd] hover:bg-[#f2f8f7]">Ubah</button>
-                      <button onClick={() => remove(e)} className="px-3 py-1.5 rounded-md border border-[#eed8cd] text-[12px] font-medium text-[#b91c1c] hover:border-[#e3b5a3] hover:bg-[#fcf4f0]">Hapus</button>
+                      {e.id !== currentUser?.id && (
+                        <button onClick={() => remove(e)} className="px-3 py-1.5 rounded-md border border-[#eed8cd] text-[12px] font-medium text-[#b91c1c] hover:border-[#e3b5a3] hover:bg-[#fcf4f0]">Hapus</button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -171,10 +203,12 @@ export default function EmployeeManager() {
         </table>
       </div>
 
-      <p className="font-mono text-[11px] text-[#283338]/50">• {employees.length} pegawai total. Direktur (pimpinan_1) & administrator tampil di luar relasi atasan.</p>
+      <p className="font-mono text-[11px] text-[#283338]/50">
+        • {isAdmin ? `${manageable.length} pegawai total. Direktur (pimpinan_1) & administrator tampil di luar relasi atasan.` : `${manageable.length} pegawai dalam kewenangan Anda.`}
+      </p>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e4749]/30" onClick={close}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={close}>
           <div className="w-full max-w-lg bg-white border border-[#e4f0f1]" style={{ borderRadius: 10 }} onClick={e => e.stopPropagation()}>
             <div className="px-6 pt-6 flex items-start justify-between">
               <div>
@@ -193,8 +227,18 @@ export default function EmployeeManager() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <label className="block">
                   <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Jabatan</span>
-                  <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as Role, supervisorId: "" })} className={`${inputCls} mt-1`}>
-                    {ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                  <select
+                    value={form.role}
+                    onChange={e => {
+                      const nr = e.target.value as Role;
+                      const need = roleAbove(nr);
+                      let sup = "";
+                      if (!isAdmin && need === role && currentUser) sup = currentUser.id;
+                      setForm({ ...form, role: nr, supervisorId: sup });
+                    }}
+                    className={`${inputCls} mt-1`}
+                  >
+                    {(modal.mode === "create" ? createableRoles : ROLES).map((r: Role) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                     {modal.mode === "create" && form.role === "pimpinan_1" && employees.some(x => x.role === "pimpinan_1") && (
                       <option value="" disabled>⚠ Direktur sudah ada</option>
                     )}
@@ -202,13 +246,20 @@ export default function EmployeeManager() {
                 </label>
                 <label className="block">
                   <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Atasan langsung</span>
-                  <select value={effectiveSupervisorId} onChange={e => setForm({ ...form, supervisorId: e.target.value })} className={`${inputCls} mt-1`}>
-                    <option value="">{(form.role === "admin" || form.role === "pimpinan_1") ? "— Tanpa atasan —" : "— Pilih atasan —"}</option>
-                    {supervisorOptions.map(s => <option key={s.id} value={s.id}>{s.name} • {ROLE_SHORT[s.role]}</option>)}
-                  </select>
+                  {autoSupervisor ? (
+                    <div className={`${inputCls} mt-1 flex items-center justify-between`}>
+                      <span className="text-[#283338]">{currentUser.name.split(",")[0]} (Anda)</span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#1c5d5f]">otomatis</span>
+                    </div>
+                  ) : (
+                    <select value={effectiveSupervisorId} onChange={e => setForm({ ...form, supervisorId: e.target.value })} className={`${inputCls} mt-1`}>
+                      <option value="">{(form.role === "admin" || form.role === "pimpinan_1") ? "— Tanpa atasan —" : "— Pilih atasan —"}</option>
+                      {supervisorOptions.map(s => <option key={s.id} value={s.id}>{s.name} • {ROLE_SHORT[s.role]}</option>)}
+                    </select>
+                  )}
                 </label>
               </div>
-              {form.role !== "admin" && form.role !== "pimpinan_1" && neededRole && supervisorOptions.length === 0 && (
+              {form.role !== "admin" && form.role !== "pimpinan_1" && neededRole && !autoSupervisor && supervisorOptions.length === 0 && (
                 <p className="font-mono text-[11px] text-[#b91c1c]">Belum ada pegawai berjabatan {ROLE_LABEL[neededRole]} sebagai calon atasan untuk jabatan {ROLE_LABEL[form.role]}.</p>
               )}
               <input placeholder={modal.mode === "edit" ? "Password baru (kosongkan jika tidak diubah)" : "Password default 'password'"} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className={inputCls} />

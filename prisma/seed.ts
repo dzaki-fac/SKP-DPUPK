@@ -29,6 +29,17 @@ async function main() {
       { id: "e-fitri", userId: "u-fitri", employeeNumber: "199601152019022009", name: "Fitri Handayani, A.Md", email: "fitri.h@dpupk.go.id", supervisorId: "e-rina", role: "staf", avatar: "FH" },
       { id: "e-budi", userId: "u-budi", employeeNumber: "199408252018022007", name: "Budi Hermawan, S.E", email: "budi.h@dpupk.go.id", supervisorId: "e-joko", role: "staf", avatar: "BH" },
       { id: "e-gunawan", userId: "u-gunawan", employeeNumber: "199702202020012010", name: "Gunawan Saputra, S.E", email: "gunawan.s@dpupk.go.id", supervisorId: "e-joko", role: "staf", avatar: "GS" },
+
+      // ── Pimpinan 2 A (Siti) → Pimpinan 3 A2 (kabinet kedua) ──────────────
+      { id: "e-p3a2", userId: "u-p3a2", employeeNumber: "199312082018022011", name: "Nina Kartika, S.T., M.T", email: "nina.k@dpupk.go.id", supervisorId: "e-siti", role: "pimpinan_3", avatar: "NK" },
+      { id: "e-staf-a21", userId: "u-staf-a21", employeeNumber: "199604122020021012", name: "Rudi Hartono, S.Kom", email: "rudi.h@dpupk.go.id", supervisorId: "e-p3a2", role: "staf", avatar: "RH" },
+      { id: "e-staf-a22", userId: "u-staf-a22", employeeNumber: "199902182021021013", name: "Sri Wahyuni, A.Md", email: "sri.w@dpupk.go.id", supervisorId: "e-p3a2", role: "staf", avatar: "SW" },
+
+      // ── Pimpinan 2 B (Agus) → Pimpinan 3 B2 (kabinet kedua) ──────────────
+      { id: "e-p3b2", userId: "u-p3b2", employeeNumber: "198911062017021014", name: "Fajar Nugroho, S.T", email: "fajar.n@dpupk.go.id", supervisorId: "e-agus", role: "pimpinan_3", avatar: "FN" },
+      { id: "e-staf-b21", userId: "u-staf-b21", employeeNumber: "199711232020012015", name: "Lukman Hakim, S.E", email: "lukman.h@dpupk.go.id", supervisorId: "e-p3b2", role: "staf", avatar: "LH" },
+      { id: "e-staf-b22", userId: "u-staf-b22", employeeNumber: "200005302021022016", name: "Indah Permata, S.Ak", email: "indah.p@dpupk.go.id", supervisorId: "e-p3b2", role: "staf", avatar: "IP" },
+
       { id: "e-admin", userId: "u-admin", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", supervisorId: null, role: "admin", avatar: "AD" },
     ]
   });
@@ -151,21 +162,28 @@ async function main() {
 Seed selesai — skenario 6 WEBINAR (role 5 jabatan):
 
 PIMPINAN_1  : pl-webinar-6 [dilimpahkan]
-├── PIMPINAN_2 Siti : 3 webinar Seri A [dilimpahkan]
-│   └── PIMPINAN_3 Rina  : 2 webinar teknis [aktif, realisasi 1/2]
-│       ├── STAF Dewi     : laporan pelaksanaan webinar teknis
-│       └── STAF Fitri    : data peserta webinar teknis
-└── PIMPINAN_2 Agus : 3 webinar Seri B [dilimpahkan]
-    └── PIMPINAN_3 Joko  : 2 webinar dokumentasi [aktif]
-        ├── STAF Budi     : arsip dokumentasi evaluasi
-        └── STAF Gunawan  : rekap arsip dokumentasi
+├── PIMPINAN_2 Siti (A) : 3 webinar Seri A [dilimpahkan]
+│   ├── PIMPINAN_3 Rina (A1) : 2 webinar teknis [aktif, realisasi 1/2]
+│   │   ├── STAF Dewi     : laporan pelaksanaan webinar teknis
+│   │   └── STAF Fitri    : data peserta webinar teknis
+│   └── PIMPINAN_3 Nina (A2)
+│       ├── STAF Rudi
+│       └── STAF Sri
+└── PIMPINAN_2 Agus (B) : 3 webinar Seri B [dilimpahkan]
+    ├── PIMPINAN_3 Joko (B1) : 2 webinar dokumentasi [aktif]
+    │   ├── STAF Budi     : arsip dokumentasi evaluasi
+    │   └── STAF Gunawan  : rekap arsip dokumentasi
+    └── PIMPINAN_3 Fajar (B2)
+        ├── STAF Lukman
+        └── STAF Indah
 
 Login (password = 'password'):
-  direktur@dpupk.go.id    (pimpinan_1) — lihat seluruh subtree
-  siti.rahayu@dpupk.go.id (pimpinan_2) — subtree Siti
-  rina.m@dpupk.go.id      (pimpinan_3) — subtree Rina
+  direktur@dpupk.go.id    (pimpinan_1) — lihat seluruh struktur
+  siti.rahayu@dpupk.go.id (pimpinan_2) — kelola subtree Siti (A)
+  agus.p@dpupk.go.id      (pimpinan_2) — kelola subtree Agus (B)
+  rina.m@dpupk.go.id      (pimpinan_3) — kelola staf di bawah Rina (A1)
   dewi.l@dpupk.go.id      (staf)       — data sendiri
-  admin@dpupk.go.id       (admin)      — kelola akun & organisasi
+  admin@dpupk.go.id       (admin)      — kelola seluruh akun & organisasi
 `);
 }
 

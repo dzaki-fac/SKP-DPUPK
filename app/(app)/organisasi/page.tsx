@@ -4,11 +4,11 @@ import { useSearchParams } from "next/navigation";
 import OrgStructure from "@/components/org/OrgStructure";
 import EmployeeManager from "@/components/org/EmployeeManager";
 import { useSKP } from "@/lib/store";
-import { ROLE_SHORT } from "@/lib/roles";
+import { ROLE_SHORT, canCreateAnyRole } from "@/lib/roles";
 
 function OrganisasiContent() {
   const { currentUser } = useSKP();
-  const isAdmin = currentUser?.role === "admin";
+  const canManage = !!currentUser && canCreateAnyRole(currentUser.role);
   const params = useSearchParams();
   const initialTab = params.get("tab") === "pegawai" ? "pegawai" : "struktur";
   const [tab, setTab] = useState<"struktur" | "pegawai">(initialTab);
@@ -36,7 +36,7 @@ function OrganisasiContent() {
           </button>
           <button onClick={() => setTab("pegawai")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 flex items-center gap-2 ${tab === "pegawai" ? "text-[#1c5d5f] border-[#1c5d5f]" : "text-[#283338]/55 border-transparent hover:text-[#283338]"}`}>
             Pegawai
-            {isAdmin && <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#283338]/50">kelola</span>}
+            {canManage && <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#283338]/50">kelola</span>}
           </button>
         </div>
       </div>

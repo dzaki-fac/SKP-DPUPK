@@ -155,3 +155,117 @@ export function validSupervisors(employees: OrgRow[], role: Role): OrgRow[] {
   if (!expected) return [];
   return employees.filter((e) => e.role === expected);
 }
+
+/**
+ * Role yang boleh DIBUAT oleh seorang pembuat akun, berdasarkan jabatannya.
+ * Pimpinan hanya dapat membuat role yang lebih rendah, tidak boleh yang setara/lebih tinggi.
+ */
+export const CREATEABLE_ROLES: Record<Role, Role[]> = {
+  admin: ["admin", "pimpinan_1", "pimpinan_2", "pimpinan_3", "staf"],
+  pimpinan_1: ["pimpinan_2", "pimpinan_3", "staf"],
+  pimpinan_2: ["pimpinan_3", "staf"],
+  pimpinan_3: ["staf"],
+  staf: [],
+};
+
+export function canCreateRole(creator: Role, target: Role): boolean {
+  return CREATEABLE_ROLES[creator]?.includes(target) ?? false;
+}
+
+export function canCreateAnyRole(creator: Role): boolean {
+  return (CREATEABLE_ROLES[creator]?.length ?? 0) > 0;
+}
+
+/** Kumpulkan semua id keturunan (subtree) dari `rootId` dalam hierarki supervisorId. */
+export function descendantIds(all: OrgRow[], rootId: string): string[] {
+  const out: string[] = [];
+  const queue: string[] = [rootId];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const e of all) {
+      if (e.supervisorId === cur) {
+        out.push(e.id);
+        queue.push(e.id);
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Apakah pembuat (creator) diperbolehkan membuat pegawai ber-role `target`
+ * dengan atasan `supervisorId`? Menggabungkan matrix role + batas subtree.
+ * - admin: bebas (tanpa batas supervisor tertentu), role di-refine validasi lain.
+ * - pimpinan: target harus di bawahnya, dan atasan harus berada dalam subtree-nya.
+ */
+export function canCreateAs(
+  creator: OrgRow,
+  target: Role,
+  supervisorId: string | null,
+  hierarchy: OrgRow[]
+): { ok: boolean; error?: string } {
+  const creatorRole = creator.role;
+  if (creatorRole === "admin") return { ok: true };
+  if (!canCreateRole(creatorRole, target)) {
+    return { ok: false, error: `${ROLE_LABEL[creatorRole]} tidak berwenang membuat ${ROLE_LABEL[target].toLowerCase()}.` };
+  }
+  if (creatorRole === "staf") {
+    return { ok: false, error: "Staf tidak berwenang membuat akun." };
+  }
+  // Atasan harus berada dalam subtree pembuat (kecuali atasan otomatis = pembuat).
+  if (supervisorId === creator.id) return { ok: true };
+  if (!supervisorId) {
+    return { ok: false, error: "Atasan wajib ditentukan untuk pegawai baru." };
+  }
+  const subs = new Set(descendantIds(hierarchy, creator.id));
+  if (!subs.has(supervisorId)) {
+    return { ok: false, error: "Atasan tidak berada dalam lingkup kewenangan Anda." };
+  }
+  return { ok: true };
+}
+
+/**
+ * Apakah pengelola (manager) boleh MENGELOLA akun `target`.
+ * Berbasis subtree supervisorId, bukan role semata:
+ * - admin: selalu diizinkan (unrestricted).
+ * - lainnya: hanya dirinya sendiri dan keturunan (subtree) nyata di bawahnya.
+ * Sibling (atasan yang sama, role setara) TIDAK termasuk subtree — tidak bisa saling kelola.
+ */
+export function canManageTarget(
+  manager: OrgRow,
+  target: OrgRow,
+  hierarchy: OrgRow[]
+): { ok: boolean; error?: string } {
+  if (manager.role === "admin") return { ok: true };
+  if (manager.id === target.id) return { ok: true };
+  if (manager.role === "staf") {
+    return { ok: false, error: "Staf tidak berwenang mengelola akun lain." };
+  }
+  const subs = new Set(descendantIds(hierarchy, manager.id));
+  if (!subs.has(target.id)) {
+    return { ok: false, error: "Akun tersebut berada di luar lingkup kewenangan Anda." };
+  }
+  return { ok: true };
+}
+
+/**
+ * Validasi perubahan atasan oleh pengelola non-admin:
+ * atasan baru wajib tetap berada dalam subtree pengelola agar akun tidak berpindah keluar
+ * dari kewenangannya.
+ */
+export function canAssignSupervisor(
+  manager: OrgRow,
+  newSupervisorId: string | null,
+  hierarchy: OrgRow[]
+): { ok: boolean; error?: string } {
+  if (manager.role === "admin") return { ok: true };
+  if (newSupervisorId == null) {
+    return { ok: false, error: "Pimpinan tidak dapat menghapus relasi atasan akun dalam kekuasaannya." };
+  }
+  if (newSupervisorId === manager.id) return { ok: true };
+  const subs = new Set(descendantIds(hierarchy, manager.id));
+  if (!subs.has(newSupervisorId)) {
+    return { ok: false, error: "Atasan baru berada di luar lingkup kewenangan Anda." };
+  }
+  return { ok: true };
+}

@@ -13,31 +13,22 @@ const ROLE_TEXT: Record<string, string> = {
 };
 
 export default function OrgStructure() {
-  const { employees, currentUser, isSubordinate, plans } = useSKP();
+  const { employees, plans } = useSKP();
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [search, setSearch] = useState("");
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showCounts, setShowCounts] = useState(true);
 
-  const scope = useMemo(() => {
-    if (!currentUser) return new Set<string>();
-    const set = new Set<string>();
-    if (currentUser.role === "admin" || currentUser.role === "pimpinan_1") {
-      employees.forEach(e => set.add(e.id));
-    } else if (currentUser.role === "pimpinan_2" || currentUser.role === "pimpinan_3") {
-      set.add(currentUser.id);
-      employees.forEach(e => { if (isSubordinate(currentUser.id, e.id)) set.add(e.id); });
-    } else {
-      set.add(currentUser.id);
-    }
-    return set;
-  }, [employees, currentUser, isSubordinate]);
-
-  const inScope = (e: Employee) => scope.has(e.id);
+  // Struktur organisasi TIDAK difilter berdasarkan role login:
+  // seluruh jabatan (pimpinan_1 → pimpinan_2 → pimpinan_3 → staf) terlihat penuh.
+  // Admin tidak tampil sebagai node di dalam tree (di luar hierarki jabatan).
+  const treeNodes = useMemo(() => {
+    return employees.filter(e => e.role !== "admin");
+  }, [employees]);
 
   const childrenOf = useMemo(() => {
     const m = new Map<string, Employee[]>();
-    employees.forEach(e => {
+    treeNodes.forEach(e => {
       if (e.supervisorId) {
         const arr = m.get(e.supervisorId) ?? [];
         arr.push(e);
@@ -46,16 +37,10 @@ export default function OrgStructure() {
     });
     m.forEach(arr => arr.sort((a, b) => a.name.localeCompare(b.name)));
     return m;
-  }, [employees]);
+  }, [treeNodes]);
 
-  const roots = useMemo(() => {
-    if (!currentUser) return [];
-    if (currentUser.role === "admin" || currentUser.role === "pimpinan_1") {
-      return employees.filter(e => !e.supervisorId);
-    }
-    const self = employees.find(e => e.id === currentUser.id);
-    return self ? [self] : [];
-  }, [employees, currentUser]);
+  // Akar tree = node tanpa atasan (pimpinan_1). Admin sudah dikecualikan dari treeNodes.
+  const roots = useMemo(() => treeNodes.filter(e => !e.supervisorId), [treeNodes]);
 
   const q = search.trim().toLowerCase();
   const matches = (e: Employee) => !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || e.employeeNumber.includes(q) || ROLE_LABEL[e.role].toLowerCase().includes(q) || e.role.includes(q);
@@ -75,11 +60,10 @@ export default function OrgStructure() {
 
   const planCountOf = (id: string) => plans.filter(p => p.assignedTo === id).length;
 
-  const detailEmp = detailId ? employees.find(e => e.id === detailId) : null;
+  const detailEmp = detailId ? treeNodes.find(e => e.id === detailId) : null;
   const renderDetail = (e: Employee) => {
-    if (!currentUser) return null;
     if (!detailEmp || detailEmp.id !== e.id) return null;
-    const sup = e.supervisorId ? employees.find(x => x.id === e.supervisorId) : null;
+    const sup = e.supervisorId ? treeNodes.find(x => x.id === e.supervisorId) : null;
     const rows: Array<{ label: string; value: string }> = [
       { label: "NIP", value: e.employeeNumber || "—" },
       { label: "Email", value: e.email },
@@ -89,7 +73,7 @@ export default function OrgStructure() {
       { label: "Rencana aktif", value: `${planCountOf(e.id)} rencana` },
     ];
     return (
-      <div className="fixed inset-0 z-50 bg-[#0e4749]/30" onClick={() => setDetailId(null)}>
+      <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setDetailId(null)}>
         <div className="absolute inset-y-0 right-0 w-full max-w-md bg-white border-l border-[#e4f0f1] overflow-y-auto" onClick={e2 => e2.stopPropagation()}>
           <div className="sticky top-0 bg-white border-b border-[#e4f0f1] px-6 py-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -113,9 +97,7 @@ export default function OrgStructure() {
             <div className="pt-4 border-t border-[#e4f0f1]">
               <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Lingkup</div>
               <p className="mt-1 text-[13px] text-[#283338]/70">
-                {currentUser.role === "pimpinan_1" || currentUser.role === "admin"
-                  ? "Terlihat dalam struktur organisasi secara penuh."
-                  : "Terlihat dalam subtree jabatan Anda."}
+                Struktur organisasi tampil penuh untuk semua role. Kewenangan pengelolaan akun dibatasi sesuai jabatan.
               </p>
             </div>
           </div>
@@ -125,11 +107,10 @@ export default function OrgStructure() {
   };
 
   const renderNode = (e: Employee, depth: number): React.ReactNode => {
-    if (!inScope(e)) return null;
-    const kids = (childrenOf.get(e.id) ?? []).filter(inScope);
-    const isRootOfScope = roots.some(r => r.id === e.id);
+    const kids = childrenOf.get(e.id) ?? [];
+    const isRootOfTree = roots.some(r => r.id === e.id);
     const hasKids = kids.length > 0;
-    const open = search ? (hasMatchDescendant(e) || matches(e)) : (expanded.has(e.id) || isRootOfScope || depth === 0);
+    const open = search ? (hasMatchDescendant(e) || matches(e)) : (expanded.has(e.id) || isRootOfTree || depth === 0);
     const showKids = hasKids && open;
     const isMatchHere = matches(e);
     if (search && !isMatchHere && !hasMatchDescendant(e)) return null;
@@ -163,8 +144,8 @@ export default function OrgStructure() {
           <span className={`hidden sm:inline font-mono text-[12px] whitespace-nowrap ${ROLE_TEXT[e.role] || "text-[#283338]/70"}`}>{ROLE_SHORT[e.role]}</span>
           {showCounts && (
             <span className="hidden md:inline font-mono text-[11px] text-[#283338]/45 whitespace-nowrap">
-              {kids.length > 0 && `${kids.length} bawahan`}
-              {kids.length > 0 && " · "}
+              {hasKids && `${kids.length} bawahan`}
+              {hasKids && " · "}
               {planCountOf(e.id)} rencana
             </span>
           )}
@@ -209,7 +190,7 @@ export default function OrgStructure() {
         <div className="border border-[#e4f0f1] bg-white">
           <div className="px-4 py-3 border-b border-[#e4f0f1] flex items-center justify-between">
             <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Struktur organisasi</span>
-            <span className="font-mono text-[11px] text-[#283338]/45">{scope.size} node</span>
+            <span className="font-mono text-[11px] text-[#283338]/45">{treeNodes.length} node</span>
           </div>
           {roots.length === 0 && (
             <div className="px-4 py-12 text-center text-[#283338]/60 text-sm">Belum ada struktur organisasi.</div>
@@ -219,11 +200,9 @@ export default function OrgStructure() {
           </div>
         </div>
 
-        {currentUser && currentUser.role !== "admin" && currentUser.role !== "pimpinan_1" && (
-          <p className="font-mono text-[11px] text-[#283338]/50 pt-3">
-            • Anda melihat subtree untuk jabatan Anda saat ini. Direktur (pimpinan_1) & administrator melihat seluruh struktur.
-          </p>
-        )}
+        <p className="font-mono text-[11px] text-[#283338]/50 pt-3">
+          • Struktur organisasi tampil penuh untuk semua role. Kewenangan mengelola akun (tambah/edit/hapus/nonaktifkan) dibatasi sesuai jabatan Anda.
+        </p>
       </div>
     </div>
   );

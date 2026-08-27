@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
 import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog, Role } from "./types";
-import { validateOrgChange, validateOrgCreate } from "./roles";
+import { validateOrgChange, validateOrgCreate, canCreateAnyRole } from "./roles";
 import { seedEmployees, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
 
 type PlanForm = Partial<PerformancePlan>;
@@ -384,7 +384,8 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   };
 
   const createEmployee = async (data: { name: string; email: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role: Role; isActive?: boolean; avatar?: string }) => {
-    if (!currentUser || currentUser.role !== "admin") { notify("Hanya administrator yang dapat menambah pegawai"); return { ok: false, error: "only_admin" }; }
+    if (!currentUser) { notify("Tidak terautentikasi"); return { ok: false, error: "unauthorized" }; }
+    if (!canCreateAnyRole(currentUser.role)) { notify("Staf tidak berwenang membuat akun"); return { ok: false, error: "no_permission" }; }
     const optimisticId = "e-new-" + Date.now();
     const check = validateOrgCreate(employees, { id: optimisticId, role: data.role, supervisorId: data.supervisorId || null });
     if (!check.ok) { notify(check.error || "Relasi organisasi tidak valid"); return { ok: false, error: check.error }; }
