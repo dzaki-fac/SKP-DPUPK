@@ -48,9 +48,9 @@ export function AppNav() {
                 <path d="M8 12l3 3 5-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div className="hidden sm:block leading-none">
-              <div className="font-semibold text-[14px] tracking-[-0.01em] text-[#231e21]">SKP DPUPK</div>
-              <div className="font-mono text-[10px] tracking-[0.08em] uppercase text-[#283338]/60">Kabupaten • 2026</div>
+            <div className="hidden sm:block leading-tight">
+              <div className="font-semibold text-[15px] tracking-[-0.01em] text-[#231e21] leading-none">SKP DPUPK</div>
+              <div className="mt-1 font-mono text-[9.5px] tracking-[0.06em] uppercase text-[#283338]/60 leading-none">Perpustakaan • 2026</div>
             </div>
           </Link>
 
@@ -76,8 +76,8 @@ export function AppNav() {
             <div className="relative" ref={menuRef}>
               <button onClick={() => setShowUserMenu(v => !v)} className="flex items-center gap-3 pl-1 pr-1 py-1 rounded-full hover:bg-[#f2f8f7] transition">
                 <div className="text-right hidden lg:block leading-none">
-                  <div className="text-[13px] font-semibold text-[#231e21]">{currentUser.name.split(",")[0]}</div>
-                  <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#1c5d5f]">{roleLabel[currentUser.role]}</div>
+                  <div className="text-[13px] font-semibold text-[#231e21] leading-none">{currentUser.name.split(",")[0]}</div>
+                  <div className="mt-1 font-mono text-[10px] tracking-[0.06em] uppercase text-[#1c5d5f] leading-none">{roleLabel[currentUser.role]}</div>
                 </div>
                 <div className="w-9 h-9 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold shrink-0 leading-none aspect-square overflow-hidden" style={{ borderRadius: 9999 }}>{currentUser.avatar}</div>
               </button>

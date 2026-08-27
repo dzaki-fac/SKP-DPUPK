@@ -42,7 +42,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="max-w-[1200px] mx-auto px-4 lg:px-6 py-8 space-y-8">{children}</main>
       <GlobalModals />
       {toast && <div className="fixed bottom-4 right-4 z-50 bg-[#283338] text-white text-sm px-4 py-3 rounded-full border border-[#e4f0f1]" style={{ borderRadius: 48 }}>{toast}</div>}
-      <footer className="max-w-[1200px] mx-auto px-6 py-8 text-center font-mono text-xs tracking-wide text-[#283338]/50 border-t border-[#e4f0f1] mt-8">© 2026 DPUPK — Flat paper system • Deep Teal #1c5d5f • No shadows • Pill 48px • Card 12px • IBM Plex Mono eyebrows</footer>
+      <footer className="max-w-[1200px] mx-auto px-6 py-8 text-center font-mono text-xs tracking-wide text-[#283338]/50 border-t border-[#e4f0f1]">© 2026 DPUPK Perpustakaan • Sistem SKP Digital</footer>
     </div>
   );
 }

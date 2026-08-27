@@ -168,7 +168,7 @@ export default function OrgStructure() {
   const nodeCard = (n: Employee, x: number, y: number, w: number, h: number, staf = false) => (
     <div
       key={n.id}
-      className={`absolute bg-white border rounded-[10px] cursor-pointer transition-all ${dimNode(n) ? "opacity-30" : "hover:border-[#34a98f] hover:shadow-sm"} ${detailId === n.id ? "border-[#059669] ring-1 ring-[#059669]/20" : "border-[#e5e7eb] shadow-[0_1px_2px_rgba(17,24,39,0.04)]"}`}
+      className={`absolute bg-white border rounded-[10px] cursor-pointer transition-all ${dimNode(n) ? "opacity-30" : "hover:border-[#0e7490] hover:shadow-sm"} ${detailId === n.id ? "border-[#0e7490] ring-1 ring-[#0e7490]/20" : "border-[#e5e7eb] shadow-[0_1px_2px_rgba(17,24,39,0.04)]"}`}
       style={{ left: x, top: y, width: w, height: h, boxSizing: "border-box", padding: staf ? "6px 10px" : "8px 12px", display: "flex", flexDirection: "column", justifyContent: "center" }}
       onClick={() => setDetailId(n.id)}
       title={n.name}
@@ -182,7 +182,7 @@ export default function OrgStructure() {
       </div>
       {!staf && (
         <div className="mt-1.5 flex items-center gap-2 min-w-0">
-          <span className="inline-flex items-center px-1.5 py-px rounded-full text-[10px] font-medium bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0] shrink-0">{ROLE_SHORT[n.role]}</span>
+          <span className="inline-flex items-center px-1.5 py-px rounded-full text-[10px] font-medium bg-[#e0f2fe] text-[#0c4a6e] border border-[#bae6fd] shrink-0">{ROLE_SHORT[n.role]}</span>
           {(childrenOf.get(n.id)?.length ?? 0) > 0 && (
             <span className="inline-flex items-center gap-0.5 text-[10px] text-[#6b7280] shrink-0">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -215,10 +215,10 @@ export default function OrgStructure() {
               <div className="w-11 h-11 rounded-full text-white flex items-center justify-center text-sm font-semibold leading-none shrink-0" style={{ borderRadius: 9999, background: ROLE_ACCENT[e.role] || "#1c5d5f" }}>{e.avatar}</div>
               <div>
                 <div className="font-semibold text-[15px] text-[#1f2937]">{e.name}</div>
-                <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#059669]">{ROLE_SHORT[e.role]}</div>
+                <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#0e7490]">{ROLE_SHORT[e.role]}</div>
               </div>
             </div>
-            <button type="button" onClick={() => setDetailId(null)} className="w-8 h-8 rounded-full border border-[#e5e7eb] text-[#6b7280] hover:border-[#059669] hover:text-[#111827]" style={{ borderRadius: 9999 }}>✕</button>
+            <button type="button" onClick={() => setDetailId(null)} className="w-8 h-8 rounded-full border border-[#e5e7eb] text-[#6b7280] hover:border-[#0e7490] hover:text-[#111827]" style={{ borderRadius: 9999 }}>✕</button>
           </div>
           <div className="px-6 py-5 space-y-4">
             {rows.map(r => (
@@ -240,17 +240,16 @@ export default function OrgStructure() {
         <div className="min-w-0 bg-white border border-[#e5e7eb] rounded-[10px] shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
           <div className="px-4 py-3 border-b border-[#f1f5f9] flex flex-wrap items-center justify-between gap-2">
             <span className="text-[11px] font-mono uppercase tracking-[0.07em] text-[#6b7280]">Peta Hierarki Jabatan</span>
-            <div className="flex items-center gap-3">
-              <div className="relative w-full sm:w-auto sm:min-w-[220px]">
+            <div className="flex items-center">
+              <div className="relative w-full sm:w-auto">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9ca3af]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Cari nama, NIP, email, jabatan"
-                  className="w-full pl-7 pr-3 py-1.5 rounded-md border border-[#e5e7eb] bg-white text-[13px] text-[#1f2937] focus:outline-none focus:border-[#059669] focus:ring-1 focus:ring-[#059669]/20 placeholder:text-[#9ca3af]"
+                  className="w-[230px] pl-7 pr-3 py-1 rounded-md border border-[#e5e7eb] bg-white text-[12.5px] text-[#1f2937] focus:outline-none focus:border-[#0e7490] focus:ring-1 focus:ring-[#0e7490]/20 placeholder:text-[#9ca3af]"
                 />
               </div>
-              <span className="text-[11px] text-[#9ca3af]">{treeNodes.length} pegawai</span>
             </div>
           </div>
 
@@ -260,7 +259,7 @@ export default function OrgStructure() {
             <div className="overflow-x-auto">
               <div className="relative" style={{ width: totalW, height: totalH }}>
                 <svg className="absolute inset-0" width={totalW} height={totalH} fill="none">
-                  <path d={connectorPath} stroke="#cbd5e1" strokeWidth={1.4} />
+                  <path d={connectorPath} stroke="#94a3b8" strokeWidth={1.4} />
                 </svg>
 
                 {/* P1 */}
@@ -296,11 +295,18 @@ export default function OrgStructure() {
           </div>
           <div className="mt-4 pt-3 border-t border-[#f1f5f9] flex items-center justify-between">
             <span className="text-[12.5px] font-semibold text-[#1f2937]">Total Pegawai</span>
-            <span className="font-mono text-[16px] font-bold text-[#059669]">{treeNodes.length}</span>
+            <span className="font-mono text-[16px] font-bold text-[#0f172a]">{treeNodes.length}</span>
           </div>
-          <p className="mt-4 text-[11.5px] leading-relaxed text-[#9ca3af]">
-            Struktur dapat dilihat seluruh role; hak kelola akun mengikuti kewenangan jabatan.
-          </p>
+          <div className="mt-4 flex items-start gap-2 rounded-[10px] bg-[#e0f7f4] px-3 py-2.5">
+            <svg className="mt-0.5 shrink-0 text-[#0e7490]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+            <p className="text-[11.5px] leading-relaxed text-[#0c5a6e]">
+              Struktur dapat dilihat seluruh role namun hak kelola akun dibatasi sesuai kewenangan jabatan masing-masing.
+            </p>
+          </div>
         </aside>
       </div>
 
