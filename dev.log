@@ -32,3 +32,3799 @@
  GET /api/auth/me 200 in 49ms (next.js: 29ms, proxy.ts: 8ms, application-code: 13ms)
  GET /api/db 200 in 33ms (next.js: 10ms, proxy.ts: 7ms, application-code: 16ms)
  GET /api/auth/me 200 in 50ms (next.js: 29ms, proxy.ts: 9ms, application-code: 12ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ GET / 200 in 375ms (next.js: 224ms, application-code: 151ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./lib/prisma.ts}["prisma"].employee.findMany()` invocation in
+C:\Code\Projects\skp-dpupk\.next\dev\server\chunks\[root-of-the-server]__07h4wj9._.js:73:140
+
+  70 ;
+  71 async function GET() {
+  72     const [employees, periods, plans, realizations, attachments, logs] = await Promise.all([
+→ 73         {imported module ./lib/prisma.ts}["prisma"].employee.findMany(
+The column `main.employees.created_at` does not exist in the current database.
+    at <unknown> (app\api\db\route.ts:6:21)
+    at async GET (app\api\db\route.ts:5:72)
+  4 | export async function GET() {
+  5 |   const [employees, periods, plans, realizations, attachments, logs] = await Promise.all([
+> 6 |     prisma.employee.findMany(),
+    |                     ^
+  7 |     prisma.skpPeriod.findMany(),
+  8 |     prisma.performancePlan.findMany(),
+  9 |     prisma.realization.findMany(), {
+  code: 'P2022',
+  meta: {
+    modelName: 'Employee',
+    driverAdapterError: Error [DriverAdapterError]: ColumnNotFound
+        at async GET (app\api\db\route.ts:5:72)
+      3 | // Aggregated fetch for initial load — single round-trip
+      4 | export async function GET() {
+    > 5 |   const [employees, periods, plans, realizations, attachments, logs] = await Promise.all([
+        |                                                                        ^
+      6 |     prisma.employee.findMany(),
+      7 |     prisma.skpPeriod.findMany(),
+      8 |     prisma.performancePlan.findMany(), {
+      [cause]: [Object]
+    }
+  },
+  clientVersion: '7.9.1'
+}
+ GET /api/db 500 in 291ms (next.js: 11ms, proxy.ts: 8ms, application-code: 271ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./lib/prisma.ts}["prisma"].employee.findUnique()` invocation in
+C:\Code\Projects\skp-dpupk\.next\dev\server\chunks\[root-of-the-server]__04pk-3p._.js:110:155
+
+  107 }, {
+  108     status: 401
+  109 });
+→ 110 const user = await {imported module ./lib/prisma.ts}["prisma"].employee.findUnique(
+The column `main.employees.created_at` does not exist in the current database.
+    at <unknown> (app\api\auth\me\route.ts:9:38)
+    at async GET (app\api\auth\me\route.ts:9:16)
+   7 |   const payload = verifyToken(token);
+   8 |   if (!payload) return Response.json({ user: null }, { status: 401 });
+>  9 |   const user = await prisma.employee.findUnique({ where: { id: payload.id } });
+     |                                      ^
+  10 |   if (!user || user.isActive === false) return Response.json({ user: null }, { status: 401 });
+  11 |   const safeUser = { id: user.id, userId: user.userId, employeeNumber: user.employeeNumber, name: user.name, email: user.email, supervisorId: user.supervisorId, role: user.role, avatar: user.avatar };
+  12 |   return Response.json({ user: safeUser }); {
+  code: 'P2022',
+  meta: {
+    modelName: 'Employee',
+    driverAdapterError: Error [DriverAdapterError]: ColumnNotFound
+        at ignore-listed frames {
+      [cause]: [Object]
+    }
+  },
+  clientVersion: '7.9.1'
+}
+ GET /api/auth/me 500 in 382ms (next.js: 289ms, proxy.ts: 9ms, application-code: 84ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./lib/prisma.ts}["prisma"].employee.findMany()` invocation in
+C:\Code\Projects\skp-dpupk\.next\dev\server\chunks\[root-of-the-server]__07h4wj9._.js:73:140
+
+  70 ;
+  71 async function GET() {
+  72     const [employees, periods, plans, realizations, attachments, logs] = await Promise.all([
+→ 73         {imported module ./lib/prisma.ts}["prisma"].employee.findMany(
+The column `main.employees.created_at` does not exist in the current database.
+    at <unknown> (app\api\db\route.ts:6:21)
+    at async GET (app\api\db\route.ts:5:72)
+  4 | export async function GET() {
+  5 |   const [employees, periods, plans, realizations, attachments, logs] = await Promise.all([
+> 6 |     prisma.employee.findMany(),
+    |                     ^
+  7 |     prisma.skpPeriod.findMany(),
+  8 |     prisma.performancePlan.findMany(),
+  9 |     prisma.realization.findMany(), {
+  code: 'P2022',
+  meta: {
+    modelName: 'Employee',
+    driverAdapterError: Error [DriverAdapterError]: ColumnNotFound
+        at async GET (app\api\db\route.ts:5:72)
+      3 | // Aggregated fetch for initial load — single round-trip
+      4 | export async function GET() {
+    > 5 |   const [employees, periods, plans, realizations, attachments, logs] = await Promise.all([
+        |                                                                        ^
+      6 |     prisma.employee.findMany(),
+      7 |     prisma.skpPeriod.findMany(),
+      8 |     prisma.performancePlan.findMany(), {
+      [cause]: [Object]
+    }
+  },
+  clientVersion: '7.9.1'
+}
+ GET /api/db 500 in 29ms (next.js: 10ms, proxy.ts: 6ms, application-code: 13ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./lib/prisma.ts}["prisma"].employee.findUnique()` invocation in
+C:\Code\Projects\skp-dpupk\.next\dev\server\chunks\[root-of-the-server]__04pk-3p._.js:110:155
+
+  107 }, {
+  108     status: 401
+  109 });
+→ 110 const user = await {imported module ./lib/prisma.ts}["prisma"].employee.findUnique(
+The column `main.employees.created_at` does not exist in the current database.
+    at <unknown> (app\api\auth\me\route.ts:9:38)
+    at async GET (app\api\auth\me\route.ts:9:16)
+   7 |   const payload = verifyToken(token);
+   8 |   if (!payload) return Response.json({ user: null }, { status: 401 });
+>  9 |   const user = await prisma.employee.findUnique({ where: { id: payload.id } });
+     |                                      ^
+  10 |   if (!user || user.isActive === false) return Response.json({ user: null }, { status: 401 });
+  11 |   const safeUser = { id: user.id, userId: user.userId, employeeNumber: user.employeeNumber, name: user.name, email: user.email, supervisorId: user.supervisorId, role: user.role, avatar: user.avatar };
+  12 |   return Response.json({ user: safeUser }); {
+  code: 'P2022',
+  meta: {
+    modelName: 'Employee',
+    driverAdapterError: Error [DriverAdapterError]: ColumnNotFound
+        at ignore-listed frames {
+      [cause]: [Object]
+    }
+  },
+  clientVersion: '7.9.1'
+}
+ GET /api/auth/me 500 in 47ms (next.js: 31ms, proxy.ts: 6ms, application-code: 10ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ POST /api/auth/login 500 in 80ms (next.js: 17ms, proxy.ts: 6ms, application-code: 57ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ POST /api/auth/login 500 in 27ms (next.js: 10ms, proxy.ts: 6ms, application-code: 11ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ POST /api/auth/login 500 in 21ms (next.js: 10ms, proxy.ts: 4ms, application-code: 7ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ POST /api/auth/login 500 in 25ms (next.js: 12ms, proxy.ts: 4ms, application-code: 9ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ POST /api/auth/login 200 in 137ms (next.js: 27ms, proxy.ts: 3ms, application-code: 107ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ GET /dashboard 200 in 109ms (next.js: 59ms, proxy.ts: 5ms, application-code: 45ms)
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+Warning: next/font: warning:
+Failed to download IBM Plex Mono from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.module.css
+    [next]/internal/font/google/ibm_plex_mono_efa12d90.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_5d95990a.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_5d95990a.module.css
+    [next]/internal/font/google/inter_5d95990a.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+Warning: next/font: warning:
+Failed to download Source Serif 4 from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/source_serif_4_2cc710e2.module.css
+    [next]/internal/font/google/source_serif_4_2cc710e2.js
+    ./app/layout.tsx
+
+
+ GET /dashboard 200 in 33ms (next.js: 10ms, proxy.ts: 4ms, application-code: 19ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
