@@ -7,6 +7,7 @@ type PlanForm = Partial<PerformancePlan>;
 type Ctx = {
   currentUser: Employee | null; setCurrentUser: (e: Employee | null) => void;
   authChecked: boolean;
+  dbLoaded: boolean;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   employees: Employee[]; setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>;
@@ -74,6 +75,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", fileName: "" });
   const [periodForm, setPeriodForm] = useState({ name: "", year: 2026, startDate: "", endDate: "" });
   const [empForm, setEmpForm] = useState({ name: "", email: "", supervisorId: "", role: "staff" as Role });
+  const [dbLoaded, setDbLoaded] = useState(false);
 
   // Hydrate from SQLite via /api/db — keeps UI snappy with seed fallback
   useEffect(() => {
@@ -85,7 +87,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (d.realizations?.length) setRealizations(d.realizations);
       if (d.attachments?.length) setAttachments(d.attachments);
       if (d.logs?.length) setLogs(d.logs);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setDbLoaded(true));
   }, []);
 
   // Real auth: check session cookie
@@ -442,7 +444,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   };
 
   const value: Ctx = {
-    currentUser, setCurrentUser, authChecked, login, logout, employees, setEmployees,
+    currentUser, setCurrentUser, authChecked, dbLoaded, login, logout, employees, setEmployees,
     updateEmployeeOrg, deleteEmployee,
     periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
     toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, search, setSearch,
