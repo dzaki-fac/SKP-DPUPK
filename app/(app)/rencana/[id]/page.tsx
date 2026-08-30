@@ -26,6 +26,15 @@ export default function RencanaDetailPage() {
 
   const assignee = employees.find(e => e.id === plan.assignedTo);
   const period = periods.find(p => p.id === plan.skpPeriodId);
+  const formatTanggalIndo = (dateStr: string) => {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr;
+    const dateOnly = dateStr.split(" ")[0];
+    const [y, m, d] = dateOnly.split("-");
+    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const monthName = months[parseInt(m,10)-1] || m;
+    return `${parseInt(d,10)} ${monthName} ${y}`;
+  };
+
   const parentPlan = plan.parentId ? plans.find(p => p.id === plan.parentId) : null;
   const canManage = ["direktur","supervisor","admin"].includes(currentUser.role);
 
@@ -77,6 +86,7 @@ export default function RencanaDetailPage() {
         <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="heading-serif text-[26px] leading-tight">{plan.title}</h2>
+            <div className="font-mono text-[11px] text-[#283338]/60 mt-1">Dibuat: {formatTanggalIndo((plan as any).createdAt || plan.createdAt || "")}{(plan as any).createdAt && (plan as any).createdAt.includes(" ") ? `, ${(plan as any).createdAt.split(" ")[1]} WIB` : ""}</div>
             <div className="mt-2 flex gap-2 flex-wrap">
               <span className="font-mono text-xs tracking-wide px-2 py-1 rounded-full bg-white border border-[#e4f0f1]" style={{ borderRadius: 100 }}>{period?.name}</span>
               <span className="font-mono text-xs tracking-wide px-2 py-1 rounded-full bg-[#e4f0f1] border border-[#a2cbcd] text-[#0e4749]" style={{ borderRadius: 100 }}>{assignee?.avatar} {assignee?.name.split(",")[0]}</span>
@@ -95,6 +105,15 @@ export default function RencanaDetailPage() {
         <div className="p-4 rounded-xl bg-white border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
           <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#283338]/60">Target</div>
           <div className="heading-serif text-2xl mt-1 text-[#1c5d5f]">{plan.target}</div>
+          {plan.customTargets && plan.customTargets.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {plan.customTargets.map(ct => (
+                <span key={ct.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#e4f0f1] border border-[#a2cbcd] font-mono text-[11px] text-[#1c5d5f]">
+                  <span className="font-semibold">{ct.name}:</span> {ct.value} {ct.unit}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="p-4 rounded-xl bg-white border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
           <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#283338]/60">Progress</div>
@@ -104,6 +123,32 @@ export default function RencanaDetailPage() {
           <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#283338]/60">Delegasi</div>
           <div className="heading-serif text-2xl mt-1 text-[#231e21]">{children.length}</div>
         </div>
+      </div>
+
+      {/* Target Kustom (jika ada) */}
+      {plan.customTargets && plan.customTargets.length > 0 && (
+        <div className="p-4 rounded-xl bg-white border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
+          <div className="eyebrow text-[11px]">TARGET KUSTOM (DIREKTUR)</div>
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {plan.customTargets.map(ct => (
+              <div key={ct.id} className="p-3 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
+                <div className="font-mono text-[11px] tracking-wide uppercase text-[#283338]/60">{ct.name}</div>
+                <div className="font-mono text-sm font-bold text-[#1c5d5f] mt-1">{ct.value} <span className="font-normal text-[#283338]/60">{ct.unit}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tanggal Rencana Dijalankan */}
+      <div className="p-4 rounded-xl bg-white border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
+        <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#283338]/60">Tanggal Rencana Dijalankan</div>
+        {(plan as any).plannedDate ? (
+          <div className="font-mono text-sm font-bold text-[#1c5d5f] mt-1">{formatTanggalIndo((plan as any).plannedDate)}, {(plan as any).plannedTime || "09:00"} WIB</div>
+        ) : (
+          <div className="font-mono text-sm text-[#283338]/40 mt-1">— Belum ditentukan</div>
+        )}
+        <div className="font-mono text-[11px] text-[#283338]/50 mt-1">Dibuat: {formatTanggalIndo((plan as any).createdAt || plan.createdAt || "")}{(plan as any).createdAt && (plan as any).createdAt.includes(" ") ? `, ${(plan as any).createdAt.split(" ")[1]} WIB` : ""}</div>
       </div>
 
       {/* Progress kumulatif */}

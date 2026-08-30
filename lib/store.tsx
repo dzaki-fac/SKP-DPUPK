@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useMemo, ReactNode } fr
 import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog, Role } from "./types";
 import { seedEmployees, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
 
-type PlanForm = Partial<PerformancePlan>;
+type PlanForm = Partial<PerformancePlan> & { plannedDate?: string; plannedTime?: string };
 type Ctx = {
   currentUser: Employee | null; setCurrentUser: (e: Employee | null) => void;
   authChecked: boolean;
@@ -30,6 +30,7 @@ type Ctx = {
   showRealizationModal: PerformancePlan | null; setShowRealizationModal: (p: PerformancePlan | null) => void;
   editingPlan: PerformancePlan | null; setEditingPlan: (p: PerformancePlan | null) => void;
   planForm: PlanForm; setPlanForm: (f: PlanForm) => void;
+  planCustomTargets: Array<{name: string, value: string, unit: string}>; setPlanCustomTargets: (v: Array<{name: string, value: string, unit: string}>) => void;
   cascadeTargets: string[]; setCascadeTargets: (v: string[]) => void;
   cascadePortions: Record<string,string>; setCascadePortions: (v: Record<string,string>) => void;
   cascadeTitles: Record<string,string>; setCascadeTitles: (v: Record<string,string>) => void;
@@ -72,7 +73,8 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [editingRealization, setEditingRealization] = useState<Realization | null>(null);
   const [editingPlan, setEditingPlan] = useState<PerformancePlan | null>(null);
   const [search, setSearch] = useState("");
-  const [planForm, setPlanForm] = useState<PlanForm>({ title: "", target: "", skpPeriodId: "sp2026" });
+  const [planForm, setPlanForm] = useState<PlanForm>({ title: "", target: "", skpPeriodId: "sp2026", plannedDate: "", plannedTime: "" });
+  const [planCustomTargets, setPlanCustomTargets] = useState<Array<{name: string, value: string, unit: string}>>([]);
   const [cascadeTargets, setCascadeTargets] = useState<string[]>([]);
   const [cascadePortions, setCascadePortions] = useState<Record<string,string>>({});
   const [cascadeTitles, setCascadeTitles] = useState<Record<string,string>>({});
@@ -151,21 +153,54 @@ export function SKPProvider({ children }: { children: ReactNode }) {
 
   const handleCreatePlan = () => {
     if (!currentUser) return;
-    if (!planForm.title || !planForm.target) { notify("Judul dan target wajib diisi"); return; }
+    if (!planForm.title) { notify("Judul wajib diisi"); return; }
+    // Untuk direktur, Target otomatis dari jumlah target kustom
+    if (currentUser.role === "direktur") {
+      if (planCustomTargets.length === 0) { notify("Minimal 1 target kustom"); return; }
+    } else {
+      if (!planForm.target) { notify("Judul dan target wajib diisi"); return; }
+    }
+    const effectiveTarget = currentUser.role === "direktur" ? String(planCustomTargets.length) : planForm.target!;
+    // Validasi custom targets hanya untuk direktur
+    if (planCustomTargets.length > 0 && currentUser.role !== "direktur" && currentUser.role !== "admin") {
+      notify("Hanya direktur yang dapat membuat target kustom");
+      return;
+    }
+    if (planCustomTargets.length > 5) { notify("Maksimal 5 target kustom"); return; }
+    for (const ct of planCustomTargets) {
+      if (!ct.name.trim() || ct.name.trim().length > 50) { notify("Nama target kustom 1-50 karakter"); return; }
+      if (!ct.value.trim()) { notify("Nilai target kustom wajib"); return; }
+      if (!ct.unit.trim() || ct.unit.trim().length > 20) { notify("Satuan target kustom 1-20 karakter"); return; }
+    }
     // fallback aman: jika skpPeriodId tidak ada di perioden aktif (mis. sp1 lama), pakai periode pertama
     const validPeriodId = periods.find(p => p.id === planForm.skpPeriodId)?.id ?? periods[0]?.id ?? "sp2026";
+    // Validasi tanggal rencana akan dijalankan (opsional tapi jika diisi harus valid)
+    const plannedDateVal = (planForm as any).plannedDate?.trim() || "";
+    const plannedTimeVal = (planForm as any).plannedTime?.trim() || "";
+    if (plannedDateVal && !/^\d{4}-\d{2}-\d{2}$/.test(plannedDateVal)) { notify("Format tanggal rencana harus YYYY-MM-DD"); return; }
+    if (plannedTimeVal && !/^\d{2}:\d{2}$/.test(plannedTimeVal)) { notify("Format jam rencana harus HH:mm"); return; }
+    if (plannedDateVal && plannedTimeVal && (Number(plannedTimeVal.split(":")[0]) > 23 || Number(plannedTimeVal.split(":")[1]) > 59)) { notify("Jam rencana tidak valid"); return; }
+    const now = new Date();
+    const createdAtVal = editingPlan ? editingPlan.createdAt : `${now.toISOString().slice(0,10)} ${now.toTimeString().slice(0,5)}`;
     const newPlan: PerformancePlan = {
       id: "pl" + Date.now(), parentId: editingPlan ? editingPlan.parentId : null,
       skpPeriodId: validPeriodId, createdBy: currentUser.id, assignedTo: currentUser.id,
-      title: planForm.title!, target: planForm.target!, progress: 0
+      title: planForm.title!, target: effectiveTarget, progress: 0,
+      createdAt: createdAtVal,
+      plannedDate: plannedDateVal || null,
+      plannedTime: plannedTimeVal || null,
+      customTargets: planCustomTargets.map(ct => ({ id: "ct" + Date.now() + Math.random().toString(36).slice(2,5), name: ct.name.trim(), value: ct.value.trim(), unit: ct.unit.trim() }))
     };
     if (editingPlan) {
-      setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, title: newPlan.title, target: newPlan.target, id: editingPlan.id } : p));
-      fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: editingPlan.id, title: newPlan.title, target: newPlan.target }) }).then(async r => { if (!r.ok) { const j = await r.json().catch(()=>({})); notify("Gagal simpan ke database: " + (j.error || r.statusText)); }}).catch(() => notify("Gagal simpan ke database"));
+      const prevTargets = editingPlan.customTargets ?? [];
+      const prevPlannedDate = (editingPlan as any).plannedDate ?? null;
+      const prevPlannedTime = (editingPlan as any).plannedTime ?? null;
+      setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, id: editingPlan.id } : p));
+      fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: editingPlan.id, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime }) }).then(async r => { if (!r.ok) { const j = await r.json().catch(()=>({})); notify("Gagal simpan ke database: " + (j.error || r.statusText)); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime } : p)); }}).catch(() => { notify("Gagal simpan ke database"); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime } : p)); });
       addLog("Mengubah rencana", `Mengubah rencana '${newPlan.title}'`, "performance_plan", editingPlan.id); notify("Rencana diperbarui");
     } else {
       setPlans(prev => [newPlan, ...prev]);
-      fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ ...newPlan, log: false }) }).then(async r => {
+      fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ ...newPlan, log: false, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, createdAt: newPlan.createdAt }) }).then(async r => {
         if (!r.ok) {
           const j = await r.json().catch(()=>({}));
           const detail = j.details ? JSON.stringify(j.details).slice(0,200) : "";
@@ -175,14 +210,18 @@ export function SKPProvider({ children }: { children: ReactNode }) {
           const saved = await r.json().catch(()=>null);
           if (saved && saved.id && saved.id !== newPlan.id) {
             // replace optimistic id with real id
-            setPlans(prev => prev.map(p => p.id === newPlan.id ? { ...p, id: saved.id } : p));
+            setPlans(prev => prev.map(p => p.id === newPlan.id ? { ...p, id: saved.id, customTargets: saved.customTargets ?? newPlan.customTargets } : p));
+          } else if (saved?.customTargets) {
+            setPlans(prev => prev.map(p => p.id === newPlan.id ? { ...p, customTargets: saved.customTargets } : p));
           }
+          // refresh untuk dapat id customTargets yang benar
+          fetch("/api/db").then(r=>r.ok?r.json():null).then(d=>{ if(d?.plans) setPlans(d.plans); }).catch(()=>{});
           notify("Rencana kinerja dibuat — tersimpan di database");
         }
       }).catch(() => { notify("Gagal simpan ke database (jaringan)"); setPlans(prev => prev.filter(p => p.id !== newPlan.id)); });
       addLog("Membuat rencana", `Membuat rencana '${newPlan.title}'`, "performance_plan", newPlan.id);
     }
-    setShowPlanModal(false); setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026" });
+    setShowPlanModal(false); setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026", plannedDate: "", plannedTime: "" }); setPlanCustomTargets([]);
   };
 
   // Auto-koreksi planForm jika masih pakai id lama (sp1) setelah periods ter-hydrate dari DB
@@ -657,7 +696,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
     periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
     toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, search, setSearch,
     showPlanModal, setShowPlanModal, showCascadeModal, setShowCascadeModal, showRealizationModal, setShowRealizationModal,
-    editingPlan, setEditingPlan, planForm, setPlanForm, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, editingRealization, setEditingRealization, periodForm, setPeriodForm, empForm, setEmpForm,
+    editingPlan, setEditingPlan, planForm, setPlanForm, planCustomTargets, setPlanCustomTargets, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, editingRealization, setEditingRealization, periodForm, setPeriodForm, empForm, setEmpForm,
     handleCreatePlan, handleCascade, handleUpdateDelegation, handleDeleteDelegation, handleSubmitRealization, handleEditRealization, handleDeleteRealization, handleDeleteAttachment, handleDeletePlan,
   };
   return <SKPContext.Provider value={value}>{children}</SKPContext.Provider>;

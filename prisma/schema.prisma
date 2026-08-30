@@ -64,6 +64,8 @@ model PerformancePlan {
   target      String  // jumlah target (kuantitatif, mis. "6")
   progress    Int     @default(0) // 0..150, dihitung jumlah entri / target
   createdAt   String  @default("2026-01-01") @map("created_at")
+  plannedDate String? @map("planned_date") // tanggal rencana akan dijalankan (YYYY-MM-DD)
+  plannedTime String? @map("planned_time") // jam rencana akan dijalankan (HH:mm 24H)
 
   parent   PerformancePlan?  @relation("PlanParent", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   children PerformancePlan[] @relation("PlanParent")
@@ -72,11 +74,27 @@ model PerformancePlan {
   assignee Employee          @relation("AssignedTo", fields: [assignedTo], references: [id])
   realizations Realization[]
   attachments  Attachment[]
+  customTargets PlanTarget[]
 
   @@index([parentId])
   @@index([assignedTo])
   @@index([skpPeriodId])
   @@map("performance_plans")
+}
+
+// ── Target Kustom (hanya direktur bisa buat) ─────────────────
+model PlanTarget {
+  id        String @id @default(cuid())
+  planId    String @map("plan_id")
+  name      String // e.g., "jumlah peserta", "honor"
+  value     String // e.g., "250", "500000"
+  unit      String // e.g., "orang", "perjam"
+  createdAt String @default("2026-01-01") @map("created_at")
+
+  plan PerformancePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("plan_targets")
 }
 
 // ── Realisasi (tiap entri = 1 progress, punya judul) ─────────

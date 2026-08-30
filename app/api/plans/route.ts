@@ -3,17 +3,28 @@ import { getTokenFromHeader, verifyToken } from "@/lib/auth";
 import { z } from "zod";
 
 export async function GET() {
-  const plans = await prisma.performancePlan.findMany({ orderBy: { id: "asc" } });
+  const plans = await prisma.performancePlan.findMany({ orderBy: [{ createdAt: "desc" }, { id: "desc" }], include: { customTargets: true } });
   return Response.json(plans.map(p => ({
     id: p.id, parentId: p.parentId, skpPeriodId: p.skpPeriodId, createdBy: p.createdBy, assignedTo: p.assignedTo,
-    title: p.title, target: p.target, progress: p.progress
+    title: p.title, target: p.target, progress: p.progress, createdAt: (p as any).createdAt, plannedDate: (p as any).plannedDate ?? null, plannedTime: (p as any).plannedTime ?? null,
+    customTargets: (p as any).customTargets?.map((t:any) => ({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
   })));
 }
+
+const customTargetSchema = z.object({
+  name: z.string().min(1).max(50),
+  value: z.coerce.string().min(1),
+  unit: z.string().min(1).max(20)
+});
 
 const createSchema = z.object({
   parentId: z.string().nullable().optional(), skpPeriodId: z.string().min(1), createdBy: z.string().min(1), assignedTo: z.string().min(1),
   title: z.string().min(3), target: z.coerce.string().min(1),
-  progress: z.coerce.number().min(0).max(150).optional().default(0), log: z.boolean().optional()
+  progress: z.coerce.number().min(0).max(150).optional().default(0), log: z.boolean().optional(),
+  customTargets: z.array(customTargetSchema).optional(),
+  plannedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  plannedTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional().nullable(),
+  createdAt: z.string().optional()
 }).passthrough();
 
 export async function POST(req: Request) {
@@ -43,17 +54,41 @@ export async function POST(req: Request) {
     }
   }
   try {
+    // Jika customTargets disediakan, hanya direktur/admin yang boleh
+    if (b.customTargets && b.customTargets.length > 0 && !["direktur","admin"].includes(payload.role)) {
+      return Response.json({ error: "Hanya direktur yang dapat membuat target kustom" }, { status: 403 });
+    }
+    if (b.customTargets && b.customTargets.length > 5) {
+      return Response.json({ error: "Maksimal 5 target kustom per rencana" }, { status: 400 });
+    }
     const plan = await prisma.performancePlan.create({ data: {
       parentId: b.parentId ?? null, skpPeriodId: b.skpPeriodId, createdBy: b.createdBy, assignedTo: b.assignedTo,
-      title: b.title, target: String(b.target), progress: Number(b.progress) || 0
+      title: b.title, target: String(b.target), progress: Number(b.progress) || 0,
+      createdAt: b.createdAt ?? new Date().toISOString().slice(0,16).replace("T"," "),
+      plannedDate: b.plannedDate ?? null, plannedTime: b.plannedTime ?? null
     }});
+    // Buat custom targets jika ada (hanya untuk direktur)
+    if (b.customTargets && b.customTargets.length > 0) {
+      for (const ct of b.customTargets) {
+        await prisma.planTarget.create({
+          data: { planId: plan.id, name: ct.name.trim(), value: String(ct.value).trim(), unit: ct.unit.trim() }
+        }).catch(()=>{});
+      }
+    }
     if (b.log !== false) {
       await prisma.activityLog.create({ data: {
         userId: b.createdBy, userName: (await prisma.employee.findUnique({ where: { id: b.createdBy } }))?.name?.split(",")[0] ?? "System",
         action: "Membuat rencana kinerja", description: `Membuat rencana '${b.title}'`, entityType: "performance_plan", entityId: plan.id, createdAt: new Date().toISOString().slice(0,16).replace("T"," ")
       }}).catch(()=>{});
     }
-    return Response.json(plan, { status: 201 });
+    const planWithTargets = await prisma.performancePlan.findUnique({ where: { id: plan.id }, include: { customTargets: true } });
+    return Response.json({
+      ...plan,
+      plannedDate: (planWithTargets as any)?.plannedDate ?? null,
+      plannedTime: (planWithTargets as any)?.plannedTime ?? null,
+      createdAt: (planWithTargets as any)?.createdAt,
+      customTargets: (planWithTargets as any)?.customTargets?.map((t:any) => ({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
+    }, { status: 201 });
   } catch (e: any) {
     console.error("POST /api/plans create failed", e, "body:", b);
     // Prisma FK violation (P2003) -> kemungkinan periode/employee/parent tidak ada
@@ -88,11 +123,51 @@ export async function PATCH(req: Request) {
       }
     }
   }
+  // Handle custom targets update (hanya direktur/admin)
+  if (b.customTargets !== undefined) {
+    if (b.customTargets && (b.customTargets as any[]).length > 0 && !["direktur","admin"].includes(payload.role)) {
+      return Response.json({ error: "Hanya direktur yang dapat mengubah target kustom" }, { status: 403 });
+    }
+    if (Array.isArray(b.customTargets) && b.customTargets.length > 5) {
+      return Response.json({ error: "Maksimal 5 target kustom" }, { status: 400 });
+    }
+    if (Array.isArray(b.customTargets)) {
+      // Validasi
+      for (const ct of b.customTargets as any[]) {
+        if (!ct.name || String(ct.name).trim().length < 1 || String(ct.name).trim().length > 50) {
+          return Response.json({ error: "Nama target kustom minimal 1, maksimal 50 karakter" }, { status: 400 });
+        }
+        if (!ct.value || String(ct.value).trim().length < 1) {
+          return Response.json({ error: "Nilai target kustom wajib" }, { status: 400 });
+        }
+        if (!ct.unit || String(ct.unit).trim().length < 1 || String(ct.unit).trim().length > 20) {
+          return Response.json({ error: "Satuan target kustom minimal 1, maksimal 20 karakter" }, { status: 400 });
+        }
+      }
+      // Hapus yang lama, buat yang baru
+      await prisma.planTarget.deleteMany({ where: { planId: b.id } });
+      for (const ct of b.customTargets as any[]) {
+        await prisma.planTarget.create({
+          data: { planId: b.id, name: String(ct.name).trim(), value: String(ct.value).trim(), unit: String(ct.unit).trim() }
+        }).catch(()=>{});
+      }
+    }
+  }
+
   const updated = await prisma.performancePlan.update({ where: { id: b.id }, data: {
     title: b.title, target: b.target ? String(b.target) : undefined,
-    progress: b.progress !== undefined ? Number(b.progress) : undefined
+    progress: b.progress !== undefined ? Number(b.progress) : undefined,
+    plannedDate: b.plannedDate !== undefined ? b.plannedDate : undefined,
+    plannedTime: b.plannedTime !== undefined ? b.plannedTime : undefined
   }});
-  return Response.json(updated);
+  const withTargets = await prisma.performancePlan.findUnique({ where: { id: b.id }, include: { customTargets: true } });
+  return Response.json({
+    ...updated,
+    plannedDate: (withTargets as any)?.plannedDate ?? null,
+    plannedTime: (withTargets as any)?.plannedTime ?? null,
+    createdAt: (withTargets as any)?.createdAt,
+    customTargets: (withTargets as any)?.customTargets?.map((t:any) => ({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
+  });
 }
 
 // DELETE — hapus rencana + seluruh turunannya (cascade down the tree)

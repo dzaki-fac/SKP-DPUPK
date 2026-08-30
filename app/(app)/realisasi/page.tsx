@@ -26,6 +26,14 @@ export default function RealisasiPage() {
   const selectedRealEmp = selectedReal?.uploadedBy ? employees.find(e => e.id === selectedReal.uploadedBy) : (selectedRealPlan ? employees.find(e => e.id === selectedRealPlan.assignedTo) : null);
 
   const isAtasan = ["direktur", "supervisor", "admin"].includes(currentUser.role);
+
+  const formatTanggal = (dateStr: string) => {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const [y, m, d] = dateStr.split("-");
+    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const monthName = months[parseInt(m,10)-1] || m;
+    return `${parseInt(d,10)} ${monthName} ${y}`;
+  };
   
   // Helper: cek apakah realisasi match filter
   const matchesFilter = (r: typeof realizations[number]): boolean => {
@@ -342,7 +350,7 @@ export default function RealisasiPage() {
                                       <button onClick={() => setSelectedRealId(r.id)} className="text-sm text-[#283338] text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">
                                         {r.title || "Realisasi"}
                                       </button>
-                                      <div className="font-mono text-[11px] text-[#283338]/50">{r.date} {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}{!r.uploadedBy ? " • legacy" : ""}{canD && !canE ? " • dapat dihapus atasan" : ""}</div>
+                                      <div className="font-mono text-[11px] text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}{!r.uploadedBy ? " • legacy" : ""}{canD && !canE ? " • dapat dihapus atasan" : ""}</div>
                                     </td>
                                     <td className="px-2.5 py-1.5 text-right">
                                       <div className="flex justify-end gap-1">
@@ -398,7 +406,7 @@ export default function RealisasiPage() {
                     const canDel = canDelete(r);
                     return (
                       <tr key={r.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]">
-                        <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{r.date} {(r as any).time ?? "09:00"} WIB</div></td>
+                        <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB</div></td>
                         <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{emp?.avatar ?? "?"}</span><span className="text-xs">{emp?.name.split(",")[0]}</span></div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}{r.uploadedBy ? "" : " (via penugasan)"}</div></td>
                          <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
                          <td className="px-4 py-3 text-right">
@@ -443,14 +451,14 @@ export default function RealisasiPage() {
                 </div>
               </div>
               <div><div className="eyebrow text-[11px]">TUGAS</div><div className="mt-1 text-[#283338]/80">{selectedRealPlan?.title ?? "-"}</div></div>
-              <div><div className="eyebrow text-[11px]">TANGGAL & JAM</div><div className="font-mono text-xs mt-1 text-[#283338]/70">{selectedReal.date} {(selectedReal as any).time ?? "09:00"} WIB</div></div>
+              <div><div className="eyebrow text-[11px]">TANGGAL & JAM</div><div className="font-mono text-xs mt-1 text-[#283338]/70">{formatTanggal(selectedReal.date)}, {(selectedReal as any).time ?? "09:00"} WIB</div></div>
               <div><div className="eyebrow text-[11px]">DESKRIPSI</div><div className="mt-1 leading-relaxed text-[#283338]/80 whitespace-pre-wrap">{selectedReal.description || "—"}</div></div>
               <div><div className="eyebrow text-[11px]">BUKTI ({attachments.filter(a => a.realizationId === selectedReal.id).length})</div>
                 {attachments.filter(a => a.realizationId === selectedReal.id).length === 0 ? (
                   <div className="font-mono text-xs text-[#283338]/60 mt-1">Tidak ada bukti terlampir</div>
                 ) : attachments.filter(a => a.realizationId === selectedReal.id).map(a => (
                   <div key={a.id} className="mt-1 p-2 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-xs flex items-center justify-between gap-2" style={{ borderRadius: 12 }}>
-                    <span className="truncate">📎 {a.fileName} • {a.fileSize} • {a.date}</span>
+                    <span className="truncate">📎 {a.fileName} • {a.fileSize} • {formatTanggal(a.date)}</span>
                     <div className="flex items-center gap-1 shrink-0">
                       <a href={a.filePath} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white border border-[#e4f0f1] text-[#1c5d5f] hover:bg-[#e4f0f1] text-[11px]">lihat</a>
                       {canDeleteBukti(a) && (
