@@ -29,10 +29,11 @@ model Employee {
   supervisor Employee?  @relation("Supervisor", fields: [supervisorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   subordinates Employee[] @relation("Supervisor")
 
-  createdPlans  PerformancePlan[] @relation("CreatedBy")
-  assignedPlans PerformancePlan[] @relation("AssignedTo")
-  attachments   Attachment[]
-  logs          ActivityLog[]
+  createdPlans   PerformancePlan[] @relation("CreatedBy")
+  assignedPlans  PerformancePlan[] @relation("AssignedTo")
+  attachments    Attachment[]
+  realizations   Realization[]     @relation("RealizationUploader")
+  logs           ActivityLog[]
 
   @@index([supervisorId])
   @@index([role])
@@ -63,6 +64,8 @@ model PerformancePlan {
   target      String  // jumlah target (kuantitatif, mis. "6")
   progress    Int     @default(0) // 0..150, dihitung jumlah entri / target
   createdAt   String  @default("2026-01-01") @map("created_at")
+  plannedDate String? @map("planned_date") // tanggal rencana akan dijalankan (YYYY-MM-DD)
+  plannedTime String? @map("planned_time") // jam rencana akan dijalankan (HH:mm 24H)
 
   parent   PerformancePlan?  @relation("PlanParent", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   children PerformancePlan[] @relation("PlanParent")
@@ -71,11 +74,27 @@ model PerformancePlan {
   assignee Employee          @relation("AssignedTo", fields: [assignedTo], references: [id])
   realizations Realization[]
   attachments  Attachment[]
+  customTargets PlanTarget[]
 
   @@index([parentId])
   @@index([assignedTo])
   @@index([skpPeriodId])
   @@map("performance_plans")
+}
+
+// ── Target Kustom (hanya direktur bisa buat) ─────────────────
+model PlanTarget {
+  id        String @id @default(cuid())
+  planId    String @map("plan_id")
+  name      String // e.g., "jumlah peserta", "honor"
+  value     String // e.g., "250", "500000"
+  unit      String // e.g., "orang", "perjam"
+  createdAt String @default("2026-01-01") @map("created_at")
+
+  plan PerformancePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("plan_targets")
 }
 
 // ── Realisasi (tiap entri = 1 progress, punya judul) ─────────
@@ -86,11 +105,15 @@ model Realization {
   realizationValue    String  @default("1") @map("realization_value") // selalu "1" (1 entri = 1)
   realizationDescription String @default("") @map("realization_description")
   realizationDate     String  @map("realization_date")
+  realizationTime     String  @default("09:00") @map("realization_time") // jam 24H HH:mm
+  uploadedBy          String? @map("uploaded_by") // penulis realisasi — hak edit/hapus
   createdAt           String  @default("2026-01-01") @map("created_at")
 
   plan        PerformancePlan @relation(fields: [performancePlanId], references: [id], onDelete: Cascade)
+  uploader    Employee?       @relation("RealizationUploader", fields: [uploadedBy], references: [id], onDelete: SetNull)
   attachments Attachment[]
 
+  @@index([uploadedBy])
   @@index([performancePlanId])
   @@map("performance_realizations")
 }

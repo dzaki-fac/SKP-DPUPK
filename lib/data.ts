@@ -30,15 +30,15 @@ export const seedPlans: PerformancePlan[] = [
 ];
 
 export const seedRealizations: Realization[] = [
-  { id: "r1", planId: "pl4", title: "Webinar Teknis 1 - Registrasi", value: "80", description: "80 laporan selesai dari 100 target", date: "2026-04-15" },
-  { id: "r2", planId: "pl5", title: "Verifikasi Batch April", value: "110", description: "110 berkas diverifikasi", date: "2026-04-20" },
-  { id: "r3", planId: "pl6", title: "Survey Kepuasan Q1", value: "140", description: "140 responden survey", date: "2026-04-10" },
-  { id: "r4", planId: "pl7", title: "Arsip Digital Tahap 1", value: "180", description: "180 dokumen diarsipkan", date: "2026-03-28" },
+  { id: "r1", planId: "pl4", title: "Webinar Teknis 1 - Registrasi", value: "80", description: "80 laporan selesai dari 100 target", date: "2026-04-15", time: "09:00", uploadedBy: "e4" },
+  { id: "r2", planId: "pl5", title: "Verifikasi Batch April", value: "110", description: "110 berkas diverifikasi", date: "2026-04-20", time: "10:30", uploadedBy: "e5" },
+  { id: "r3", planId: "pl6", title: "Survey Kepuasan Q1", value: "140", description: "140 responden survey", date: "2026-04-10", time: "14:00", uploadedBy: "e6" },
+  { id: "r4", planId: "pl7", title: "Arsip Digital Tahap 1", value: "180", description: "180 dokumen diarsipkan", date: "2026-03-28", time: "08:15", uploadedBy: "e7" },
 ];
 
 export const seedAttachments: Attachment[] = [
-  { id: "a1", planId: "pl4", realizationId: "r1", fileName: "Laporan_Permohonan_April.pdf", fileSize: "2.4 MB", uploadedBy: "e4", date: "2026-04-15" },
-  { id: "a2", planId: "pl5", realizationId: "r2", fileName: "Rekap_Verifikasi.xlsx", fileSize: "1.1 MB", uploadedBy: "e5", date: "2026-04-20" },
+  { id: "a1", planId: "pl4", realizationId: "r1", fileName: "Laporan_Permohonan_April.pdf", filePath: "/uploads/a1.pdf", fileSize: "2.4 MB", uploadedBy: "e4", date: "2026-04-15" },
+  { id: "a2", planId: "pl5", realizationId: "r2", fileName: "Rekap_Verifikasi.xlsx", filePath: "/uploads/a2.xlsx", fileSize: "1.1 MB", uploadedBy: "e5", date: "2026-04-20" },
 ];
 
 export const seedLogs: ActivityLog[] = [
