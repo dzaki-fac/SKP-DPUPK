@@ -495,10 +495,12 @@ export default function AuditPage() {
         )}
       </div>
 
-      {/* 5. Detail modal — data before/after belum tersedia di skema ActivityLog sekarang
-          (cuma description teks bebas). Ini catatan kebutuhan buat tim Realisasi/Rencana:
-          kalau addLog() ke depannya menyertakan payload before/after terstruktur, tinggal
-          dirender di bagian "detailLog.before/after" di bawah. */}
+      {/* Detail modal — data before/after belum tersedia di skema ActivityLog sekarang (cuma
+          `description` teks bebas), jadi modal ini cuma nampilin field yang beneran ada datanya.
+          CATATAN BUAT DEV (bukan buat ditampilkan ke user): kalau ke depannya addLog() di
+          lib/store.tsx menyertakan payload before/after terstruktur (perlu kolom tambahan di
+          skema Prisma ActivityLog + perubahan di modul Rencana/Realisasi saat mereka manggil
+          pencatatan log), baru bagian itu bisa dirender di sini sebagai section baru. */}
       {detailLog && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 p-0 sm:p-4" onClick={() => setDetailLog(null)}>
           <div
@@ -530,21 +532,11 @@ export default function AuditPage() {
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-[#283338]/40 mb-1">Deskripsi</div>
                 <div className="text-sm text-[#283338]/80">{detailLog.description}</div>
               </div>
-              <div className="flex gap-6">
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#283338]/40 mb-1">Entitas</div>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: (entityTone[detailLog.entityType] ?? defaultTone).bg, color: (entityTone[detailLog.entityType] ?? defaultTone).fg }}>
-                    {entityLabel[detailLog.entityType] ?? detailLog.entityType} #{shortId(detailLog.entityId)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Placeholder before/after — nunggu skema tambahan dari tim */}
-              <div className="pt-3 border-t border-[#e4f0f1]">
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-[#283338]/40 mb-1.5">Perubahan detail (before/after)</div>
-                <div className="text-xs text-[#283338]/45 bg-[#f2f8f7] border border-[#e4f0f1] rounded-lg p-3" style={{ borderRadius: 10 }}>
-                  Belum tersedia — skema <code className="font-mono">ActivityLog</code> saat ini cuma menyimpan deskripsi teks bebas, bukan nilai sebelum/sesudah yang terstruktur. Perlu ditambahkan di modul Rencana/Realisasi saat mereka memanggil pencatatan log.
-                </div>
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-[#283338]/40 mb-1">Entitas</div>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: (entityTone[detailLog.entityType] ?? defaultTone).bg, color: (entityTone[detailLog.entityType] ?? defaultTone).fg }}>
+                  {entityLabel[detailLog.entityType] ?? detailLog.entityType} #{detailLog.entityId}
+                </span>
               </div>
             </div>
           </div>
