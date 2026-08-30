@@ -29,10 +29,11 @@ model Employee {
   supervisor Employee?  @relation("Supervisor", fields: [supervisorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   subordinates Employee[] @relation("Supervisor")
 
-  createdPlans  PerformancePlan[] @relation("CreatedBy")
-  assignedPlans PerformancePlan[] @relation("AssignedTo")
-  attachments   Attachment[]
-  logs          ActivityLog[]
+  createdPlans   PerformancePlan[] @relation("CreatedBy")
+  assignedPlans  PerformancePlan[] @relation("AssignedTo")
+  attachments    Attachment[]
+  realizations   Realization[]     @relation("RealizationUploader")
+  logs           ActivityLog[]
 
   @@index([supervisorId])
   @@index([role])
@@ -86,11 +87,15 @@ model Realization {
   realizationValue    String  @default("1") @map("realization_value") // selalu "1" (1 entri = 1)
   realizationDescription String @default("") @map("realization_description")
   realizationDate     String  @map("realization_date")
+  realizationTime     String  @default("09:00") @map("realization_time") // jam 24H HH:mm
+  uploadedBy          String? @map("uploaded_by") // penulis realisasi — hak edit/hapus
   createdAt           String  @default("2026-01-01") @map("created_at")
 
   plan        PerformancePlan @relation(fields: [performancePlanId], references: [id], onDelete: Cascade)
+  uploader    Employee?       @relation("RealizationUploader", fields: [uploadedBy], references: [id], onDelete: SetNull)
   attachments Attachment[]
 
+  @@index([uploadedBy])
   @@index([performancePlanId])
   @@map("performance_realizations")
 }

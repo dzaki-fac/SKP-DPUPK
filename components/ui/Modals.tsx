@@ -6,7 +6,7 @@ export function GlobalModals() {
   const {
     showPlanModal, setShowPlanModal, editingPlan, setEditingPlan, planForm, setPlanForm, periods, handleCreatePlan,
     showCascadeModal, setShowCascadeModal, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, handleCascade, handleUpdateDelegation, handleDeleteDelegation, employees, currentUser,
-    showRealizationModal, setShowRealizationModal, realForm, setRealForm, handleSubmitRealization,
+    showRealizationModal, setShowRealizationModal, realForm, setRealForm, handleSubmitRealization, handleEditRealization, editingRealization, setEditingRealization,
     plans,
   } = useSKP();
 
@@ -142,35 +142,88 @@ export function GlobalModals() {
       )}
 
       {showRealizationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm" onClick={() => setShowRealizationModal(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm" onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] }); }}>
           <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-lg border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
-            <div className="p-6 border-b border-[#e4f0f1]"><div className="eyebrow">REALISASI KINERJA</div><h3 className="heading-serif text-lg mt-1">Isi Realisasi</h3><p className="font-mono text-xs tracking-wide text-[#283338]/60">{showRealizationModal.title} • Target: {showRealizationModal.target}</p></div>
+            <div className="p-6 border-b border-[#e4f0f1]"><div className="eyebrow">REALISASI KINERJA</div><h3 className="heading-serif text-lg mt-1">{editingRealization ? "Edit Realisasi" : "Isi Realisasi"}</h3><p className="font-mono text-xs tracking-wide text-[#283338]/60">{showRealizationModal.title} • Target: {showRealizationModal.target}{editingRealization ? ` • Edit: ${editingRealization.title}` : ""}</p></div>
             <div className="p-6 space-y-3">
               <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Judul Realisasi</label><input value={realForm.title} onChange={e => setRealForm({ ...realForm, title: e.target.value })} placeholder="Contoh: Webinar Registrasi 1" className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
               <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Deskripsi</label><textarea value={realForm.description} onChange={e => setRealForm({ ...realForm, description: e.target.value })} rows={3} placeholder="Jelaskan capaian..." className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Tanggal</label><input type="date" value={realForm.date} onChange={e => setRealForm({ ...realForm, date: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
+                <div>
+                  <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Jam (24H) — WIB</label>
+                  <div className="flex gap-2 mt-1">
+                    {(() => {
+                      const [hStr, mStr] = (realForm.time || "09:00").split(":");
+                      const hVal = hStr?.padStart(2,"0") ?? "09";
+                      const mVal = mStr?.padStart(2,"0") ?? "00";
+                      return (
+                        <>
+                          <select value={hVal} onChange={e => setRealForm({ ...realForm, time: `${e.target.value}:${mVal}` })} className="flex-1 px-2 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd] font-mono" style={{ borderRadius: 12 }}>
+                            {Array.from({length:24}, (_,i) => {
+                              const h = String(i).padStart(2,"0");
+                              return <option key={h} value={h}>{h}</option>;
+                            })}
+                          </select>
+                          <span className="flex items-center font-mono text-sm text-[#283338]">:</span>
+                          <select value={mVal} onChange={e => setRealForm({ ...realForm, time: `${hVal}:${e.target.value}` })} className="flex-1 px-2 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd] font-mono" style={{ borderRadius: 12 }}>
+                            {Array.from({length:60}, (_,i) => {
+                              const m = String(i).padStart(2,"0");
+                              return <option key={m} value={m}>{m}</option>;
+                            })}
+                          </select>
+                          <span className="flex items-center font-mono text-xs text-[#283338]/60 px-1">WIB</span>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  <p className="font-mono text-[11px] text-[#283338]/50 mt-1">Pilih jam & menit (00-23 : 00-59)</p>
+                </div>
+              </div>
               <div>
-                <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Bukti (upload file)</label>
-                <input type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx,.csv" onChange={async e => {
-                  const f = e.target.files?.[0];
-                  if (!f) return;
-                  if (f.size > 10*1024*1024) { alert("File maksimal 10MB"); return; }
-                  setRealForm({ ...realForm, fileName: f.name });
-                  // upload immediately
-                  const fd = new FormData();
-                  fd.append("file", f);
-                  if (showRealizationModal) fd.append("planId", showRealizationModal.id);
-                  try {
-                    const r = await fetch("/api/uploads", { method: "POST", body: fd, credentials: "include" });
-                    const j = await r.json();
-                    if (!r.ok) alert(j.error || "Gagal upload");
-                    else setRealForm({ ...realForm, fileName: j.fileName });
-                  } catch { alert("Gagal upload"); }
+                <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Bukti (upload file) {editingRealization ? "— tambah bukti baru (opsional)" : ""}</label>
+                <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx,.csv" onChange={async e => {
+                  const files = Array.from(e.target.files ?? []);
+                  if (!files.length) return;
+                  const valid = files.filter(f => {
+                    if (f.size > 10*1024*1024) { alert(`${f.name} melebihi 10MB — dilewati`); return false; }
+                    return true;
+                  });
+                  if (!valid.length) return;
+                  // upload semua sekaligus
+                  const uploaded: Array<{fileName: string, filePath: string, fileSize: string}> = [];
+                  for (const f of valid) {
+                    const fd = new FormData();
+                    fd.append("file", f);
+                    if (showRealizationModal) fd.append("planId", showRealizationModal.id);
+                    try {
+                      const r = await fetch("/api/uploads", { method: "POST", body: fd, credentials: "include" });
+                      const j = await r.json();
+                      if (!r.ok) alert(j.error || `Gagal upload ${f.name}`);
+                      else uploaded.push({ fileName: j.fileName || f.name, filePath: j.filePath, fileSize: j.fileSize || `${(f.size/1024).toFixed(1)} KB` });
+                    } catch { alert(`Gagal upload ${f.name}`); }
+                  }
+                  if (uploaded.length) setRealForm({ ...realForm, files: [...realForm.files, ...uploaded] });
+                  // reset input
+                  (e.target as HTMLInputElement).value = "";
                 }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm file:mr-3 file:px-3 file:py-1 file:rounded-full file:border-0 file:bg-[#1c5d5f] file:text-white file:text-xs" style={{ borderRadius: 12 }} />
-                {realForm.fileName && <div className="mt-1 font-mono text-xs text-[#1c5d5f]">📎 {realForm.fileName} terpilih — akan diunggah saat Kirim</div>}
-                <p className="font-mono text-xs tracking-wide text-[#283338]/50 mt-1">PDF, JPG, PNG, DOCX, XLSX — maks 10MB, disimpan di /public/uploads</p>
+                {realForm.files.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {realForm.files.map((f, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-xs" style={{ borderRadius: 12 }}>
+                        <span className="truncate">📎 {f.fileName} • {f.fileSize}</span>
+                        <button onClick={() => setRealForm({ ...realForm, files: realForm.files.filter((_, i) => i !== idx) })} className="ml-2 text-[#b91c1c] hover:underline shrink-0">hapus</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="font-mono text-xs tracking-wide text-[#283338]/50 mt-1">PDF, JPG, PNG, DOCX, XLSX, CSV — maks 10MB per file, boleh pilih banyak sekaligus</p>
               </div>
             </div>
-            <div className="p-6 border-t border-[#e4f0f1] flex gap-2 justify-end"><button onClick={() => setShowRealizationModal(null)} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button><button onClick={handleSubmitRealization} className="px-5 py-2 rounded-full bg-[#16325a] text-white text-sm font-medium" style={{ borderRadius: 48 }}>Kirim Realisasi</button></div>
+            <div className="p-6 border-t border-[#e4f0f1] flex gap-2 justify-end">
+              <button onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] }); }} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button>
+              <button onClick={() => editingRealization ? handleEditRealization() : handleSubmitRealization()} className="px-5 py-2 rounded-full bg-[#16325a] text-white text-sm font-medium" style={{ borderRadius: 48 }}>{editingRealization ? "Simpan Perubahan" : "Kirim Realisasi"}</button>
+            </div>
           </div>
         </div>
       )}

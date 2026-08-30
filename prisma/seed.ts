@@ -140,6 +140,8 @@ async function main() {
       realizationValue: "1",
       realizationDescription: "Webinar teknis registrasi ke-1 terselenggara, 250 peserta hadir",
       realizationDate: "2026-03-15",
+      realizationTime: "09:30",
+      uploadedBy: "e-rina",
     }
   });
   await prisma.attachment.create({
