@@ -132,3 +132,119 @@
  GET /dashboard 200 in 29ms (next.js: 8ms, proxy.ts: 4ms, application-code: 18ms)
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
  GET /organisasi 200 in 31ms (next.js: 9ms, proxy.ts: 3ms, application-code: 19ms)
+ GET /organisasi 200 in 198ms (next.js: 104ms, proxy.ts: 55ms, application-code: 38ms)
+ GET /organisasi 200 in 44ms (next.js: 7ms, proxy.ts: 6ms, application-code: 31ms)
+ GET /organisasi 200 in 37ms (next.js: 8ms, proxy.ts: 5ms, application-code: 23ms)
+ GET /organisasi 200 in 51ms (next.js: 7ms, proxy.ts: 5ms, application-code: 40ms)
+ GET /organisasi 200 in 39ms (next.js: 9ms, proxy.ts: 6ms, application-code: 23ms)
+ GET /organisasi 200 in 51ms (next.js: 8ms, proxy.ts: 4ms, application-code: 38ms)
+ GET /organisasi 200 in 43ms (next.js: 9ms, proxy.ts: 5ms, application-code: 29ms)
+ GET /organisasi 200 in 46ms (next.js: 9ms, proxy.ts: 5ms, application-code: 33ms)
+ GET /organisasi 200 in 57ms (next.js: 12ms, proxy.ts: 5ms, application-code: 39ms)
+ GET /organisasi 200 in 137ms (next.js: 35ms, proxy.ts: 6ms, application-code: 95ms)
+ GET /organisasi 200 in 47ms (next.js: 9ms, proxy.ts: 5ms, application-code: 33ms)
+ GET /organisasi 200 in 60ms (next.js: 10ms, proxy.ts: 6ms, application-code: 44ms)
+ GET /organisasi 200 in 42ms (next.js: 10ms, proxy.ts: 8ms, application-code: 24ms)
+ GET /organisasi 200 in 37ms (next.js: 7ms, proxy.ts: 5ms, application-code: 26ms)
+ GET /organisasi 200 in 32ms (next.js: 9ms, proxy.ts: 4ms, application-code: 18ms)
+ GET /organisasi 200 in 40ms (next.js: 7ms, proxy.ts: 4ms, application-code: 29ms)
+ GET /organisasi 200 in 35ms (next.js: 8ms, proxy.ts: 4ms, application-code: 22ms)
+ GET /organisasi 200 in 34ms (next.js: 7ms, proxy.ts: 4ms, application-code: 22ms)
+ GET /organisasi 200 in 42ms (next.js: 7ms, proxy.ts: 8ms, application-code: 26ms)
+ GET /organisasi 200 in 45ms (next.js: 8ms, proxy.ts: 3ms, application-code: 34ms)
+ GET /organisasi 200 in 39ms (next.js: 7ms, proxy.ts: 5ms, application-code: 26ms)
+ GET /organisasi 200 in 35ms (next.js: 7ms, proxy.ts: 5ms, application-code: 22ms)
+ GET /organisasi 200 in 40ms (next.js: 8ms, proxy.ts: 5ms, application-code: 27ms)
+ GET /organisasi 200 in 49ms (next.js: 9ms, proxy.ts: 4ms, application-code: 36ms)
+ GET /organisasi 200 in 45ms (next.js: 9ms, proxy.ts: 4ms, application-code: 33ms)
+ GET /organisasi 200 in 40ms (next.js: 10ms, proxy.ts: 5ms, application-code: 26ms)
+ GET /organisasi 200 in 34ms (next.js: 7ms, proxy.ts: 4ms, application-code: 22ms)
+ GET /organisasi 200 in 37ms (next.js: 7ms, proxy.ts: 4ms, application-code: 26ms)
+ GET /organisasi 200 in 42ms (next.js: 8ms, proxy.ts: 5ms, application-code: 29ms)
+ GET /organisasi 200 in 42ms (next.js: 8ms, proxy.ts: 5ms, application-code: 29ms)
+ GET /organisasi 200 in 38ms (next.js: 7ms, proxy.ts: 4ms, application-code: 27ms)
+ GET /organisasi 200 in 45ms (next.js: 9ms, proxy.ts: 4ms, application-code: 32ms)
+ GET /organisasi 200 in 48ms (next.js: 9ms, proxy.ts: 4ms, application-code: 35ms)
+ GET /organisasi 200 in 35ms (next.js: 7ms, proxy.ts: 6ms, application-code: 23ms)
+ GET /organisasi 200 in 32ms (next.js: 8ms, proxy.ts: 4ms, application-code: 19ms)
+ GET /organisasi 200 in 34ms (next.js: 8ms, proxy.ts: 4ms, application-code: 22ms)
+ GET /organisasi 200 in 44ms (next.js: 7ms, proxy.ts: 4ms, application-code: 33ms)
+ GET /organisasi 200 in 56ms (next.js: 8ms, proxy.ts: 4ms, application-code: 43ms)
+ GET /organisasi 200 in 58ms (next.js: 9ms, proxy.ts: 5ms, application-code: 44ms)
+ GET /organisasi 200 in 46ms (next.js: 10ms, proxy.ts: 4ms, application-code: 32ms)
+ GET /organisasi 200 in 68ms (next.js: 8ms, proxy.ts: 4ms, application-code: 56ms)
+ GET /organisasi 200 in 46ms (next.js: 9ms, proxy.ts: 5ms, application-code: 32ms)
+ GET /organisasi 200 in 53ms (next.js: 11ms, proxy.ts: 4ms, application-code: 38ms)
+ GET /organisasi 200 in 41ms (next.js: 7ms, proxy.ts: 5ms, application-code: 29ms)
+ GET /organisasi 200 in 93ms (next.js: 10ms, proxy.ts: 4ms, application-code: 79ms)
+ GET /organisasi 200 in 38ms (next.js: 9ms, proxy.ts: 4ms, application-code: 25ms)
+ GET /organisasi 200 in 33ms (next.js: 8ms, proxy.ts: 3ms, application-code: 22ms)
+ GET /organisasi 200 in 40ms (next.js: 8ms, proxy.ts: 4ms, application-code: 28ms)
+ GET /organisasi 200 in 36ms (next.js: 6ms, proxy.ts: 4ms, application-code: 25ms)
+ GET /organisasi 200 in 29ms (next.js: 7ms, proxy.ts: 4ms, application-code: 18ms)
+⚠ Fast Refresh had to perform a full reload when ./lib/data.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 101ms
+ GET /organisasi 200 in 209ms (next.js: 29ms, proxy.ts: 7ms, application-code: 173ms)
+ GET /organisasi 200 in 178ms (next.js: 8ms, proxy.ts: 42ms, application-code: 129ms)
+ GET /api/db 200 in 72ms (next.js: 42ms, proxy.ts: 6ms, application-code: 24ms)
+ GET /api/auth/me 200 in 153ms (next.js: 126ms, proxy.ts: 6ms, application-code: 21ms)
+ GET /api/db 200 in 36ms (next.js: 9ms, proxy.ts: 14ms, application-code: 14ms)
+ GET /api/auth/me 200 in 48ms (next.js: 25ms, proxy.ts: 12ms, application-code: 11ms)
+✓ Compiled in 308ms
+ GET /organisasi 200 in 352ms (next.js: 237ms, proxy.ts: 68ms, application-code: 48ms)
+ GET /organisasi 500 in 778ms (next.js: 616ms, proxy.ts: 7ms, application-code: 156ms)
+ GET /organisasi 500 in 57ms (next.js: 34ms, proxy.ts: 5ms, application-code: 18ms)
+ GET /organisasi 500 in 68ms (next.js: 21ms, proxy.ts: 29ms, application-code: 17ms)
+ GET /organisasi 500 in 37ms (proxy.ts: 23ms)
+[browser] Uncaught Error: ./app/(app)/dashboard/page.tsx:280:1
+Error: Merge conflict marker encountered.
+  278 |     return [...map.values()].sort((a,b)=> a.plan.title.localeCompare(b.plan.title));
+  279 |   })();
+> 280 | >>>>>>> main
+      | ^^^^^^^
+  281 |
+  282 |   return (
+  283 |     <div className={`${dashFont.variable} space-y-6`} style={dashFontScope}>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/(app)/dashboard/page.tsx [Client Component Browser]
+    ./app/(app)/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(app)/dashboard/page.tsx [Client Component SSR]
+    ./app/(app)/dashboard/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/(app)/dashboard/page.tsx:280:1)
+    at <unknown> (Error: (./app/(app)/dashboard/page.tsx:280:1)
+ GET /organisasi 200 in 142ms (next.js: 15ms, proxy.ts: 7ms, application-code: 120ms)
+ GET /api/db 200 in 112ms (next.js: 63ms, proxy.ts: 8ms, application-code: 42ms)
+ GET /api/auth/me 200 in 173ms (next.js: 145ms, proxy.ts: 10ms, application-code: 18ms)
+ GET /api/db 200 in 24ms (next.js: 9ms, proxy.ts: 6ms, application-code: 9ms)
+ GET /api/auth/me 200 in 40ms (next.js: 23ms, proxy.ts: 6ms, application-code: 11ms)
+⚠ Fast Refresh had to perform a full reload when ./lib/data.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 139ms
+ GET /organisasi 200 in 65ms (next.js: 21ms, proxy.ts: 5ms, application-code: 39ms)
+ GET /organisasi 200 in 65ms (next.js: 11ms, proxy.ts: 10ms, application-code: 44ms)
+ GET /api/db 200 in 33ms (next.js: 9ms, proxy.ts: 7ms, application-code: 17ms)
+ GET /api/auth/me 200 in 48ms (next.js: 32ms, proxy.ts: 7ms, application-code: 10ms)
+ GET /api/db 200 in 28ms (next.js: 8ms, proxy.ts: 6ms, application-code: 13ms)
+ GET /api/auth/me 200 in 44ms (next.js: 26ms, proxy.ts: 6ms, application-code: 12ms)
+ GET /organisasi 200 in 66ms (next.js: 9ms, proxy.ts: 8ms, application-code: 50ms)
+ GET /api/db 200 in 30ms (next.js: 8ms, proxy.ts: 7ms, application-code: 14ms)
+ GET /api/auth/me 200 in 46ms (next.js: 28ms, proxy.ts: 8ms, application-code: 11ms)
+ GET /api/db 200 in 33ms (next.js: 11ms, proxy.ts: 5ms, application-code: 16ms)
+ GET /api/auth/me 200 in 51ms (next.js: 32ms, proxy.ts: 5ms, application-code: 13ms)
+✓ Compiled in 201ms
+ GET /organisasi 200 in 66ms (next.js: 15ms, proxy.ts: 5ms, application-code: 46ms)
+⚠ Fast Refresh had to perform a full reload when ./lib/data.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 100ms
+ GET /organisasi 200 in 92ms (next.js: 23ms, proxy.ts: 7ms, application-code: 62ms)
+ GET /organisasi 200 in 70ms (next.js: 15ms, proxy.ts: 12ms, application-code: 43ms)
+ GET /api/auth/me 200 in 32ms (next.js: 8ms, proxy.ts: 6ms, application-code: 18ms)
+ GET /api/db 200 in 56ms (next.js: 37ms, proxy.ts: 6ms, application-code: 13ms)
+ GET /api/auth/me 200 in 22ms (next.js: 8ms, proxy.ts: 6ms, application-code: 8ms)
+ GET /api/db 200 in 39ms (next.js: 20ms, proxy.ts: 6ms, application-code: 14ms)
