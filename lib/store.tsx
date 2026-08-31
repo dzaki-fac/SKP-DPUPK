@@ -173,7 +173,24 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (j.supervisorId !== undefined) {
         setEmployees(prev => prev.map(e => e.id === employeeId ? { ...e, supervisorId: j.supervisorId } : e));
       }
-      addLog("Mengubah organisasi", `Memperbarui relasi pimpinan ${emp.name.split(",")[0]}`, "employee_supervisor", employeeId);
+      const incomingSup = "supervisors" in data && Array.isArray(data.supervisors) ? data.supervisors : [];
+      // Catat perubahan relasi secara detail untuk Riwayat Aktivitas (Admin).
+      const pimpinan = (supArray: Array<{ supervisorId: string; endDate?: string | null }>) => {
+        const names = supArray
+          .filter(s => s && s.supervisorId)
+          .map(s => employees.find(e => e.id === s.supervisorId)?.name?.split(",")[0])
+          .filter((x): x is string => !!x);
+        return names.length ? names.join(", ") : "—";
+      };
+      const prevActive = supervisors.filter(s => s.employeeId === employeeId && s.endDate == null);
+      const newNames = pimpinan(incomingSup);
+      const prevNames = pimpinan(prevActive);
+      const empShort = emp.name.split(",")[0];
+      const action = newNames ? "Mengubah pimpinan" : "Mengakhiri hubungan pimpinan";
+      const desc = newNames && prevNames && newNames !== prevNames
+        ? `Memindahkan ${empShort}: pimpinan ${prevNames} → ${newNames}`
+        : `Menetapkan pimpinan ${empShort}: ${newNames || "tanpa pimpinan"}`;
+      addLog(action, desc, "employee_supervisor", employeeId);
       notify("Relasi pimpinan diperbarui");
       return { ok: true };
     } catch (e: unknown) {
