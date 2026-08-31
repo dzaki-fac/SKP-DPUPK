@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { useSKP } from "@/lib/store";
 import { ROLES, ROLE_LABEL, ROLE_LEVEL, ROLE_SHORT, roleAbove, CREATEABLE_ROLES, canCreateAnyRole, descendantIds } from "@/lib/roles";
 import type { Employee, Role } from "@/lib/types";
-
 type Modal = { mode: "create" } | { mode: "edit"; emp: Employee } | null;
 
 interface Form {
@@ -28,13 +27,20 @@ function sortEmps(a: Employee, b: Employee) {
 const inputCls = "w-full px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-sm text-[#283338] focus:outline-none focus:border-[#0e7490] placeholder:text-[#283338]/40";
 
 export default function EmployeeManager() {
-  const { employees, currentUser, createEmployee, updateEmployee, deleteEmployee } = useSKP();
+  const { employees, currentUser, createEmployee, updateEmployee, deleteEmployee, updateSupervisors, getActiveSupervisors, getSupervisorHistory } = useSKP();
   const [q, setQ] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | Role>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [modal, setModal] = useState<Modal>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [busy, setBusy] = useState(false);
+  // Relasi Staff ↔ Pimpinan (multi + periode) untuk mode edit, terpisah dari form.supervisorId.
+  // key = supervisorId, value = { startDate, endDate ('' = masih aktif/sekarang) }.
+  const [editSup, setEditSup] = useState<Record<string, { startDate: string; endDate: string }>>({});
+
+  // Riwayat pimpinan untuk target edit.
+  const historyRows = modal?.mode === "edit" ? getSupervisorHistory(modal.emp.id) : [];
+  const today = new Date().toISOString().slice(0, 10);
 
   const role = currentUser?.role;
   const isAdmin = role === "admin";
@@ -92,8 +98,15 @@ export default function EmployeeManager() {
     setForm(initial);
     setModal({ mode: "create" });
   };
-  const openEdit = (e: Employee) => { setForm({ name: e.name, email: e.email, employeeNumber: e.employeeNumber, role: e.role, supervisorId: e.supervisorId ?? "", password: "", isActive: e.isActive ?? true }); setModal({ mode: "edit", emp: e }); };
-  const close = () => { setModal(null); setBusy(false); };
+  const openEdit = (e: Employee) => {
+    setForm({ name: e.name, email: e.email, employeeNumber: e.employeeNumber, role: e.role, supervisorId: e.supervisorId ?? "", password: "", isActive: e.isActive ?? true });
+    // Prefill dari relasi AKTIF (periode mulai dipertahankan; selesai kosong = masih aktif).
+    const map: Record<string, { startDate: string; endDate: string }> = {};
+    getActiveSupervisors(e.id).forEach(s => { map[s.supervisorId] = { startDate: s.startDate, endDate: "" }; });
+    setEditSup(map);
+    setModal({ mode: "edit", emp: e });
+  };
+  const close = () => { setModal(null); setBusy(false); setEditSup({}); };
 
   const submit = async () => {
     if (busy) return;
@@ -116,7 +129,17 @@ export default function EmployeeManager() {
       if (res.ok) close();
     } else if (modal?.mode === "edit") {
       const res = await updateEmployee(modal.emp.id, payload);
-      if (res.ok) close();
+      if (res.ok) {
+        // Update relasi Staff ↔ Pimpinan (multi) + periode. Relasi yang diakhiri jadi riwayat.
+        const today = new Date().toISOString().slice(0, 10);
+        const supervisors = Object.entries(editSup).map(([sid, p]) => ({
+          supervisorId: sid,
+          startDate: p.startDate || today,
+          endDate: p.endDate || null,
+        }));
+        await updateSupervisors(modal.emp.id, { supervisors });
+        close();
+      }
     }
     setBusy(false);
   };
@@ -170,7 +193,8 @@ export default function EmployeeManager() {
           </thead>
           <tbody>
             {list.map(e => {
-              const sup = e.supervisorId ? employees.find(x => x.id === e.supervisorId) : null;
+              const activeSps = getActiveSupervisors(e.id);
+              const supNames = activeSps.map(s => employees.find(x => x.id === s.supervisorId)?.name).filter(Boolean);
               return (
                 <tr key={e.id} className="border-b border-[#e5e7eb] last:border-0 hover:bg-[#f3f4f6]/60">
                   <td className="px-4 py-3">
@@ -184,7 +208,10 @@ export default function EmployeeManager() {
                   <td className="px-4 py-3">
                     <span className="font-mono text-[12px] whitespace-nowrap">{e.role === "admin" ? "Admin" : ROLE_SHORT[e.role]}</span>
                   </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-[#283338]/70">{sup ? sup.name : "—"}</td>
+                  <td className="px-4 py-3 hidden sm:table-cell text-[#283338]/70">
+                    {supNames.length ? supNames.join(", ") : "—"}
+                    {activeSps.length > 1 && <span className="ml-1 font-mono text-[10px] text-[#0e7490]">×{activeSps.length}</span>}
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`text-[12px] ${(e.isActive ?? true) ? "text-[#17643a]" : "text-[#b91c1c]"}`}>{(e.isActive ?? true) ? "Aktif" : "Non-aktif"}</span>
                   </td>
@@ -212,16 +239,18 @@ export default function EmployeeManager() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={close}>
-          <div className="w-full max-w-lg bg-white border border-[#e5e7eb]" style={{ borderRadius: 10 }} onClick={e => e.stopPropagation()}>
-            <div className="px-6 pt-6 flex items-start justify-between">
+          <div className="w-full max-w-lg bg-white border border-[#e5e7eb] flex flex-col overflow-hidden" style={{ borderRadius: 10 }} onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="px-5 pt-4 pb-3 flex items-start justify-between border-b border-[#e5e7eb]">
               <div>
                 <p className="eyebrow text-[#0e7490] text-[12px]">{modal.mode === "create" ? "Tambah pegawai" : "Ubah akun & jabatan"}</p>
-                <h3 className="heading-serif text-[22px] mt-1">{modal.mode === "create" ? "Pegawai baru" : form.name || "Perbarui data"}</h3>
+                <h3 className="heading-serif text-[19px] mt-0.5 truncate pr-4">{modal.mode === "create" ? "Pegawai baru" : form.name || "Perbarui data"}</h3>
               </div>
-              <button onClick={close} className="w-8 h-8 rounded-full border border-[#e5e7eb] text-[#283338]/60 hover:border-[#0e7490] hover:text-[#283338]" style={{ borderRadius: 9999 }}>✕</button>
+              <button onClick={close} className="w-7 h-7 shrink-0 rounded-full border border-[#e5e7eb] text-[#283338]/60 hover:border-[#0e7490] hover:text-[#283338] flex items-center justify-center" style={{ borderRadius: 9999 }}>✕</button>
             </div>
 
-            <div className="mt-5 px-6 space-y-3">
+            {/* Scrollable body */}
+            <div className="px-5 py-4 space-y-3 overflow-y-auto" style={{ maxHeight: "65vh" }}>
               <input placeholder="Nama lengkap (min. 3 karakter)" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputCls} />
               <div className="grid sm:grid-cols-2 gap-3">
                 <input placeholder="Email (untuk login)" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={inputCls} />
@@ -248,34 +277,134 @@ export default function EmployeeManager() {
                   </select>
                 </label>
                 <label className="block">
-                  <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Atasan langsung</span>
-                  {autoSupervisor ? (
-                    <div className={`${inputCls} mt-1 flex items-center justify-between`}>
-                      <span className="text-[#283338]">{currentUser.name.split(",")[0]} (Anda)</span>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#0e7490]">otomatis</span>
-                    </div>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/50">Status akun</span>
+                  <select value={form.isActive ? "active" : "inactive"} onChange={e => setForm({ ...form, isActive: e.target.value === "active" })} className={`${inputCls} mt-1`}>
+                    <option value="active">Aktif (dapat login)</option>
+                    <option value="inactive">Non-aktif</option>
+                  </select>
+                </label>
+              </div>
+
+              {/* Atasan Langsung — section */}
+              <div className="rounded-lg border border-[#e5e7eb] bg-[#f8fafc] p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#283338]/60">Atasan Langsung</span>
+                  {modal.mode === "edit" && form.role !== "admin" && form.role !== "pimpinan_1" && (
+                    <span className="font-mono text-[10px] text-[#0e7490]">{Object.keys(editSup).length} dipilih · riwayat tersimpan</span>
+                  )}
+                </div>
+                {autoSupervisor ? (
+                  <div className={`${inputCls} flex items-center justify-between`}>
+                    <span className="truncate text-[#283338]">{currentUser.name.split(",")[0]} (Anda)</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#0e7490] shrink-0">otomatis</span>
+                  </div>
+                ) : modal?.mode === "edit" ? (
+                  form.role === "admin" || form.role === "pimpinan_1" ? (
+                    <p className="font-mono text-[11px] text-[#283338]/60">Tanpa atasan — berada di puncak/ luar hierarki.</p>
                   ) : (
-                    <select value={effectiveSupervisorId} onChange={e => setForm({ ...form, supervisorId: e.target.value })} className={`${inputCls} mt-1`}>
+                    <>
+                      <p className="mb-1.5 font-mono text-[10px] text-[#283338]/50">Pilih satu atau lebih pimpinan aktif — periode selesai kosong = masih berlaku.</p>
+                      <div className="rounded-md border border-[#e5e7eb] bg-white divide-y divide-[#e5e7eb] max-h-56 overflow-auto">
+                        {supervisorOptions.length === 0 && <p className="px-3 py-2 font-mono text-[11px] text-[#b91c1c]">Belum ada pegawai berjabatan {ROLE_LABEL[neededRole!]} sebagai calon pimpinan.</p>}
+                        {supervisorOptions.map(s => {
+                          const sel = editSup[s.id];
+                          return (
+                            <div key={s.id} className={sel ? "bg-[#f8fafc]" : ""}>
+                              <label className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[#f3f4f6]">
+                                <input
+                                  type="checkbox"
+                                  checked={!!sel}
+                                  onChange={e => {
+                                    if (e.target.checked) setEditSup(prev => ({ ...prev, [s.id]: prev[s.id] ?? { startDate: today, endDate: "" } }));
+                                    else setEditSup(prev => { const next = { ...prev }; delete next[s.id]; return next; });
+                                  }}
+                                  className="w-3.5 h-3.5 accent-[#0e7490] shrink-0"
+                                />
+                                <span className="text-[13px] text-[#283338] truncate">{s.name}</span>
+                                <span className="ml-auto font-mono text-[10px] text-[#0e7490] shrink-0">{ROLE_SHORT[s.role]}</span>
+                              </label>
+                              {sel && (
+                                <div className="px-3 pb-2.5 pl-9 flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-mono text-[10px] uppercase tracking-[0.05em] text-[#283338]/50 shrink-0">Periode</span>
+                                  <input
+                                    type="date"
+                                    value={sel.startDate}
+                                    onChange={e => setEditSup(prev => ({ ...prev, [s.id]: { ...prev[s.id], startDate: e.target.value } }))}
+                                    className="flex-1 min-w-[118px] px-2 py-1 rounded-md border border-[#e5e7eb] bg-white text-[12px] text-[#283338] focus:outline-none focus:border-[#0e7490]"
+                                  />
+                                  <span className="text-[#9ca3af] shrink-0">–</span>
+                                  {sel.endDate ? (
+                                    <>
+                                      <input
+                                        type="date"
+                                        value={sel.endDate}
+                                        onChange={e => setEditSup(prev => ({ ...prev, [s.id]: { ...prev[s.id], endDate: e.target.value } }))}
+                                        className="flex-1 min-w-[118px] px-2 py-1 rounded-md border border-[#e5e7eb] bg-white text-[12px] text-[#283338] focus:outline-none focus:border-[#0e7490]"
+                                      />
+                                      <button
+                                        type="button"
+                                        title="Kembalikan ke masih berlaku (sekarang)"
+                                        onClick={() => setEditSup(prev => ({ ...prev, [s.id]: { ...prev[s.id], endDate: "" } }))}
+                                        className="w-6 h-6 shrink-0 rounded-md border border-[#e5e7eb] text-[12px] text-[#6b7280] hover:border-[#0e7490] hover:text-[#0e7490]"
+                                      >
+                                        ✕
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="flex-1 min-w-[118px] px-2 py-1 rounded-md border border-dashed border-[#e5e7eb] bg-transparent text-[12px] text-[#0e7490] font-mono">Sekarang</div>
+                                      <button
+                                        type="button"
+                                        title="Tetapkan tanggal selesai"
+                                        onClick={() => setEditSup(prev => ({ ...prev, [s.id]: { ...prev[s.id], endDate: today } }))}
+                                        className="w-6 h-6 shrink-0 rounded-md border border-[#e5e7eb] text-[12px] text-[#6b7280] hover:border-[#0e7490] hover:text-[#0e7490]"
+                                      >
+                                        ⌚
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {historyRows.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-[#eef2f6]">
+                          <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#9ca3af]">Riwayat pimpinan</div>
+                          <ul className="mt-1 space-y-0.5">
+                            {historyRows.map(h => (
+                              <li key={h.id} className="flex items-center gap-2 text-[12px] text-[#283338]/60">
+                                <span className="truncate">{employees.find(x => x.id === h.supervisorId)?.name ?? h.supervisorId}</span>
+                                <span className="ml-auto font-mono text-[11px] text-[#9ca3af] whitespace-nowrap">{h.startDate} → {h.endDate ?? "sekarang"}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  )
+                ) : (
+                  <>
+                    <select value={effectiveSupervisorId} onChange={e => setForm({ ...form, supervisorId: e.target.value })} className={inputCls}>
                       <option value="">{(form.role === "admin" || form.role === "pimpinan_1") ? "— Tanpa atasan —" : "— Pilih atasan —"}</option>
                       {supervisorOptions.map(s => <option key={s.id} value={s.id}>{s.name} • {ROLE_SHORT[s.role]}</option>)}
                     </select>
-                  )}
-                </label>
+                    {form.role !== "admin" && form.role !== "pimpinan_1" && neededRole && supervisorOptions.length === 0 && (
+                      <p className="mt-1.5 font-mono text-[11px] text-[#b91c1c]">Belum ada pegawai berjabatan {ROLE_LABEL[neededRole]} sebagai calon atasan untuk jabatan {ROLE_LABEL[form.role]}.</p>
+                    )}
+                  </>
+                )}
               </div>
-              {form.role !== "admin" && form.role !== "pimpinan_1" && neededRole && !autoSupervisor && supervisorOptions.length === 0 && (
-                <p className="font-mono text-[11px] text-[#b91c1c]">Belum ada pegawai berjabatan {ROLE_LABEL[neededRole]} sebagai calon atasan untuk jabatan {ROLE_LABEL[form.role]}.</p>
-              )}
+
               <input placeholder={modal.mode === "edit" ? "Password baru (kosongkan jika tidak diubah)" : "Password default 'password'"} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className={inputCls} />
-              <label className="flex items-center gap-2 text-sm text-[#283338]">
-                <input type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} className="w-4 h-4 accent-[#0e7490]" />
-                Akun aktif (dapat login)
-              </label>
               {form.role === "pimpinan_1" && <p className="font-mono text-[11px] text-[#283338]/60">• Hanya boleh ada 1 Direktur (pimpinan_1).</p>}
             </div>
 
-            <div className="mt-6 px-6 py-5 border-t border-[#e5e7eb] flex gap-2 justify-end">
-              <button onClick={close} className="px-5 py-2 rounded-md border border-[#e5e7eb] text-sm font-medium text-[#283338] hover:border-[#0e7490]">Batal</button>
-              <button onClick={submit} disabled={busy} className="px-5 py-2 rounded-md bg-[#0e7490] text-white text-sm font-medium hover:bg-[#155e75] disabled:opacity-50">
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-[#e5e7eb] bg-[#fafafa] flex items-center justify-end gap-2">
+              <button onClick={close} className="px-4 py-1.5 rounded-md border border-[#e5e7eb] text-[13px] font-medium text-[#283338] hover:border-[#0e7490]">Batal</button>
+              <button onClick={submit} disabled={busy} className="px-4 py-1.5 rounded-md bg-[#0e7490] text-white text-[13px] font-medium hover:bg-[#155e75] disabled:opacity-50">
                 {busy ? "Menyimpan…" : (modal.mode === "create" ? "Simpan pegawai" : "Simpan perubahan")}
               </button>
             </div>

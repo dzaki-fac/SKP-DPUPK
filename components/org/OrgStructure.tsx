@@ -25,7 +25,7 @@ const ROLE_ACCENT: Record<string, string> = {
 };
 
 export default function OrgStructure() {
-  const { employees, plans } = useSKP();
+  const { employees, plans, getActiveSupervisors, getSupervisorHistory } = useSKP();
   const [search, setSearch] = useState("");
   const [detailId, setDetailId] = useState<string | null>(null);
 
@@ -33,25 +33,52 @@ export default function OrgStructure() {
   // Admin tidak tampil sebagai node (di luar hierarki jabatan).
   const treeNodes = useMemo(() => employees.filter(e => e.role !== "admin"), [employees]);
 
+  // SEMUA pimpinan AKTIF (dari tabel relasi EmployeeSupervisor), bukan hanya primary supervisorId.
+  // Tiap employee dipetakan ke himpunan id pimpinan aktifnya.
+  // Fallback: jika pegawai TIDAK punya relasi aktif (mis. para pimpinan/manajer di atas), gunakan
+  // supervisorId yang sudah ada agar hierarki lama/manajer TETAP tampil utuh seperti sebelumnya.
+  const activeSupIdOf = useMemo(() => {
+    const m = new Map<string, Set<string>>();
+    treeNodes.forEach(e => {
+      const rel = getActiveSupervisors(e.id).map(s => s.supervisorId);
+      if (rel.length) m.set(e.id, new Set(rel));
+      else if (e.supervisorId) m.set(e.id, new Set([e.supervisorId]));
+    });
+    return m;
+  }, [treeNodes, getActiveSupervisors]);
+
+  // childrenOf: supervisorId -> daftar bawahan LANGSUNG berdasar SELURUH relasi aktif.
+  // Satu staf dengan 2 pimpinan aktif muncul di bawah KEDUA pimpinan (tanpa duplikasi akun).
   const childrenOf = useMemo(() => {
     const m = new Map<string, Employee[]>();
     treeNodes.forEach(e => {
-      if (e.supervisorId) {
-        const arr = m.get(e.supervisorId) ?? [];
-        arr.push(e);
-        m.set(e.supervisorId, arr);
+      const supIds = activeSupIdOf.get(e.id);
+      if (supIds && supIds.size) {
+        supIds.forEach(sid => {
+          const arr = m.get(sid) ?? [];
+          arr.push(e);
+          m.set(sid, arr);
+        });
       }
     });
     m.forEach(arr => arr.sort((a, b) => a.name.localeCompare(b.name)));
     return m;
-  }, [treeNodes]);
+  }, [treeNodes, activeSupIdOf]);
 
-  const roots = useMemo(() => treeNodes.filter(e => !e.supervisorId), [treeNodes]);
+  const roots = useMemo(() => treeNodes.filter(e => !(activeSupIdOf.get(e.id)?.size)), [treeNodes, activeSupIdOf]);
 
+  // Levels dihitung per role (tiap pegawai selalu satu tingkat di bawah pimpinan-nya),
+  // sehingga p1/p2/p3 tetap stabil. Dedupe per level agar node dengan beberapa pimpinan
+  // TIDAK digambar berkali-kali di dalam level yang sama (tetap satu node per kolom).
   const levels = useMemo(() => {
     const out: Employee[][] = [];
     let cur = roots;
-    while (cur.length) { out.push(cur); cur = cur.flatMap(n => childrenOf.get(n.id) ?? []); }
+    while (cur.length) {
+      const seen = new Set<string>();
+      const uniq = cur.filter(n => { if (seen.has(n.id)) return false; seen.add(n.id); return true; });
+      out.push(uniq);
+      cur = uniq.flatMap(n => childrenOf.get(n.id) ?? []);
+    }
     return out;
   }, [roots, childrenOf]);
 
@@ -150,8 +177,22 @@ export default function OrgStructure() {
 
   const counts = useMemo(() => {
     const c = { pimpinan_1: 0, pimpinan_2: 0, pimpinan_3: 0, staf: 0 };
-    treeNodes.forEach(e => { if (e.role in c) (c as Record<string, number>)[e.role]++; });
+    // Hitung ORANG UNIK per NIP: satu orang = satu NIP; relasi pimpinan berganda
+    // TIDAK menambah jumlah orang.
+    const seenNip = new Set<string>();
+    treeNodes.forEach(e => {
+      const key = e.employeeNumber || e.id;
+      if (seenNip.has(key)) return;
+      seenNip.add(key);
+      if (e.role in c) (c as Record<string, number>)[e.role]++;
+    });
     return c;
+  }, [treeNodes]);
+
+  const uniquePeople = useMemo(() => {
+    const seen = new Set<string>();
+    treeNodes.forEach(e => { const k = e.employeeNumber || e.id; if (!seen.has(k)) seen.add(k); });
+    return seen.size;
   }, [treeNodes]);
 
   const q = search.trim().toLowerCase();
@@ -165,9 +206,9 @@ export default function OrgStructure() {
   const planCountOf = (id: string) => plans.filter(p => p.assignedTo === id).length;
   const detailEmp = detailId ? treeNodes.find(e => e.id === detailId) : null;
 
-  const nodeCard = (n: Employee, x: number, y: number, w: number, h: number, staf = false) => (
+  const nodeCard = (n: Employee, x: number, y: number, w: number, h: number, staf = false, itemKey = n.id) => (
     <div
-      key={n.id}
+      key={itemKey}
       className={`absolute bg-white border rounded-[10px] cursor-pointer transition-all ${dimNode(n) ? "opacity-30" : "hover:border-[#0e7490] hover:shadow-sm"} ${detailId === n.id ? "border-[#0e7490] ring-1 ring-[#0e7490]/20" : "border-[#e5e7eb] shadow-[0_1px_2px_rgba(17,24,39,0.04)]"}`}
       style={{ left: x, top: y, width: w, height: h, boxSizing: "border-box", padding: staf ? "6px 10px" : "8px 12px", display: "flex", flexDirection: "column", justifyContent: "center" }}
       onClick={() => setDetailId(n.id)}
@@ -199,11 +240,18 @@ export default function OrgStructure() {
     if (!e) return null;
     const sup = e.supervisorId ? treeNodes.find(x => x.id === e.supervisorId) : null;
     const kids = childrenOf.get(e.id) ?? [];
+    const activeSps = getActiveSupervisors(e.id).map(s => treeNodes.find(x => x.id === s.supervisorId)).filter(Boolean);
+    const historySps = getSupervisorHistory(e.id)
+      .map(h => ({ rel: h, sup: treeNodes.find(x => x.id === h.supervisorId) }))
+      .filter(h => h.sup);
+    const supervisorsLabel = activeSps.length
+      ? activeSps.map(s => (s as Employee).name).join(", ")
+      : (sup ? sup.name : "—");
     const rows: Array<{ label: string; value: string }> = [
       { label: "NIP", value: e.employeeNumber || "—" },
       { label: "Email", value: e.email },
       { label: "Jabatan", value: ROLE_LABEL[e.role] },
-      { label: "Atasan langsung", value: sup ? sup.name : "—" },
+      { label: "Pimpinan aktif", value: supervisorsLabel },
       { label: "Bawahan langsung", value: kids.length ? kids.map(k => k.name).join(", ") : "Tidak ada" },
       { label: "Rencana aktif", value: `${planCountOf(e.id)} rencana` },
     ];
@@ -227,6 +275,19 @@ export default function OrgStructure() {
                 <div className="mt-1 text-[14px] text-[#1f2937]">{r.value}</div>
               </div>
             ))}
+            {historySps.length > 0 && (
+              <div>
+                <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#9ca3af]">Riwayat pimpinan</div>
+                <ul className="mt-1 space-y-0.5">
+                  {historySps.map(h => (
+                    <li key={h.rel.id} className="text-[13px] text-[#1f2937]">
+                      {(h.sup as Employee).name}
+                      <span className="font-mono text-[11px] text-[#9ca3af]"> — {h.rel.startDate} → {h.rel.endDate}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -268,9 +329,10 @@ export default function OrgStructure() {
                 {p2Level.map(n => nodeCard(n, cardCenter(n.id) - NODE_W / 2, rowTop(1) + (ROW_H - NODE_H) / 2, NODE_W, NODE_H))}
                 {/* P3 */}
                 {p3Level.map(n => nodeCard(n, cardCenter(n.id) - NODE_W / 2, rowTop(2) + (ROW_H - NODE_H) / 2, NODE_W, NODE_H))}
-                {/* Staf (vertikal di bawah tiap P3) */}
+                {/* Staf (vertikal di bawah tiap P3) — key unik per (p3,staf) agar satu staf
+                    dengan beberapa pimpinan aktif dapat tampil di beberapa kolom tanpa bentrok. */}
                 {p3Level.map(p3 =>
-                  (childrenOf.get(p3.id) ?? []).map((s, i) => nodeCard(s, colCenter(colOf.get(p3.id)!) - NODE_W / 2, stafY(i), NODE_W, STAF_H, true))
+                  (childrenOf.get(p3.id) ?? []).map((s, i) => nodeCard(s, colCenter(colOf.get(p3.id)!) - NODE_W / 2, stafY(i), NODE_W, STAF_H, true, `${p3.id}-${s.id}`))
                 )}
               </div>
             </div>
@@ -295,7 +357,7 @@ export default function OrgStructure() {
           </div>
           <div className="mt-4 pt-3 border-t border-[#f1f5f9] flex items-center justify-between">
             <span className="text-[12.5px] font-semibold text-[#1f2937]">Total Pegawai</span>
-            <span className="font-mono text-[16px] font-bold text-[#0f172a]">{treeNodes.length}</span>
+            <span className="font-mono text-[16px] font-bold text-[#0f172a]">{uniquePeople}</span>
           </div>
           <div className="mt-4 flex items-start gap-2 rounded-[10px] bg-[#e0f7f4] px-3 py-2.5">
             <svg className="mt-0.5 shrink-0 text-[#0e7490]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

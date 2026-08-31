@@ -1,17 +1,25 @@
 "use client";
 import { useSKP } from "@/lib/store";
 import { ROLE_SHORT } from "@/lib/roles";
+import type { Employee } from "@/lib/types";
 
 export default function DashboardPage() {
   const { currentUser, employees, plans, realizations, periods } = useSKP();
   if (!currentUser) return null;
 
-  const totalPegawai = employees.length;
-  const totalPimpinan2 = employees.filter(e => e.role === "pimpinan_2").length;
-  const totalPimpinan3 = employees.filter(e => e.role === "pimpinan_3").length;
-  const totalStaff = employees.filter(e => e.role === "staf").length;
-  const totalPimpinan1 = employees.filter(e => e.role === "pimpinan_1").length;
-  const totalAdmin = employees.filter(e => e.role === "admin").length;
+  // 1 NIP = 1 orang. Total & statistik menghitung ORANG UNIK (distinct NIP),
+  // bukan jumlah baris, sehingga relasi pimpinan berganda tidak menambah orang.
+  const countByNip = (filter: (e: Employee) => boolean) => {
+    const seen = new Set<string>();
+    employees.forEach(e => { if (!filter(e)) return; const k = e.employeeNumber || e.id; if (!seen.has(k)) seen.add(k); });
+    return seen.size;
+  };
+  const totalPegawai = countByNip(() => true);
+  const totalPimpinan1 = countByNip(e => e.role === "pimpinan_1");
+  const totalPimpinan2 = countByNip(e => e.role === "pimpinan_2");
+  const totalPimpinan3 = countByNip(e => e.role === "pimpinan_3");
+  const totalStaff = countByNip(e => e.role === "staf");
+  const totalAdmin = countByNip(e => e.role === "admin");
   const totalRencana = plans.length;
   const selesaiCount = plans.filter(p => p.progress >= 100).length;
   const berjalanCount = totalRencana - selesaiCount;
@@ -20,12 +28,14 @@ export default function DashboardPage() {
   const periodAktif = periods[0];
   const avgRealisasiPerRencana = totalRencana ? (totalRealisasi / totalRencana).toFixed(1) : "0";
 
-  // Statistik per role (jabatan = role)
+  // Statistik per role (jabatan = role) — hitung orang unik per NIP.
   const perRole = (["pimpinan_1","pimpinan_2","pimpinan_3","staf","admin"] as const).map(role => {
+    const seen = new Set<string>();
+    employees.forEach(e => { if (e.role !== role) return; const k = e.employeeNumber || e.id; if (!seen.has(k)) seen.add(k); });
     const emps = employees.filter(e => e.role === role);
     const pls = plans.filter(p => emps.some(e => e.id === p.assignedTo));
     const avg = pls.length ? Math.round(pls.reduce((a, b) => a + b.progress, 0) / pls.length) : 0;
-    return { role, emps: emps.length, pls: pls.length, avg };
+    return { role, emps: seen.size, pls: pls.length, avg };
   });
 
   // Statistik per pegawai (top)

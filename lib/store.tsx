@@ -1,8 +1,8 @@
 "use client";
 import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
-import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog, Role } from "./types";
+import type { Employee, EmployeeSupervisor, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog, Role } from "./types";
 import { validateOrgChange, validateOrgCreate, canCreateAnyRole } from "./roles";
-import { seedEmployees, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
+import { seedEmployees, seedSupervisors, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
 
 type PlanForm = Partial<PerformancePlan>;
 type Ctx = {
@@ -11,6 +11,11 @@ type Ctx = {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   employees: Employee[]; setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>;
+  supervisors: EmployeeSupervisor[]; setSupervisors: React.Dispatch<React.SetStateAction<EmployeeSupervisor[]>>;
+  getSupervisors: (employeeId: string) => EmployeeSupervisor[];
+  getActiveSupervisors: (employeeId: string) => EmployeeSupervisor[];
+  getSupervisorHistory: (employeeId: string) => EmployeeSupervisor[];
+  updateSupervisors: (employeeId: string, data: { supervisorIds: string[] } | { supervisors: Array<{ supervisorId: string; startDate?: string; endDate?: string | null }> }) => Promise<{ ok: boolean; error?: string }>;
   updateEmployee: (id: string, patch: { name?: string; email?: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role?: Role; isActive?: boolean; avatar?: string }) => Promise<{ ok: boolean; error?: string }>;
   createEmployee: (data: { name: string; email: string; employeeNumber?: string; password?: string; supervisorId?: string | null; role: Role; isActive?: boolean; avatar?: string }) => Promise<{ ok: boolean; error?: string; id?: string }>;
   deleteEmployee: (id: string) => Promise<{ ok: boolean; error?: string }>;
@@ -57,6 +62,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<Employee | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>(seedEmployees);
+  const [supervisors, setSupervisors] = useState<EmployeeSupervisor[]>(seedSupervisors);
   const [periods, setPeriods] = useState<SkpPeriod[]>(seedPeriods);
   const [plans, setPlans] = useState<PerformancePlan[]>(seedPlans);
   const [realizations, setRealizations] = useState<Realization[]>(seedRealizations);
@@ -80,6 +86,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
     fetch("/api/db").then(r => r.ok ? r.json() : null).then(d => {
       if (!d) return;
       if (d.employees?.length) setEmployees(d.employees);
+      if (d.supervisors?.length) setSupervisors(d.supervisors);
       if (d.periods?.length) setPeriods(d.periods);
       if (d.plans?.length) setPlans(d.plans);
       if (d.realizations?.length) setRealizations(d.realizations);
@@ -131,6 +138,51 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   };
   const getSubordinates = (id: string): Employee[] => employees.filter(e => isSubordinate(id, e.id));
   const getDirectSubordinates = (id: string) => employees.filter(e => e.supervisorId === id);
+
+  // Relasi Staff ↔ Pimpinan dari tabel history (EmployeeSupervisor).
+  const getSupervisors = (employeeId: string) => supervisors.filter(s => s.employeeId === employeeId);
+  const getActiveSupervisors = (employeeId: string) => supervisors.filter(s => s.employeeId === employeeId && s.endDate == null);
+  const getSupervisorHistory = (employeeId: string) => supervisors
+    .filter(s => s.employeeId === employeeId && s.endDate != null)
+    .sort((a, b) => (b.startDate > a.startDate ? 1 : -1));
+
+  // Set relasi Staff ↔ Pimpinan beserta periode berlakunya.
+  // Tiap entry: { supervisorId, startDate (ISO), endDate (ISO atau ''/null jika masih aktif) }.
+  // Relasi aktif yang tidak lagi dikirim diakhiri (endDate=hari ini) dan tetap tersimpan sebagai riwayat.
+  // Menjaga konsistensi dengan employee.supervisorId (pimpinan utama) untuk pohon & delegasi rencana.
+  const updateSupervisors = async (employeeId: string, data: { supervisorIds: string[] } | { supervisors: Array<{ supervisorId: string; startDate?: string; endDate?: string | null }> }) => {
+    if (!currentUser) { notify("Tidak terautentikasi"); return { ok: false, error: "unauthorized" }; }
+    const emp = employees.find(e => e.id === employeeId);
+    if (!emp) return { ok: false, error: "Pegawai tidak ditemukan" };
+    if (emp.id === currentUser.id) { notify("Tidak bisa mengubah pimpinan pada akun sendiri"); return { ok: false, error: "self" }; }
+    if (!canCreateAnyRole(currentUser.role) && currentUser.role !== "admin") { notify("Anda tidak berwenang mengubah relasi organisasi"); return { ok: false, error: "no_permission" }; }
+    const backupEmp = employees;
+    const backupSup = supervisors;
+    try {
+      let body: Record<string, unknown>;
+      if ("supervisors" in data && Array.isArray(data.supervisors)) {
+        body = { employeeId, supervisors: data.supervisors.map(s => ({ supervisorId: s.supervisorId, startDate: s.startDate, endDate: s.endDate || null })) };
+      } else {
+        const ids = Array.isArray((data as { supervisorIds: string[] }).supervisorIds) ? (data as { supervisorIds: string[] }).supervisorIds : [];
+        body = { employeeId, supervisors: ids.filter(Boolean).map(sid => ({ supervisorId: sid, startDate: undefined, endDate: null })) };
+      }
+      const res = await fetch("/api/employees/supervisors", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify(body) });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      setSupervisors(j.supervisors);
+      if (j.supervisorId !== undefined) {
+        setEmployees(prev => prev.map(e => e.id === employeeId ? { ...e, supervisorId: j.supervisorId } : e));
+      }
+      addLog("Mengubah organisasi", `Memperbarui relasi pimpinan ${emp.name.split(",")[0]}`, "employee_supervisor", employeeId);
+      notify("Relasi pimpinan diperbarui");
+      return { ok: true };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setEmployees(backupEmp); setSupervisors(backupSup);
+      notify("Gagal update relasi: " + msg);
+      return { ok: false, error: msg };
+    }
+  };
 
   const visiblePlans = useMemo(() => {
     if (!currentUser) return [];
@@ -483,8 +535,8 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   };
 
   const value: Ctx = {
-    currentUser, setCurrentUser, authChecked, login, logout, employees, setEmployees,
-    updateEmployee, createEmployee, deleteEmployee,
+    currentUser, setCurrentUser, authChecked, login, logout, employees, setEmployees, supervisors, setSupervisors,
+    getSupervisors, getActiveSupervisors, getSupervisorHistory, updateSupervisors, updateEmployee, createEmployee, deleteEmployee,
     periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
     toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, search, setSearch,
     showPlanModal, setShowPlanModal, showCascadeModal, setShowCascadeModal, showRealizationModal, setShowRealizationModal,
