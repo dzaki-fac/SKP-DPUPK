@@ -1,4 +1,4 @@
-import type { Employee, EmployeeSupervisor, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog } from "./types";
+import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog } from "./types";
 import { ROLE_SHORT } from "./roles";
 
 export const seedEmployees: Employee[] = [
@@ -174,23 +174,6 @@ export const seedLogs: ActivityLog[] = [
   { id: "log-5", userId: "e4", userName: "Rina Marlina", action: "Mengirim realisasi", description: "Realisasi 1 webinar teknis (50%) + bukti sertifikat", entityType: "realization", entityId: "r1", createdAt: "2026-03-15 16:10" },
   { id: "log-6", userId: "e5", userName: "Joko Santoso", action: "Mengirim realisasi", description: "Webinar Evaluasi Sesi 1 + target peserta 80", entityType: "realization", entityId: "r2", createdAt: "2026-03-18 11:00" },
   { id: "log-7", userId: "e6", userName: "Dewi Lestari", action: "Mengirim realisasi", description: "Sosialisasi Tahap 1 + peserta 120", entityType: "realization", entityId: "r3", createdAt: "2026-03-22 10:00" },
-];
-
-// Relasi/history Staff ↔ Pimpinan (demo).
-// 1 NIP = 1 Employee. Aktif = endDate null.
-// - Dewi (e6): aktif di bawah Rina (e4) — riwayat sebelumnya Agus (e3) → Rina (Januari→Maret 2026), lalu pindah ke Rina.
-// - Budi (e7): aktif di bawah Rina (e4) sekaligus Joko (e5) — contoh 2 pimpinan aktif.
-// - Fitri (e9), Gunawan (e10): sesuai supervisorId aslinya.
-export const seedSupervisors: EmployeeSupervisor[] = [
-  // (e6) Dewi: history pindah pimpinan Agus → Rina
-  { id: "es1", employeeId: "e6", supervisorId: "e3", startDate: "2026-01-01", endDate: "2026-03-31", createdAt: "2026-01-01" },
-  { id: "es2", employeeId: "e6", supervisorId: "e4", startDate: "2026-04-01", endDate: null, createdAt: "2026-04-01" },
-  // (e7) Budi: 2 pimpinan aktif (Rina + Joko)
-  { id: "es3", employeeId: "e7", supervisorId: "e5", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
-  { id: "es4", employeeId: "e7", supervisorId: "e4", startDate: "2026-06-01", endDate: null, createdAt: "2026-06-01" },
-  // (e9) Fitri & (e10) Gunawan: 1 pimpinan aktif sesuai struktur utama
-  { id: "es5", employeeId: "e9", supervisorId: "e4", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
-  { id: "es6", employeeId: "e10", supervisorId: "e5", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
 ];
 
 export const roleLabel = ROLE_SHORT;
