@@ -20,6 +20,7 @@ export interface SkpPeriod {
   endDate: string;
 }
 
+export interface PlanTarget { id: string; name: string; value: string; unit: string; }
 export interface PerformancePlan {
   id: string;
   parentId: string | null;
@@ -29,8 +30,14 @@ export interface PerformancePlan {
   title: string;
   target: string;
   progress: number;
+  customTargets?: PlanTarget[];
+  createdAt?: string;
+  plannedDate?: string | null;
+  plannedTime?: string | null;
 }
 
+export interface RealizationTarget { id: string; name: string; value: string; unit: string; }
+export interface RealizationParticipant { id: string; employeeId: string; role: string; }
 export interface Realization {
   id: string;
   planId: string;
@@ -38,13 +45,18 @@ export interface Realization {
   value: string;
   description: string;
   date: string;
+  time: string;
+  uploadedBy: string | null;
+  targets?: RealizationTarget[];
+  participants?: RealizationParticipant[];
 }
 
 export interface Attachment {
   id: string;
   planId: string;
-  realizationId: string;
+  realizationId: string | null;
   fileName: string;
+  filePath: string;
   fileSize: string;
   uploadedBy: string;
   date: string;

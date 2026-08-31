@@ -1,28 +1,153 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSKP } from "@/lib/store";
 
 export default function RealisasiPage() {
-  const { realizations, plans, employees, attachments, currentUser, isSubordinate, setShowRealizationModal } = useSKP();
+  const { realizations, plans, employees, attachments, periods, currentUser, isSubordinate, setShowRealizationModal, setEditingRealization, setRealForm, handleDeleteRealization, handleDeleteAttachment } = useSKP();
   const [tab, setTab] = useState<"saya" | "bawahan">("saya");
   const [selectedRealId, setSelectedRealId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [periodeFilter, setPeriodeFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [pelaksanaFilter, setPelaksanaFilter] = useState<string>("all");
+  const [buktiFilter, setBuktiFilter] = useState<"all" | "with" | "without">("all");
+  const [sortBy, setSortBy] = useState<"date_desc" | "date_asc" | "title_asc" | "title_desc">("date_desc");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
   if (!currentUser) return null;
 
   const selectedReal = selectedRealId ? realizations.find(r => r.id === selectedRealId) ?? null : null;
   const selectedRealPlan = selectedReal ? plans.find(p => p.id === selectedReal.planId) ?? null : null;
-  const selectedRealEmp = selectedRealPlan ? employees.find(e => e.id === selectedRealPlan.assignedTo) ?? null : null;
+  const selectedRealEmp = selectedReal?.uploadedBy ? employees.find(e => e.id === selectedReal.uploadedBy) : (selectedRealPlan ? employees.find(e => e.id === selectedRealPlan.assignedTo) : null);
 
   const isAtasan = ["direktur", "supervisor", "admin"].includes(currentUser.role);
+
+  const formatTanggal = (dateStr: string) => {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const [y, m, d] = dateStr.split("-");
+    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const monthName = months[parseInt(m,10)-1] || m;
+    return `${parseInt(d,10)} ${monthName} ${y}`;
+  };
   
+  // Helper: cek apakah realisasi match filter
+  const matchesFilter = (r: typeof realizations[number]): boolean => {
+    const plan = plans.find(p => p.id === r.planId);
+    if (!plan) return false;
+    // Search: judul/deskripsi realisasi + judul rencana
+    if (search) {
+      const q = search.toLowerCase();
+      const planTitle = plan.title.toLowerCase();
+      if (!r.title.toLowerCase().includes(q) && !r.description.toLowerCase().includes(q) && !planTitle.includes(q)) return false;
+    }
+    // Periode
+    if (periodeFilter !== "all" && plan.skpPeriodId !== periodeFilter) return false;
+    // Date range
+    if (dateFrom && r.date < dateFrom) return false;
+    if (dateTo && r.date > dateTo) return false;
+    // Pelaksana (for bawahan, but also apply to saya if needed)
+    if (pelaksanaFilter !== "all") {
+      const ownerId = r.uploadedBy ?? plan.assignedTo;
+      if (ownerId !== pelaksanaFilter) return false;
+    }
+    // Bukti
+    if (buktiFilter !== "all") {
+      const hasBukti = attachments.some(a => a.realizationId === r.id);
+      if (buktiFilter === "with" && !hasBukti) return false;
+      if (buktiFilter === "without" && hasBukti) return false;
+    }
+    return true;
+  };
+
+  const sortReals = (list: typeof realizations): typeof realizations => {
+    const sorted = [...list];
+    sorted.sort((a, b) => {
+      const aTime = (a as any).time ?? "00:00";
+      const bTime = (b as any).time ?? "00:00";
+      const aKey = `${a.date} ${aTime}`;
+      const bKey = `${b.date} ${bTime}`;
+      switch (sortBy) {
+        case "date_asc": return aKey.localeCompare(bKey);
+        case "date_desc": return bKey.localeCompare(aKey);
+        case "title_asc": return a.title.localeCompare(b.title);
+        case "title_desc": return b.title.localeCompare(a.title);
+        default: return bKey.localeCompare(aKey);
+      }
+    });
+    return sorted;
+  };
+
+  // Reset page when filter changes
+  const resetPage = () => setPage(1);
+
   // Tugas saya: rencana yang assigned ke saya
   const myPlans = plans.filter(p => p.assignedTo === currentUser.id);
 
   // Realisasi bawahan: realisasi dari bawahan langsung/tidak langsung
-  const bawahanRealisasi = realizations.filter(r => {
+  const bawahanRealisasiRaw = realizations.filter(r => {
     const plan = plans.find(p => p.id === r.planId);
     if (!plan) return false;
     return isSubordinate(currentUser.id, plan.assignedTo) || (currentUser.role === "admin" && plan.assignedTo !== currentUser.id);
   });
+
+  const bawahanRealisasiFiltered = useMemo(() => {
+    let list = bawahanRealisasiRaw.filter(matchesFilter);
+    list = sortReals(list);
+    return list;
+  }, [bawahanRealisasiRaw, search, periodeFilter, dateFrom, dateTo, pelaksanaFilter, buktiFilter, sortBy, attachments]);
+
+  const bawahanPaginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return bawahanRealisasiFiltered.slice(start, start + pageSize);
+  }, [bawahanRealisasiFiltered, page]);
+
+  const bawahanTotalPages = Math.max(1, Math.ceil(bawahanRealisasiFiltered.length / pageSize));
+
+  const canEdit = (r: (typeof realizations)[number]) => {
+    if (!r.uploadedBy) return false;
+    return r.uploadedBy === currentUser.id;
+  };
+  const canDelete = (r: (typeof realizations)[number]) => {
+    const plan = plans.find(p => p.id === r.planId);
+    const ownerId = r.uploadedBy ?? plan?.assignedTo ?? null;
+    if (!ownerId) return ["admin","direktur"].includes(currentUser.role);
+    if (r.uploadedBy && r.uploadedBy === currentUser.id) return true;
+    if (["admin","direktur"].includes(currentUser.role)) return true;
+    return isSubordinate(currentUser.id, ownerId);
+  };
+  const canDeleteBukti = (a: (typeof attachments)[number]) => {
+    if (a.uploadedBy === currentUser.id) return true;
+    if (["admin","direktur"].includes(currentUser.role)) return true;
+    if (isSubordinate(currentUser.id, a.uploadedBy)) return true;
+    const real = realizations.find(r => r.id === a.realizationId);
+    if (real?.uploadedBy && isSubordinate(currentUser.id, real.uploadedBy)) return true;
+    return false;
+  };
+
+  const openEdit = (r: (typeof realizations)[number]) => {
+    const plan = plans.find(p => p.id === r.planId);
+    if (!plan) return;
+    if (!canEdit(r)) return;
+    setEditingRealization(r);
+    setRealForm({ title: r.title, value: r.value, description: r.description, date: r.date, time: (r as any).time ?? "09:00", files: [], targets: (r as any).targets?.map((t:any)=>({ name: t.name, value: t.value, unit: t.unit })) ?? [], participants: (r as any).participants?.map((p:any)=>({ employeeId: p.employeeId, role: p.role })) ?? [] });
+    setShowRealizationModal(plan);
+  };
+
+  const openCreate = (plan: typeof plans[number]) => {
+    if (plan.assignedTo !== currentUser.id) return;
+    setEditingRealization(null);
+    // Prefill targets dari customTargets rencana jika ada, agar pengaju tinggal isi capaian
+    const tpl = (plan as any).customTargets?.map((ct:any)=>({ name: ct.name, value: "", unit: ct.unit })) ?? [];
+    setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: tpl, participants: [] });
+    setShowRealizationModal(plan);
+  };
+
+  const hasActiveFilter = search || periodeFilter !== "all" || dateFrom || dateTo || pelaksanaFilter !== "all" || buktiFilter !== "all" || sortBy !== "date_desc";
 
   return (
     <div className="space-y-6">
@@ -35,19 +160,84 @@ export default function RealisasiPage() {
       {/* Tabs */}
       <div className="flex gap-2 border-b border-[#e4f0f1] pb-0">
         <button
-          onClick={() => setTab("saya")}
+          onClick={() => { setTab("saya"); setPage(1); }}
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${tab === "saya" ? "border-[#1c5d5f] text-[#1c5d5f]" : "border-transparent text-[#283338]/60 hover:text-[#283338]"}`}
         >
           Tugas Saya <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-[#e4f0f1] text-xs font-mono">{myPlans.length}</span>
         </button>
         {isAtasan && (
           <button
-            onClick={() => setTab("bawahan")}
+            onClick={() => { setTab("bawahan"); setPage(1); }}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition relative ${tab === "bawahan" ? "border-[#1c5d5f] text-[#1c5d5f]" : "border-transparent text-[#283338]/60 hover:text-[#283338]"}`}
           >
-            Realisasi Delegasi Penerima <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-[#f2e8e2] text-xs font-mono">{bawahanRealisasi.length}</span>
+            Realisasi Delegasi Penerima <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-[#f2e8e2] text-xs font-mono">{bawahanRealisasiFiltered.length}</span>
           </button>
         )}
+      </div>
+
+      {/* Filter Bar */}
+      <div className="bg-white border border-[#e4f0f1] rounded-xl p-4 space-y-3" style={{ borderRadius: 12 }}>
+        <div className="flex items-center justify-between">
+          <h3 className="font-mono text-xs tracking-[0.06em] uppercase font-semibold text-[#283338]/70">Filter & Urutkan</h3>
+          {hasActiveFilter && (
+            <button onClick={() => { setSearch(""); setPeriodeFilter("all"); setDateFrom(""); setDateTo(""); setPelaksanaFilter("all"); setBuktiFilter("all"); setSortBy("date_desc"); setPage(1); }} className="text-xs text-[#b91c1c] hover:underline">Reset filter</button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div>
+            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Cari rencana / realisasi</label>
+            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Cari judul rencana, judul/deskripsi realisasi..." className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} />
+          </div>
+          <div>
+            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Periode</label>
+            <select value={periodeFilter} onChange={e => { setPeriodeFilter(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
+              <option value="all">Semua periode</option>
+              {periods.map(p => <option key={p.id} value={p.id}>{p.name} — {p.startDate} s/d {p.endDate}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Urutkan</label>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
+              <option value="date_desc">Tanggal terbaru → lama</option>
+              <option value="date_asc">Tanggal lama → terbaru</option>
+              <option value="title_asc">Judul A-Z</option>
+              <option value="title_desc">Judul Z-A</option>
+            </select>
+          </div>
+          <div>
+            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Dari tanggal</label>
+            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} />
+            {dateFrom && dateTo && dateFrom > dateTo && <p className="font-mono text-[10px] text-[#b91c1c] mt-1">Dari tanggal tidak boleh &gt; sampai tanggal</p>}
+          </div>
+          <div>
+            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Sampai tanggal</label>
+            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} />
+          </div>
+          <div>
+            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Bukti</label>
+            <select value={buktiFilter} onChange={e => { setBuktiFilter(e.target.value as any); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
+              <option value="all">Semua</option>
+              <option value="with">Dengan bukti</option>
+              <option value="without">Tanpa bukti</option>
+            </select>
+          </div>
+          {tab === "bawahan" && (
+            <div>
+              <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Pelaksana</label>
+              <select value={pelaksanaFilter} onChange={e => { setPelaksanaFilter(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
+                <option value="all">Semua pelaksana</option>
+                {employees.filter(e => bawahanRealisasiRaw.some(r => {
+                  const plan = plans.find(p => p.id === r.planId);
+                  const owner = r.uploadedBy ?? plan?.assignedTo;
+                  return owner === e.id;
+                })).map(e => <option key={e.id} value={e.id}>{e.name.split(",")[0]} — {e.role}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
+        <div className="font-mono text-[11px] text-[#283338]/50">
+          {tab === "saya" ? `${myPlans.length} tugas` : `${bawahanRealisasiFiltered.length} dari ${bawahanRealisasiRaw.length} realisasi`} • {hasActiveFilter ? "filter aktif" : "tanpa filter"}
+        </div>
       </div>
 
       {/* Tab: Tugas Saya */}
@@ -61,8 +251,8 @@ export default function RealisasiPage() {
           ) : (
             <div className="space-y-3">
               {myPlans.map(plan => {
-                const myReals = realizations.filter(r => r.planId === plan.id).sort((a,b) => b.date.localeCompare(a.date));
-                // Kumpulkan semua turunan (descendants) dari rencana ini untuk relasi bawahan
+                // Filter dan sort untuk plan ini
+                const myRealsRaw = realizations.filter(r => r.planId === plan.id);
                 const descendantIds = (() => {
                   const ids = new Set<string>();
                   const queue: string[] = [plan.id];
@@ -76,63 +266,137 @@ export default function RealisasiPage() {
                   }
                   return ids;
                 })();
-                const relatedReals = realizations.filter(r => descendantIds.has(r.planId)).sort((a,b) => b.date.localeCompare(a.date));
+                const relatedRealsRaw = realizations.filter(r => descendantIds.has(r.planId));
+                // Gabungkan lalu filter & sort
+                const allRaw = [
+                  ...myRealsRaw.map(r => ({ r, empId: r.uploadedBy ?? plan.assignedTo })),
+                  ...relatedRealsRaw.map(r => {
+                    const childPlan = plans.find(p => p.id === r.planId);
+                    return { r, empId: r.uploadedBy ?? childPlan?.assignedTo ?? "" };
+                  }),
+                ];
+                let allReals = allRaw.filter(({r}) => matchesFilter(r));
+                // Periode filter sudah di matchesFilter via plan, tapi untuk related perlu cek plan masing2 — sudah
+                allReals = allReals.sort((a,b) => {
+                  const aTime = (a.r as any).time ?? "00:00";
+                  const bTime = (b.r as any).time ?? "00:00";
+                  const aKey = `${a.r.date} ${aTime} ${a.r.title}`;
+                  const bKey = `${b.r.date} ${bTime} ${b.r.title}`;
+                  switch (sortBy) {
+                    case "date_asc": return `${a.r.date} ${aTime}`.localeCompare(`${b.r.date} ${bTime}`);
+                    case "date_desc": return `${b.r.date} ${bTime}`.localeCompare(`${a.r.date} ${aTime}`);
+                    case "title_asc": return a.r.title.localeCompare(b.r.title);
+                    case "title_desc": return b.r.title.localeCompare(a.r.title);
+                    default: return `${b.r.date} ${bTime}`.localeCompare(`${a.r.date} ${aTime}`);
+                  }
+                });
+                // Jika filter aktif dan tidak ada hasil untuk plan ini, cek apakah judul rencana cocok search — jika tidak, sembunyikan
+                const planMatchesSearch = !search || plan.title.toLowerCase().includes(search.toLowerCase());
+                const showEmptyDueToFilter = allRaw.length > 0 && allReals.length === 0 && hasActiveFilter && !planMatchesSearch;
+                if (showEmptyDueToFilter) return null;
+                // Jika plan tidak punya realisasi sama sekali dan filter aktif, hanya tampilkan jika judul rencana cocok
+                if (hasActiveFilter && search && allRaw.length === 0 && !planMatchesSearch) return null;
+                if (hasActiveFilter && periodeFilter !== "all" && plan.skpPeriodId !== periodeFilter) return null;
+
+                if (allReals.length === 0 && !hasActiveFilter) {
+                  return (
+                    <div key={plan.id} className="px-4 py-3 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
+                      <h3 className="font-medium text-[#231e21] leading-tight">{plan.title}</h3>
+                      <div className="font-mono text-xs text-[#283338]/60">Target: {plan.target} • Progress: {plan.progress}%</div>
+                      <div className="mt-2 font-mono text-xs text-[#283338]/50">Belum ada realisasi.</div>
+                      {plan.assignedTo === currentUser.id && (
+                        <button onClick={() => openCreate(plan)} className="mt-3 w-full py-2 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90" style={{ borderRadius: 48 }}>+ Realisasi</button>
+                      )}
+                    </div>
+                  );
+                }
+                if (allReals.length === 0 && hasActiveFilter) {
+                  return (
+                    <div key={plan.id} className="px-4 py-3 border bg-white opacity-60" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
+                      <h3 className="font-medium text-[#231e21] leading-tight">{plan.title}</h3>
+                      <div className="font-mono text-xs text-[#283338]/60">Target: {plan.target} • Progress: {plan.progress}%</div>
+                      <div className="mt-2 font-mono text-xs text-[#283338]/50">Tidak ada realisasi yang cocok filter.</div>
+                    </div>
+                  );
+                }
+                // Kelompokkan per orang setelah filter
+                const byEmp = new Map<string, typeof allReals>();
+                for (const item of allReals) {
+                  const arr = byEmp.get(item.empId) ?? [];
+                  arr.push(item);
+                  byEmp.set(item.empId, arr);
+                }
                 return (
                   <div key={plan.id} className="px-4 py-3 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
                     <h3 className="font-medium text-[#231e21] leading-tight">{plan.title}</h3>
-                      {(() => {
-                        const allReals = [
-                          ...myReals.map(r => ({ r, empId: plan.assignedTo })),
-                          ...relatedReals.map(r => {
-                            const childPlan = plans.find(p => p.id === r.planId);
-                            return { r, empId: childPlan?.assignedTo ?? "" };
-                          }),
-                        ].sort((a,b) => b.r.date.localeCompare(a.r.date));
-                        if (allReals.length === 0) {
-                          return <div className="mt-2 font-mono text-xs text-[#283338]/50">Belum ada realisasi.</div>;
-                        }
-                        // Kelompokkan per orang
-                        const byEmp = new Map<string, typeof allReals>();
-                        for (const item of allReals) {
-                          const arr = byEmp.get(item.empId) ?? [];
-                          arr.push(item);
-                          byEmp.set(item.empId, arr);
-                        }
+                    <div className="font-mono text-xs text-[#283338]/60">Target: {plan.target} • Progress: {plan.progress}% • {allReals.length} realisasi {hasActiveFilter ? "(terfilter)" : ""}</div>
+                    <div className="mt-3 space-y-2">
+                      {[...byEmp.entries()].map(([empId, items]) => {
+                        const emp = employees.find(e => e.id === empId);
                         return (
-                          <div className="mt-3 space-y-2">
-                            {[...byEmp.entries()].map(([empId, items]) => {
-                              const emp = employees.find(e => e.id === empId);
-                              return (
-                                <table key={empId} className="w-full border border-[#e4f0f1]" style={{ borderRadius: 8 }}>
-                                  <thead className="bg-[#e4f0f1]">
-                                    <tr>
-                                      <th className="text-left px-2.5 py-1.5 text-xs font-semibold text-[#231e21]">{emp?.name?.split(",")[0] ?? "-"}</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {items.map(({ r }) => (
-                                      <tr key={r.id} className="border-t border-[#e4f0f1] bg-white">
-                                        <td className="px-2.5 py-1.5">
-                                          <button onClick={() => setSelectedRealId(r.id)} className="text-sm text-[#283338] text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">
-                                            {(r as any).title || "Realisasi"}
+                          <table key={empId} className="w-full border border-[#e4f0f1]" style={{ borderRadius: 8 }}>
+                            <thead className="bg-[#e4f0f1]">
+                              <tr>
+                                <th className="text-left px-2.5 py-1.5 text-xs font-semibold text-[#231e21]">{emp?.name?.split(",")[0] ?? "-"}</th>
+                                <th className="text-right px-2.5 py-1.5 text-xs font-mono text-[#283338]/60">{items.length} realisasi</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {items.map(({ r }) => {
+                                const canE = canEdit(r);
+                                const canD = canDelete(r);
+                                const buktiCount = attachments.filter(a => a.realizationId === r.id).length;
+                                return (
+                                  <tr key={r.id} className="border-t border-[#e4f0f1] bg-white">
+                                    <td className="px-2.5 py-1.5">
+                                      <button onClick={() => setSelectedRealId(r.id)} className="text-sm text-[#283338] text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">
+                                        {r.title || "Realisasi"}
+                                      </button>
+                                      {(r as any).targets && (r as any).targets.length>0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {(r as any).targets.map((t:any)=>(
+                                            <span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>
+                                          ))}
+                                        </div>
+                                      )}
+                                      {(r as any).participants && (r as any).participants.length>0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {(r as any).participants.map((pp:any)=>{
+                                            const emp = employees.find(e=>e.id===pp.employeeId);
+                                            return <span key={pp.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{emp?.avatar ?? "?"} {emp?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;
+                                          })}
+                                        </div>
+                                      )}
+                                      <div className="font-mono text-[11px] text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}{!r.uploadedBy ? " • legacy" : ""}{canD && !canE ? " • dapat dihapus atasan" : ""}</div>
+                                    </td>
+                                    <td className="px-2.5 py-1.5 text-right">
+                                      <div className="flex justify-end gap-1">
+                                        <button onClick={() => setSelectedRealId(r.id)} className="w-7 h-7 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60 flex items-center justify-center hover:border-[#a2cbcd] hover:text-[#1c5d5f]" title="Detail">
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </button>
+                                        {canE && (
+                                          <button onClick={() => openEdit(r)} className="w-7 h-7 rounded-full bg-white border border-[#a2cbcd] text-[#1c5d5f] flex items-center justify-center hover:bg-[#f2f8f7]" title="Edit (hanya penulis)">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><path d="M15 5l4 4"/></svg>
                                           </button>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              );
-                            })}
-                          </div>
+                                        )}
+                                        {canD && (
+                                          <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]" title={canE ? "Hapus" : "Hapus oleh atasan"}>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+                                          </button>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         );
-                      })()}
-                    <button
-                      onClick={() => setShowRealizationModal(plan)}
-                      className="mt-3 w-full py-2 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90"
-                      style={{ borderRadius: 48 }}
-                    >
-                      + Realisasi
-                    </button>
+                      })}
+                    </div>
+                    {plan.assignedTo === currentUser.id && (
+                      <button onClick={() => openCreate(plan)} className="mt-3 w-full py-2 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90" style={{ borderRadius: 48 }}>+ Realisasi</button>
+                    )}
                   </div>
                 );
               })}
@@ -148,19 +412,27 @@ export default function RealisasiPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-[#f2f8f7] border-b border-[#e4f0f1] font-mono text-xs tracking-[0.04em] uppercase text-[#283338]/60">
-                  <tr><th className="text-left px-4 py-3">Rencana (Delegasi Penerima)</th><th className="text-left px-4 py-3">Pelaksana</th><th className="text-left px-4 py-3">Realisasi</th></tr>
+                  <tr><th className="text-left px-4 py-3">Rencana (Delegasi Penerima)</th><th className="text-left px-4 py-3">Pelaksana</th><th className="text-left px-4 py-3">Realisasi</th><th className="text-right px-4 py-3">Aksi</th></tr>
                 </thead>
                 <tbody>
-                  {bawahanRealisasi.length === 0 ? (
-                    <tr><td colSpan={3} className="px-4 py-10 text-center text-[#283338]/60">Belum ada realisasi dari delegasi penerima.<br/><span className="text-xs">Realisasi akan muncul di sini setelah delegasi penerima menambah di tab Tugas Saya mereka.</span></td></tr>
-                  ) : bawahanRealisasi.map(r => {
+                  {bawahanPaginated.length === 0 ? (
+                    <tr><td colSpan={4} className="px-4 py-10 text-center text-[#283338]/60">Tidak ada realisasi yang cocok filter.<br/><span className="text-xs">Coba ubah filter atau reset.</span></td></tr>
+                  ) : bawahanPaginated.map(r => {
                     const plan = plans.find(p => p.id === r.planId);
-                    const emp = plan ? employees.find(e => e.id === plan.assignedTo) : null;
+                    const emp = r.uploadedBy ? employees.find(e=>e.id===r.uploadedBy) : (plan ? employees.find(e => e.id === plan.assignedTo) : null);
+                    const canDel = canDelete(r);
                     return (
                       <tr key={r.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]">
-                        <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{r.date}</div></td>
-                        <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{emp?.avatar ?? "?"}</span><span className="text-xs">{emp?.name.split(",")[0]}</span></div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}</div></td>
-                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{(r as any).title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
+                        <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB</div></td>
+                        <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{emp?.avatar ?? "?"}</span><span className="text-xs">{emp?.name.split(",")[0]}</span></div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}{r.uploadedBy ? "" : " (via penugasan)"}</div></td>
+                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{(r as any).participants && (r as any).participants.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).participants.map((pp:any)=>{ const e=employees.find(x=>x.id===pp.employeeId); return <span key={pp.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{e?.avatar ?? "?"} {e?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;})}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
+                         <td className="px-4 py-3 text-right">
+                           {canDel ? (
+                             <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] ml-auto" title="Hapus (atasan)">
+                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                             </button>
+                           ) : <span className="font-mono text-[11px] text-[#283338]/40">—</span>}
+                         </td>
                       </tr>
                     );
                   })}
@@ -168,6 +440,15 @@ export default function RealisasiPage() {
               </table>
             </div>
           </div>
+          {/* Pagination */}
+          <div className="flex items-center justify-between">
+            <div className="font-mono text-xs text-[#283338]/60">Hal {page} dari {bawahanTotalPages} • {bawahanRealisasiFiltered.length} realisasi</div>
+            <div className="flex gap-2">
+              <button disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className={`px-3 py-1.5 rounded-full border text-xs ${page <= 1 ? "border-[#e4f0f1] bg-[#e4f0f1] text-[#283338]/40 cursor-not-allowed" : "border-[#a2cbcd] bg-white hover:bg-[#f2f8f7]"}`} style={{ borderRadius: 100 }}>‹ Prev</button>
+              <button disabled={page >= bawahanTotalPages} onClick={() => setPage(p => Math.min(bawahanTotalPages, p + 1))} className={`px-3 py-1.5 rounded-full border text-xs ${page >= bawahanTotalPages ? "border-[#e4f0f1] bg-[#e4f0f1] text-[#283338]/40 cursor-not-allowed" : "border-[#a2cbcd] bg-white hover:bg-[#f2f8f7]"}`} style={{ borderRadius: 100 }}>Next ›</button>
+            </div>
+          </div>
+          <p className="font-mono text-xs text-[#283338]/50">Atasan dapat menghapus realisasi bawahan yang belum terealisasi nyata (tanpa menambah/mengubah).</p>
         </div>
       )}
 
@@ -176,29 +457,99 @@ export default function RealisasiPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm" onClick={() => setSelectedRealId(null)}>
           <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-md max-h-[85vh] overflow-y-auto border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
             <div className="p-6 border-b border-[#e4f0f1] flex items-start justify-between gap-3">
-              <h3 className="heading-serif text-lg leading-tight">{(selectedReal as any).title || "Realisasi"}</h3>
+              <h3 className="heading-serif text-lg leading-tight">{selectedReal.title || "Realisasi"}</h3>
               <button onClick={() => setSelectedRealId(null)} className="w-8 h-8 rounded-full bg-white border border-[#e4f0f1] flex items-center justify-center shrink-0">×</button>
             </div>
             <div className="p-6 space-y-3 text-sm">
               <div><div className="eyebrow text-[11px]">PENGIRIM</div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="w-8 h-8 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{selectedRealEmp?.avatar ?? "?"}</span>
-                  <div><div className="font-medium">{selectedRealEmp?.name ?? "-"}</div><div className="font-mono text-xs text-[#283338]/60">{selectedRealEmp?.role}</div></div>
+                  <div><div className="font-medium">{selectedRealEmp?.name ?? "-"}</div><div className="font-mono text-xs text-[#283338]/60">{selectedRealEmp?.role}{selectedReal.uploadedBy ? "" : " • data lama"}</div></div>
                 </div>
               </div>
               <div><div className="eyebrow text-[11px]">TUGAS</div><div className="mt-1 text-[#283338]/80">{selectedRealPlan?.title ?? "-"}</div></div>
-              <div><div className="eyebrow text-[11px]">TANGGAL</div><div className="font-mono text-xs mt-1 text-[#283338]/70">{selectedReal.date}</div></div>
+              <div><div className="eyebrow text-[11px]">TANGGAL & JAM</div><div className="font-mono text-xs mt-1 text-[#283338]/70">{formatTanggal(selectedReal.date)}, {(selectedReal as any).time ?? "09:00"} WIB</div></div>
               <div><div className="eyebrow text-[11px]">DESKRIPSI</div><div className="mt-1 leading-relaxed text-[#283338]/80 whitespace-pre-wrap">{selectedReal.description || "—"}</div></div>
-              <div><div className="eyebrow text-[11px]">BUKTI</div>
+              {(selectedReal as any).targets && (selectedReal as any).targets.length>0 && (
+                <div><div className="eyebrow text-[11px]">TARGET TEREALISASI (DIISI PENGAJU)</div>
+                  <div className="mt-1 grid grid-cols-1 gap-2">
+                    {(selectedReal as any).targets.map((t:any)=>(
+                      <div key={t.id} className="p-2 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] flex justify-between items-center" style={{ borderRadius: 12 }}>
+                        <span className="font-mono text-xs text-[#283338]/60">{t.name}</span>
+                        <span className="font-mono text-sm font-bold text-[#1c5d5f]">{t.value} <span className="font-normal text-[#283338]/60">{t.unit}</span></span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(selectedReal as any).participants && (selectedReal as any).participants.length>0 && (
+                <div><div className="eyebrow text-[11px]">PEGAWAI TERLIBAT</div>
+                  <div className="mt-1 space-y-1">
+                    {(selectedReal as any).participants.map((pp:any)=>{
+                      const emp = employees.find(e=>e.id===pp.employeeId);
+                      return <div key={pp.id} className="p-2 rounded-xl bg-[#f2e8e2]/50 border border-[#e4f0f1] flex items-center gap-2" style={{ borderRadius: 12 }}><span className="w-6 h-6 rounded-full bg-[#16325a] text-white flex items-center justify-center text-[10px] font-bold">{emp?.avatar ?? "?"}</span><span className="text-sm text-[#231e21] flex-1">{emp?.name ?? pp.employeeId}</span><span className="font-mono text-xs px-2 py-0.5 rounded-full bg-white border border-[#d6aec1] text-[#4a2c2a]">{pp.role}</span></div>;
+                    })}
+                  </div>
+                </div>
+              )}
+              <div><div className="eyebrow text-[11px]">BUKTI ({attachments.filter(a => a.realizationId === selectedReal.id).length})</div>
                 {attachments.filter(a => a.realizationId === selectedReal.id).length === 0 ? (
                   <div className="font-mono text-xs text-[#283338]/60 mt-1">Tidak ada bukti terlampir</div>
                 ) : attachments.filter(a => a.realizationId === selectedReal.id).map(a => (
-                  <div key={a.id} className="mt-1 p-2 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-xs" style={{ borderRadius: 12 }}>📎 {a.fileName} • {a.fileSize} • {a.date}</div>
+                  <div key={a.id} className="mt-1 p-2 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-xs flex items-center justify-between gap-2" style={{ borderRadius: 12 }}>
+                    <span className="truncate">📎 {a.fileName} • {a.fileSize} • {formatTanggal(a.date)}</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a href={a.filePath} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white border border-[#e4f0f1] text-[#1c5d5f] hover:bg-[#e4f0f1] text-[11px]">lihat</a>
+                      {canDeleteBukti(a) && (
+                        <button onClick={() => handleDeleteAttachment(a.id, a.fileName)} className="w-6 h-6 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]" title="Hapus bukti">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
+              {(() => {
+                const canE = canEdit(selectedReal);
+                const canD = canDelete(selectedReal);
+                return (
+                  <>
+                    {(canE || canD) && (
+                      <div className="pt-2 flex gap-2">
+                        {canE && <button onClick={() => { const r = selectedReal; setSelectedRealId(null); openEdit(r); }} className="flex-1 py-2 rounded-full border border-[#a2cbcd] bg-white text-xs font-medium hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>Edit</button>}
+                        {canD && <button onClick={() => { const r = selectedReal; setSelectedRealId(null); setConfirmDelete({ id: r.id, title: r.title }); }} className="flex-1 py-2 rounded-full bg-[#b91c1c] text-white text-xs font-medium hover:bg-[#991b1b]" style={{ borderRadius: 48 }}>{canE ? "Hapus" : "Hapus oleh atasan"}</button>}
+                      </div>
+                    )}
+                    {!canE && !canD && !selectedReal.uploadedBy && <div className="font-mono text-xs text-[#b91c1c] bg-[#f2e8e2] border border-[#d6aec1] p-2 rounded-xl" style={{ borderRadius: 12 }}>Data lama tanpa penulis — hanya atasan/admin yang dapat menghapus.</div>}
+                    {!canE && canD && <div className="font-mono text-xs text-[#283338]/60 bg-[#f2f8f7] border border-[#e4f0f1] p-2 rounded-xl" style={{ borderRadius: 12 }}>Anda adalah atasan dari penulis — dapat menghapus jika realisasi belum terealisasi nyata.</div>}
+                  </>
+                );
+              })()}
             </div>
             <div className="p-4 border-t border-[#e4f0f1] flex justify-end">
               <button onClick={() => setSelectedRealId(null)} className="px-5 py-2 rounded-full bg-[#1c5d5f] text-white text-sm font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Konfirmasi hapus */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm" onClick={() => setConfirmDelete(null)}>
+          <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-md border border-[#e4f0f1] overflow-hidden" style={{ borderRadius: 12 }}>
+            <div className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#f2e8e2] border border-[#d6aec1] flex items-center justify-center text-[#b91c1c] font-bold shrink-0">!</div>
+                <div>
+                  <h3 className="heading-serif text-lg leading-tight">Hapus realisasi ini?</h3>
+                  <p className="font-mono text-xs tracking-wide text-[#283338]/60 mt-0.5">Aksi tidak dapat dibatalkan • progress akan dihitung ulang</p>
+                </div>
+              </div>
+              <p className="text-sm text-[#283338]/80 mt-3 leading-6">"{confirmDelete.title}"</p>
+            </div>
+            <div className="p-4 border-t border-[#e4f0f1] flex gap-2 justify-end">
+              <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button>
+              <button onClick={async () => { const d = confirmDelete; setConfirmDelete(null); if (d) await handleDeleteRealization(d.id, d.title); }} className="px-5 py-2 rounded-full bg-[#b91c1c] text-white text-sm font-medium hover:bg-[#991b1b]" style={{ borderRadius: 48 }}>Ya, Hapus</button>
             </div>
           </div>
         </div>
