@@ -10,7 +10,7 @@ export default function RencanaPage() {
   const {
     myPlans, filteredPlans, search, setSearch, currentUser, setEditingPlan, setPlanForm, setShowPlanModal,
     employees, periods, realizations, plans, setShowCascadeModal, setShowRealizationModal,
-    handleDeletePlan, handleUpdateDelegation, handleDeleteDelegation,
+    handleDeletePlan, handleUpdateDelegation, handleDeleteDelegation, setPlanCustomTargets,
   } = useSKP();
   const router = useRouter();
   const [scope, setScope] = useState<Scope>("mine");
@@ -97,16 +97,34 @@ export default function RencanaPage() {
       .sort((a, b) => a.posLevel - b.posLevel || a.roleName.localeCompare(b.roleName));
   })();
 
+  const formatTanggalIndo = (dateStr: string) => {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr;
+    const dateOnly = dateStr.split(" ")[0];
+    const [y, m, d] = dateOnly.split("-");
+    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const monthName = months[parseInt(m,10)-1] || m;
+    return `${parseInt(d,10)} ${monthName} ${y}`;
+  };
+
   const renderPlanRow = (p: PerformancePlan) => {
     const period = periods.find(s => s.id === p.skpPeriodId);
+    // Jumlah target: untuk direktur dengan customTargets, tampilkan jumlah kolom kustom, untuk yang lain tampilkan target biasa
+    const jumlahTarget = p.customTargets && p.customTargets.length > 0 ? p.customTargets.length : p.target;
     return (
       <tr key={p.id} onClick={() => router.push(`/rencana/${p.id}`)} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]/50 cursor-pointer">
         <td className="px-3 py-2.5 max-w-[360px]">
           <div className="font-medium text-[#231e21] leading-tight truncate">{p.title}</div>
           <div className="font-mono text-[11px] text-[#283338]/60 truncate">{period?.name}</div>
+          <div className="font-mono text-[11px] text-[#283338]/50 mt-0.5">Dibuat: {formatTanggalIndo((p as any).createdAt || p.createdAt || "")}{p.createdAt && p.createdAt.includes(" ") ? `, ${p.createdAt.split(" ")[1]} WIB` : ""}</div>
+        </td>
+        <td className="px-3 py-2.5 whitespace-nowrap text-center">
+          <span className="font-mono text-xs font-bold text-[#1c5d5f]">{jumlahTarget}</span>
+          <span className="font-mono text-[11px] text-[#283338]/60"> target</span>
         </td>
         <td className="px-3 py-2.5 whitespace-nowrap">
-          <span className="font-mono text-xs font-bold text-[#1c5d5f]">{p.target}</span>
+          <div className="font-mono text-xs text-[#283338]">
+            {(p as any).plannedDate ? <><span>{formatTanggalIndo((p as any).plannedDate)}</span><span className="text-[#283338]/60">, {(p as any).plannedTime || "09:00"} WIB</span></> : <span className="text-[#283338]/40">—</span>}
+          </div>
         </td>
         <td className="px-3 py-2.5 whitespace-nowrap">
           {(() => {
@@ -154,7 +172,7 @@ export default function RencanaPage() {
                     </button>
                   )}
                   {canEdit && (
-                    <button onClick={(e) => { e.stopPropagation(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId }); setShowPlanModal(true); }} className="w-8 h-8 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/70 flex items-center justify-center hover:border-[#a2cbcd] hover:text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{ borderRadius: 9999 }} title="Edit" aria-label="Edit">
+                    <button onClick={(e) => { e.stopPropagation(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId }); setPlanCustomTargets(p.customTargets?.map(ct => ({ name: ct.name, value: ct.value, unit: ct.unit })) ?? []); setShowPlanModal(true); }} className="w-8 h-8 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/70 flex items-center justify-center hover:border-[#a2cbcd] hover:text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{ borderRadius: 9999 }} title="Edit" aria-label="Edit">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><path d="M15 5l4 4"/></svg>
                     </button>
                   )}
@@ -194,7 +212,7 @@ export default function RencanaPage() {
         <div className="flex gap-2">
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari..." className="px-3 py-1.5 rounded-full border bg-white text-sm border-[#e4f0f1] w-40 focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 100 }} />
           {(currentUser.role === "direktur" || currentUser.role === "admin" || currentUser.role === "supervisor") && (
-            <button onClick={() => { setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026" }); setShowPlanModal(true); }} className="px-4 py-1.5 rounded-full bg-[#1c5d5f] text-white text-xs font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>+ Buat</button>
+            <button onClick={() => { setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026" }); setPlanCustomTargets([]); setShowPlanModal(true); }} className="px-4 py-1.5 rounded-full bg-[#1c5d5f] text-white text-xs font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>+ Buat</button>
           )}
         </div>
       </div>
@@ -265,7 +283,7 @@ export default function RencanaPage() {
               <>
                 {canCascade && <button onClick={() => { closeMenu(); setShowCascadeModal(p); }} className="w-full text-left px-3 py-2 text-xs hover:bg-[#f2f8f7] flex items-center gap-2 text-[#1c5d5f]"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Kelola Pelimpahan</button>}
                 {canRealize && <button onClick={() => { closeMenu(); setShowRealizationModal(p); }} className="w-full text-left px-3 py-2 text-xs hover:bg-[#f2f8f7] flex items-center gap-2 text-[#16325a]"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg> Isi Realisasi</button>}
-                {canEdit && <button onClick={() => { closeMenu(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId }); setShowPlanModal(true); }} className="w-full text-left px-3 py-2 text-xs hover:bg-[#f2f8f7] flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><path d="M15 5l4 4"/></svg> Edit</button>}
+                {canEdit && <button onClick={() => { closeMenu(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId }); setPlanCustomTargets(p.customTargets?.map(ct => ({ name: ct.name, value: ct.value, unit: ct.unit })) ?? []); setShowPlanModal(true); }} className="w-full text-left px-3 py-2 text-xs hover:bg-[#f2f8f7] flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><path d="M15 5l4 4"/></svg> Edit</button>}
                 {canDelete && <button onClick={() => { closeMenu(); setConfirmId(p.id); }} className="w-full text-left px-3 py-2 text-xs hover:bg-red-50 text-[#b91c1c] flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg> Hapus{childCount > 0 ? ` (+${childCount})` : ""}</button>}
                 {!canCascade && !canRealize && !canEdit && <div className="px-3 py-2 text-xs text-[#283338]/50">Hanya Detail</div>}
               </>
@@ -407,6 +425,7 @@ export default function RencanaPage() {
               <tr className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#283338]/60">
                 <th className="text-left px-3 py-2 font-semibold">Rencana</th>
                 <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Target</th>
+                <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Tanggal Rencana</th>
                 <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Delegasi</th>
                 <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Progress</th>
                 <th className="text-right px-3 py-2 font-semibold">Aksi</th>
@@ -416,7 +435,7 @@ export default function RencanaPage() {
               {shown.map(p => renderPlanRow(p))}
               {shown.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-10 text-center">
+                  <td colSpan={6} className="px-3 py-10 text-center">
                     <div className="max-w-sm mx-auto space-y-2">
                       <div className="heading-serif text-lg">Belum ada tugas untuk Anda</div>
                       <p className="text-sm text-[#283338]/60 leading-6">Tugas muncul otomatis di sini setelah atasan melimpahkan rencana kepada Anda melalui menu ⋯ → Limpahkan.</p>
@@ -453,6 +472,7 @@ export default function RencanaPage() {
                           <tr className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#283338]/60">
                             <th className="text-left px-3 py-2 font-semibold">Rencana</th>
                             <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Target</th>
+                            <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Tanggal Rencana</th>
                             <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Delegasi</th>
                             <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Progress</th>
                             <th className="text-right px-3 py-2 font-semibold">Aksi</th>

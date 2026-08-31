@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useMemo, ReactNode } fr
 import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog, Role } from "./types";
 import { seedEmployees, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
 
-type PlanForm = Partial<PerformancePlan>;
+type PlanForm = Partial<PerformancePlan> & { plannedDate?: string; plannedTime?: string };
 type Ctx = {
   currentUser: Employee | null; setCurrentUser: (e: Employee | null) => void;
   authChecked: boolean;
@@ -31,10 +31,12 @@ type Ctx = {
   showRealizationModal: PerformancePlan | null; setShowRealizationModal: (p: PerformancePlan | null) => void;
   editingPlan: PerformancePlan | null; setEditingPlan: (p: PerformancePlan | null) => void;
   planForm: PlanForm; setPlanForm: (f: PlanForm) => void;
+  planCustomTargets: Array<{name: string, value: string, unit: string}>; setPlanCustomTargets: (v: Array<{name: string, value: string, unit: string}>) => void;
   cascadeTargets: string[]; setCascadeTargets: (v: string[]) => void;
   cascadePortions: Record<string,string>; setCascadePortions: (v: Record<string,string>) => void;
   cascadeTitles: Record<string,string>; setCascadeTitles: (v: Record<string,string>) => void;
-  realForm: { title: string; value: string; description: string; fileName: string }; setRealForm: (v: { title: string; value: string; description: string; fileName: string }) => void;
+  realForm: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId: string, role: string}> }; setRealForm: (v: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId: string, role: string}> }) => void;
+  editingRealization: Realization | null; setEditingRealization: (r: Realization | null) => void;
   periodForm: { name: string; year: number; startDate: string; endDate: string }; setPeriodForm: (v: { name: string; year: number; startDate: string; endDate: string }) => void;
   empForm: { name: string; email: string; supervisorId: string; role: Role }; setEmpForm: (v: { name: string; email: string; supervisorId: string; role: Role }) => void;
   // handlers
@@ -43,6 +45,9 @@ type Ctx = {
   handleUpdateDelegation: (id: string, target: string, title?: string) => void;
   handleDeleteDelegation: (id: string, title: string) => Promise<void>;
   handleSubmitRealization: () => void;
+  handleEditRealization: () => void;
+  handleDeleteRealization: (id: string, title: string) => Promise<void>;
+  handleDeleteAttachment: (id: string, fileName: string) => Promise<void>;
   handleDeletePlan: (id: string, title: string) => Promise<void>;
 };
 
@@ -66,13 +71,15 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showCascadeModal, setShowCascadeModal] = useState<PerformancePlan | null>(null);
   const [showRealizationModal, setShowRealizationModal] = useState<PerformancePlan | null>(null);
+  const [editingRealization, setEditingRealization] = useState<Realization | null>(null);
   const [editingPlan, setEditingPlan] = useState<PerformancePlan | null>(null);
   const [search, setSearch] = useState("");
-  const [planForm, setPlanForm] = useState<PlanForm>({ title: "", target: "", skpPeriodId: "sp2026" });
+  const [planForm, setPlanForm] = useState<PlanForm>({ title: "", target: "", skpPeriodId: "sp2026", plannedDate: "", plannedTime: "" });
+  const [planCustomTargets, setPlanCustomTargets] = useState<Array<{name: string, value: string, unit: string}>>([]);
   const [cascadeTargets, setCascadeTargets] = useState<string[]>([]);
   const [cascadePortions, setCascadePortions] = useState<Record<string,string>>({});
   const [cascadeTitles, setCascadeTitles] = useState<Record<string,string>>({});
-  const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", fileName: "" });
+  const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] as Array<{fileName: string, filePath: string, fileSize: string}>, targets: [] as Array<{name: string, value: string, unit: string}>, participants: [] as Array<{employeeId: string, role: string}> });
   const [periodForm, setPeriodForm] = useState({ name: "", year: 2026, startDate: "", endDate: "" });
   const [empForm, setEmpForm] = useState({ name: "", email: "", supervisorId: "", role: "staff" as Role });
   const [dbLoaded, setDbLoaded] = useState(false);
@@ -148,21 +155,54 @@ export function SKPProvider({ children }: { children: ReactNode }) {
 
   const handleCreatePlan = () => {
     if (!currentUser) return;
-    if (!planForm.title || !planForm.target) { notify("Judul dan target wajib diisi"); return; }
+    if (!planForm.title) { notify("Judul wajib diisi"); return; }
+    // Untuk direktur, Target otomatis dari jumlah target kustom
+    if (currentUser.role === "direktur") {
+      if (planCustomTargets.length === 0) { notify("Minimal 1 target kustom"); return; }
+    } else {
+      if (!planForm.target) { notify("Judul dan target wajib diisi"); return; }
+    }
+    const effectiveTarget = currentUser.role === "direktur" ? String(planCustomTargets.length) : planForm.target!;
+    // Validasi custom targets hanya untuk direktur
+    if (planCustomTargets.length > 0 && currentUser.role !== "direktur" && currentUser.role !== "admin") {
+      notify("Hanya direktur yang dapat membuat target kustom");
+      return;
+    }
+    if (planCustomTargets.length > 5) { notify("Maksimal 5 target kustom"); return; }
+    for (const ct of planCustomTargets) {
+      if (!ct.name.trim() || ct.name.trim().length > 50) { notify("Nama target kustom 1-50 karakter"); return; }
+      if (!ct.value.trim()) { notify("Nilai target kustom wajib"); return; }
+      if (!ct.unit.trim() || ct.unit.trim().length > 20) { notify("Satuan target kustom 1-20 karakter"); return; }
+    }
     // fallback aman: jika skpPeriodId tidak ada di perioden aktif (mis. sp1 lama), pakai periode pertama
     const validPeriodId = periods.find(p => p.id === planForm.skpPeriodId)?.id ?? periods[0]?.id ?? "sp2026";
+    // Validasi tanggal rencana akan dijalankan (opsional tapi jika diisi harus valid)
+    const plannedDateVal = (planForm as any).plannedDate?.trim() || "";
+    const plannedTimeVal = (planForm as any).plannedTime?.trim() || "";
+    if (plannedDateVal && !/^\d{4}-\d{2}-\d{2}$/.test(plannedDateVal)) { notify("Format tanggal rencana harus YYYY-MM-DD"); return; }
+    if (plannedTimeVal && !/^\d{2}:\d{2}$/.test(plannedTimeVal)) { notify("Format jam rencana harus HH:mm"); return; }
+    if (plannedDateVal && plannedTimeVal && (Number(plannedTimeVal.split(":")[0]) > 23 || Number(plannedTimeVal.split(":")[1]) > 59)) { notify("Jam rencana tidak valid"); return; }
+    const now = new Date();
+    const createdAtVal = editingPlan ? editingPlan.createdAt : `${now.toISOString().slice(0,10)} ${now.toTimeString().slice(0,5)}`;
     const newPlan: PerformancePlan = {
       id: "pl" + Date.now(), parentId: editingPlan ? editingPlan.parentId : null,
       skpPeriodId: validPeriodId, createdBy: currentUser.id, assignedTo: currentUser.id,
-      title: planForm.title!, target: planForm.target!, progress: 0
+      title: planForm.title!, target: effectiveTarget, progress: 0,
+      createdAt: createdAtVal,
+      plannedDate: plannedDateVal || null,
+      plannedTime: plannedTimeVal || null,
+      customTargets: planCustomTargets.map(ct => ({ id: "ct" + Date.now() + Math.random().toString(36).slice(2,5), name: ct.name.trim(), value: ct.value.trim(), unit: ct.unit.trim() }))
     };
     if (editingPlan) {
-      setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, title: newPlan.title, target: newPlan.target, id: editingPlan.id } : p));
-      fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: editingPlan.id, title: newPlan.title, target: newPlan.target }) }).then(async r => { if (!r.ok) { const j = await r.json().catch(()=>({})); notify("Gagal simpan ke database: " + (j.error || r.statusText)); }}).catch(() => notify("Gagal simpan ke database"));
+      const prevTargets = editingPlan.customTargets ?? [];
+      const prevPlannedDate = (editingPlan as any).plannedDate ?? null;
+      const prevPlannedTime = (editingPlan as any).plannedTime ?? null;
+      setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, id: editingPlan.id } : p));
+      fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: editingPlan.id, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime }) }).then(async r => { if (!r.ok) { const j = await r.json().catch(()=>({})); notify("Gagal simpan ke database: " + (j.error || r.statusText)); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime } : p)); }}).catch(() => { notify("Gagal simpan ke database"); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime } : p)); });
       addLog("Mengubah rencana", `Mengubah rencana '${newPlan.title}'`, "performance_plan", editingPlan.id); notify("Rencana diperbarui");
     } else {
       setPlans(prev => [newPlan, ...prev]);
-      fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ ...newPlan, log: false }) }).then(async r => {
+      fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ ...newPlan, log: false, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, createdAt: newPlan.createdAt }) }).then(async r => {
         if (!r.ok) {
           const j = await r.json().catch(()=>({}));
           const detail = j.details ? JSON.stringify(j.details).slice(0,200) : "";
@@ -172,14 +212,18 @@ export function SKPProvider({ children }: { children: ReactNode }) {
           const saved = await r.json().catch(()=>null);
           if (saved && saved.id && saved.id !== newPlan.id) {
             // replace optimistic id with real id
-            setPlans(prev => prev.map(p => p.id === newPlan.id ? { ...p, id: saved.id } : p));
+            setPlans(prev => prev.map(p => p.id === newPlan.id ? { ...p, id: saved.id, customTargets: saved.customTargets ?? newPlan.customTargets } : p));
+          } else if (saved?.customTargets) {
+            setPlans(prev => prev.map(p => p.id === newPlan.id ? { ...p, customTargets: saved.customTargets } : p));
           }
+          // refresh untuk dapat id customTargets yang benar
+          fetch("/api/db").then(r=>r.ok?r.json():null).then(d=>{ if(d?.plans) setPlans(d.plans); }).catch(()=>{});
           notify("Rencana kinerja dibuat — tersimpan di database");
         }
       }).catch(() => { notify("Gagal simpan ke database (jaringan)"); setPlans(prev => prev.filter(p => p.id !== newPlan.id)); });
       addLog("Membuat rencana", `Membuat rencana '${newPlan.title}'`, "performance_plan", newPlan.id);
     }
-    setShowPlanModal(false); setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026" });
+    setShowPlanModal(false); setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026", plannedDate: "", plannedTime: "" }); setPlanCustomTargets([]);
   };
 
   // Auto-koreksi planForm jika masih pakai id lama (sp1) setelah periods ter-hydrate dari DB
@@ -284,16 +328,53 @@ export function SKPProvider({ children }: { children: ReactNode }) {
 
   const handleSubmitRealization = () => {
     if (!currentUser) return;
+    // mode edit: delegasikan ke handleEdit
+    if (editingRealization) { handleEditRealization(); return; }
     if (!showRealizationModal) return;
-    if (!realForm.title.trim()) { notify("Judul realisasi wajib diisi"); return; }
+    const titleTrim = realForm.title.trim();
+    if (!titleTrim) { notify("Judul realisasi wajib diisi"); return; }
+    if (titleTrim.length < 3) { notify("Judul minimal 3 karakter"); return; }
+    if (titleTrim.length > 200) { notify("Judul maksimal 200 karakter"); return; }
+    if (realForm.description && realForm.description.length > 1000) { notify("Deskripsi maksimal 1000 karakter"); return; }
+    // validasi milik sendiri: hanya boleh tambah di rencana assignedTo == saya
+    if (showRealizationModal.assignedTo !== currentUser.id) { notify("Hanya pemilik tugas yang dapat menambah realisasi"); return; }
     const plan = showRealizationModal;
     const valNum = 1;
-    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: realForm.title.trim(), value: String(valNum), description: realForm.description, date: new Date().toISOString().slice(0, 10) };
+    const dateVal = realForm.date?.trim() || new Date().toISOString().slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) { notify("Format tanggal harus YYYY-MM-DD"); return; }
+    const dCheck = new Date(dateVal);
+    if (isNaN(dCheck.getTime())) { notify("Tanggal tidak valid"); return; }
+    // cek periode: tanggal harus dalam periode rencana
+    const period = periods.find(p => p.id === plan.skpPeriodId);
+    if (period && (dateVal < period.startDate || dateVal > period.endDate)) {
+      notify(`Tanggal harus dalam periode ${period.name} (${period.startDate} s/d ${period.endDate})`);
+      return;
+    }
+    const timeVal = (realForm.time?.trim() || new Date().toTimeString().slice(0,5));
+    if (!/^\d{2}:\d{2}$/.test(timeVal) || Number(timeVal.split(":")[0]) > 23 || Number(timeVal.split(":")[1]) > 59) {
+      notify("Format jam harus HH:mm 24 jam (00:00 - 23:59)");
+      return;
+    }
+    if (realForm.files.length > 5) { notify("Maksimal 5 bukti per realisasi"); return; }
+    if (realForm.targets.length > 5) { notify("Maksimal 5 target per realisasi"); return; }
+    for (const t of realForm.targets) {
+      if (!t.name.trim() || t.name.trim().length > 50) { notify("Nama target 1-50 karakter"); return; }
+      if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
+      if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
+    }
+    if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
+    const pIds = realForm.participants.map(p=>p.employeeId);
+    if (new Set(pIds).size !== pIds.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
+    for (const p of realForm.participants) {
+      if (!p.employeeId) { notify("Pilih pegawai terlibat"); return; }
+      if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
+    }
+    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: titleTrim, value: String(valNum), description: realForm.description, date: dateVal, time: timeVal, uploadedBy: currentUser.id, targets: realForm.targets.map(t=>({ id: "rt"+Date.now()+Math.random().toString(36).slice(2,5), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId:p.employeeId, role:p.role.trim() })) };
     const nextReals = [r, ...realizations];
     // untuk plan yang punya anak, progress = (langsung + anak)/target
     const newProgress = calcPlanProgress(plan.id, plans, nextReals);
     setRealizations(nextReals);
-    if (realForm.fileName) setAttachments(prev => [{ id: "a" + Date.now(), planId: plan.id, realizationId: r.id, fileName: realForm.fileName, fileSize: "1.2 MB", uploadedBy: currentUser.id, date: r.date }, ...prev]);
+    // jangan buat optimistic attachment dengan id palsu — biar sinkron dari DB setelah POST berhasil
     setPlans(prev => {
       let updated = prev.map(p => p.id === plan.id ? { ...p, progress: newProgress } : p);
       fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: plan.id, progress: newProgress }) }).catch(() => {});
@@ -309,8 +390,202 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       }
       return updated;
     });
-    fetch("/api/realizations", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ planId: plan.id, title: r.title, value: r.value, description: r.description, date: r.date, fileName: realForm.fileName, uploadedBy: currentUser.id, progress: newProgress }) }).then(async res => { if (!res.ok) { const j = await res.json().catch(()=>({})); notify("Gagal simpan realisasi: " + (j.error || res.statusText)); }}).catch(() => notify("Gagal simpan realisasi"));
-    addLog("Mengirim realisasi", `Mengirim realisasi "${r.title}" untuk '${plan.title}'`, "realization", r.id); notify(`Realisasi dikirim — progress jadi ${newProgress}%`); setShowRealizationModal(null); setRealForm({ title: "", value: "1", description: "", fileName: "" });
+    fetch("/api/realizations", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ planId: plan.id, title: r.title, value: r.value, description: r.description, date: r.date, time: r.time, files: realForm.files, fileNames: realForm.files.map(f=>f.fileName), uploadedBy: currentUser.id, progress: newProgress, targets: realForm.targets, participants: realForm.participants }) }).then(async res => {
+      if (!res.ok) {
+        const j = await res.json().catch(()=>({}));
+        notify("Gagal simpan realisasi: " + (j.error || res.statusText));
+        // rollback optimistic
+        setRealizations(prev => prev.filter(x => x.id !== r.id));
+        setAttachments(prev => prev.filter(a => a.realizationId !== r.id));
+        setPlans(prev => prev.map(p => p.id === plan.id ? { ...p, progress: plans.find(pp=>pp.id===plan.id)?.progress ?? p.progress } : p));
+      } else {
+        const saved = await res.json().catch(()=>null);
+        if (saved && saved.id && saved.id !== r.id) {
+          // ganti id optimistic dengan id asli dari DB
+          setRealizations(prev => prev.map(x => x.id === r.id ? { ...saved, planId: saved.planId, title: saved.title, value: saved.value, description: saved.description, date: saved.date, time: (saved as any).time ?? r.time, uploadedBy: saved.uploadedBy } as Realization : x));
+          setAttachments(prev => prev.map(a => a.realizationId === r.id ? { ...a, realizationId: saved.id } : a));
+        }
+        // sinkronkan attachments/plans/realizations dari DB untuk dapat id asli attachments
+        fetch("/api/db").then(r=>r.ok?r.json():null).then(d=>{
+          if (!d) return;
+          if (d.attachments?.length) setAttachments(d.attachments);
+          if (d.realizations?.length) setRealizations(d.realizations);
+          if (d.plans?.length) setPlans(d.plans);
+        }).catch(()=>{});
+      }
+    }).catch(() => {
+      notify("Gagal simpan realisasi");
+      setRealizations(prev => prev.filter(x => x.id !== r.id));
+      setAttachments(prev => prev.filter(a => a.realizationId !== r.id));
+    });
+    addLog("Mengirim realisasi", `Mengirim realisasi "${r.title}" untuk '${plan.title}'`, "realization", r.id); notify(`Realisasi dikirim — progress jadi ${newProgress}%`); setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [], participants: [] });
+  };
+
+  const handleEditRealization = () => {
+    if (!currentUser || !editingRealization) return;
+    const titleTrim = realForm.title.trim();
+    if (!titleTrim) { notify("Judul realisasi wajib diisi"); return; }
+    if (titleTrim.length < 3) { notify("Judul minimal 3 karakter"); return; }
+    if (titleTrim.length > 200) { notify("Judul maksimal 200 karakter"); return; }
+    if (realForm.description && realForm.description.length > 1000) { notify("Deskripsi maksimal 1000 karakter"); return; }
+    if (editingRealization.uploadedBy && editingRealization.uploadedBy !== currentUser.id) { notify("Hanya penulis yang dapat mengubah realisasi ini"); return; }
+    if (!editingRealization.uploadedBy) { notify("Realisasi lama tanpa penulis — tidak dapat diubah"); return; }
+    const dateVal = realForm.date?.trim() || editingRealization.date;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) { notify("Format tanggal harus YYYY-MM-DD"); return; }
+    const dCheck = new Date(dateVal);
+    if (isNaN(dCheck.getTime())) { notify("Tanggal tidak valid"); return; }
+    const planForPeriod = plans.find(p => p.id === editingRealization.planId);
+    const period = planForPeriod ? periods.find(p => p.id === planForPeriod.skpPeriodId) : null;
+    if (period && (dateVal < period.startDate || dateVal > period.endDate)) {
+      notify(`Tanggal harus dalam periode ${period.name} (${period.startDate} s/d ${period.endDate})`);
+      return;
+    }
+    const timeVal = (realForm.time?.trim() || editingRealization.time || "09:00");
+    if (!/^\d{2}:\d{2}$/.test(timeVal) || Number(timeVal.split(":")[0]) > 23 || Number(timeVal.split(":")[1]) > 59) {
+      notify("Format jam harus HH:mm 24 jam (00:00 - 23:59)");
+      return;
+    }
+    if (realForm.files.length > 0) {
+      const existingCount = attachments.filter(a => a.realizationId === editingRealization.id).length;
+      if (existingCount + realForm.files.length > 5) {
+        notify(`Maksimal 5 bukti per realisasi (sudah ada ${existingCount}, tambah ${realForm.files.length} melebihi batas)`);
+        return;
+      }
+    }
+    if (realForm.targets.length > 5) { notify("Maksimal 5 target per realisasi"); return; }
+    for (const t of realForm.targets) {
+      if (!t.name.trim() || t.name.trim().length > 50) { notify("Nama target 1-50 karakter"); return; }
+      if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
+      if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
+    }
+    if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
+    const updPIds = realForm.participants.map(p=>p.employeeId);
+    if (new Set(updPIds).size !== updPIds.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
+    for (const p of realForm.participants) {
+      if (!p.employeeId) { notify("Pilih pegawai terlibat"); return; }
+      if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
+    }
+    const updated: Realization = { ...editingRealization, title: titleTrim, description: realForm.description, date: dateVal, time: timeVal, targets: realForm.targets.map(t=>({ id: t.name+Date.now(), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId:p.employeeId, role:p.role.trim() })) };
+    const addedFiles = [...realForm.files];
+    setRealizations(prev => prev.map(r => r.id === editingRealization.id ? updated : r));
+    // jangan buat optimistic attachment — tunggu refetch dari DB setelah PATCH
+    fetch("/api/realizations", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: updated.id, title: updated.title, description: updated.description, date: updated.date, time: updated.time, files: addedFiles, fileNames: addedFiles.map(f=>f.fileName), targets: realForm.targets, participants: realForm.participants }) }).then(async r => {
+      if (!r.ok) {
+        const j = await r.json().catch(()=>({}));
+        notify("Gagal ubah: " + (j.error || r.statusText));
+        setRealizations(prev => prev.map(x => x.id === updated.id ? editingRealization : x));
+        // rollback optimistic attachments
+        if (addedFiles.length) {
+          setAttachments(prev => prev.filter(a => !addedFiles.some(f=> a.fileName===f.fileName && a.realizationId===updated.id && a.id.startsWith("a"))));
+        }
+      } else {
+        notify("Realisasi diperbarui");
+        addLog("Mengubah realisasi", `Mengubah "${updated.title}"`, "realization", updated.id);
+        // sinkronkan attachments & realizations untuk dapat id asli & jam terbaru
+        fetch("/api/db").then(r=>r.ok?r.json():null).then(d=>{
+          if (d?.attachments) setAttachments(d.attachments);
+          if (d?.realizations) setRealizations(d.realizations);
+        }).catch(()=>{});
+      }
+    }).catch(() => {
+      notify("Gagal ubah realisasi");
+      setRealizations(prev => prev.map(x => x.id === updated.id ? editingRealization : x));
+    });
+    setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [], participants: [] });
+  };
+
+  const handleDeleteRealization = async (id: string, title: string) => {
+    if (!currentUser) return;
+    const target = realizations.find(r => r.id === id);
+    if (!target) { notify("Realisasi tidak ditemukan"); return; }
+    // cek hak hapus: penulis, atasan, atau admin/direktur
+    const plan = plans.find(p => p.id === target.planId);
+    const ownerId = target.uploadedBy ?? plan?.assignedTo ?? null;
+    const isAuthor = !!target.uploadedBy && target.uploadedBy === currentUser.id;
+    const isAdmin = ["admin", "direktur"].includes(currentUser.role);
+    const isSuperior = ownerId ? isSubordinate(currentUser.id, ownerId) : false;
+    if (!isAuthor && !isSuperior && !isAdmin) { notify("Hanya penulis atau atasan yang dapat menghapus realisasi ini"); return; }
+    if (!target.uploadedBy && !isAdmin && !isSuperior) { notify("Realisasi lama tanpa penulis — hanya atasan/admin yang dapat menghapus"); return; }
+    const planId = target.planId;
+    const backupReals = realizations;
+    const backupAtts = attachments;
+    const backupPlans = plans;
+    // optimistic: hapus realisasi + attachments terkait
+    const nextReals = realizations.filter(r => r.id !== id);
+    setRealizations(nextReals);
+    setAttachments(prev => prev.filter(a => a.realizationId !== id));
+    // hitung ulang progress untuk plan + induk
+    const newProgress = calcPlanProgress(planId, plans, nextReals);
+    let optimisticPlans = plans.map(p => p.id === planId ? { ...p, progress: newProgress } : p);
+    // propagate ke induk
+    let cur: string | null = optimisticPlans.find(p => p.id === planId)?.parentId ?? null;
+    while (cur) {
+      const np = calcParentProgress(cur, optimisticPlans, nextReals);
+      if (np === null) break;
+      const par = optimisticPlans.find(p => p.id === cur);
+      if (!par || par.progress === np) { cur = par?.parentId ?? null; continue; }
+      optimisticPlans = optimisticPlans.map(p => p.id === cur ? { ...p, progress: np } : p);
+      cur = par.parentId;
+    }
+    setPlans(optimisticPlans);
+    try {
+      const res = await fetch("/api/realizations", { method: "DELETE", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id }) });
+      const j = await res.json().catch(()=>({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      // server sudah hitung ulang progress; sinkronkan plan progress yang sudah di-optimistic ke DB (planId + ancestors)
+      fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: planId, progress: newProgress }) }).catch(()=>{});
+      let walk: string | null = plans.find(p=>p.id===planId)?.parentId ?? null;
+      while (walk) {
+        const np = calcParentProgress(walk, optimisticPlans, nextReals);
+        if (np !== null) fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: walk, progress: np }) }).catch(()=>{});
+        walk = plans.find(p=>p.id===walk)?.parentId ?? null;
+      }
+      addLog("Menghapus realisasi", `Menghapus "${title}"`, "realization", id);
+      notify(`Realisasi "${title.slice(0,20)}" terhapus — progress jadi ${newProgress}%`);
+    } catch (e: any) {
+      setRealizations(backupReals);
+      setAttachments(backupAtts);
+      setPlans(backupPlans);
+      notify("Gagal hapus: " + (e?.message || "error"));
+    }
+  };
+
+  const handleDeleteAttachment = async (id: string, fileName: string) => {
+    if (!currentUser) return;
+    const target = attachments.find(a => a.id === id);
+    if (!target) { notify("Bukti tidak ditemukan"); return; }
+    // cek hak: pengunggah, penulis realisasi, atasan, admin/direktur
+    const isUploader = target.uploadedBy === currentUser.id;
+    const isAdmin = ["admin", "direktur"].includes(currentUser.role);
+    let isSuperior = false;
+    let isRealAuthor = false;
+    if (target.realizationId) {
+      const real = realizations.find(r => r.id === target.realizationId);
+      if (real?.uploadedBy === currentUser.id) isRealAuthor = true;
+      const ownerId = real?.uploadedBy ?? target.uploadedBy;
+      if (ownerId && ownerId !== currentUser.id) {
+        isSuperior = isSubordinate(currentUser.id, ownerId);
+      }
+      if (isSubordinate(currentUser.id, target.uploadedBy)) isSuperior = true;
+    } else {
+      isSuperior = isSubordinate(currentUser.id, target.uploadedBy);
+    }
+    if (!isUploader && !isRealAuthor && !isSuperior && !isAdmin) {
+      notify("Hanya pengunggah, penulis, atau atasan yang dapat menghapus bukti");
+      return;
+    }
+    const backup = attachments;
+    setAttachments(prev => prev.filter(a => a.id !== id));
+    try {
+      const res = await fetch("/api/attachments", { method: "DELETE", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id }) });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      addLog("Menghapus bukti", `Menghapus bukti "${fileName}"`, "attachment", id);
+      notify(`Bukti "${fileName.slice(0,20)}" dihapus`);
+    } catch (e: any) {
+      setAttachments(backup);
+      notify("Gagal hapus bukti: " + (e?.message || "error"));
+    }
   };
 
   // Helper: hitung progress induk = (jumlah entri langsung + capaian anak) / target — bisa >100%
@@ -449,8 +724,8 @@ export function SKPProvider({ children }: { children: ReactNode }) {
     periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
     toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, search, setSearch,
     showPlanModal, setShowPlanModal, showCascadeModal, setShowCascadeModal, showRealizationModal, setShowRealizationModal,
-    editingPlan, setEditingPlan, planForm, setPlanForm, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, periodForm, setPeriodForm, empForm, setEmpForm,
-    handleCreatePlan, handleCascade, handleUpdateDelegation, handleDeleteDelegation, handleSubmitRealization, handleDeletePlan,
+    editingPlan, setEditingPlan, planForm, setPlanForm, planCustomTargets, setPlanCustomTargets, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, editingRealization, setEditingRealization, periodForm, setPeriodForm, empForm, setEmpForm,
+    handleCreatePlan, handleCascade, handleUpdateDelegation, handleDeleteDelegation, handleSubmitRealization, handleEditRealization, handleDeleteRealization, handleDeleteAttachment, handleDeletePlan,
   };
   return <SKPContext.Provider value={value}>{children}</SKPContext.Provider>;
 }
