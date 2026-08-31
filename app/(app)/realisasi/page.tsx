@@ -16,6 +16,7 @@ export default function RealisasiPage() {
   const [pelaksanaFilter, setPelaksanaFilter] = useState<string>("all");
   const [buktiFilter, setBuktiFilter] = useState<"all" | "with" | "without">("all");
   const [sortBy, setSortBy] = useState<"date_desc" | "date_asc" | "title_asc" | "title_desc">("date_desc");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -175,15 +176,18 @@ export default function RealisasiPage() {
         )}
       </div>
 
-      {/* Filter Bar */}
+      {/* Filter Bar — opsi 1: ringkas default, lanjutan collapsible */}
       <div className="bg-white border border-[#e4f0f1] rounded-xl p-4 space-y-3" style={{ borderRadius: 12 }}>
         <div className="flex items-center justify-between">
           <h3 className="font-mono text-xs tracking-[0.06em] uppercase font-semibold text-[#283338]/70">Filter & Urutkan</h3>
-          {hasActiveFilter && (
-            <button onClick={() => { setSearch(""); setPeriodeFilter("all"); setDateFrom(""); setDateTo(""); setPelaksanaFilter("all"); setBuktiFilter("all"); setSortBy("date_desc"); setPage(1); }} className="text-xs text-[#b91c1c] hover:underline">Reset filter</button>
-          )}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowAdvanced(v => !v)} className="text-xs px-3 py-1 rounded-full border border-[#e4f0f1] bg-[#f2f8f7] hover:bg-white text-[#1c5d5f]">{showAdvanced ? "Sembunyikan" : "Filter lanjutan"} ▾</button>
+            {hasActiveFilter && (
+              <button onClick={() => { setSearch(""); setPeriodeFilter("all"); setDateFrom(""); setDateTo(""); setPelaksanaFilter("all"); setBuktiFilter("all"); setSortBy("date_desc"); setPage(1); }} className="text-xs text-[#b91c1c] hover:underline">Reset</button>
+            )}
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Cari rencana / realisasi</label>
             <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Cari judul rencana, judul/deskripsi realisasi..." className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} />
@@ -204,39 +208,43 @@ export default function RealisasiPage() {
               <option value="title_desc">Judul Z-A</option>
             </select>
           </div>
-          <div>
-            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Dari tanggal</label>
-            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} />
-            {dateFrom && dateTo && dateFrom > dateTo && <p className="font-mono text-[10px] text-[#b91c1c] mt-1">Dari tanggal tidak boleh &gt; sampai tanggal</p>}
-          </div>
-          <div>
-            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Sampai tanggal</label>
-            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} />
-          </div>
-          <div>
-            <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Bukti</label>
-            <select value={buktiFilter} onChange={e => { setBuktiFilter(e.target.value as any); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
-              <option value="all">Semua</option>
-              <option value="with">Dengan bukti</option>
-              <option value="without">Tanpa bukti</option>
-            </select>
-          </div>
-          {tab === "bawahan" && (
+        </div>
+        {showAdvanced && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-dashed border-[#e4f0f1]">
             <div>
-              <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Pelaksana</label>
-              <select value={pelaksanaFilter} onChange={e => { setPelaksanaFilter(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
-                <option value="all">Semua pelaksana</option>
-                {employees.filter(e => bawahanRealisasiRaw.some(r => {
-                  const plan = plans.find(p => p.id === r.planId);
-                  const owner = r.uploadedBy ?? plan?.assignedTo;
-                  return owner === e.id;
-                })).map(e => <option key={e.id} value={e.id}>{e.name.split(",")[0]} — {e.role}</option>)}
+              <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Dari tanggal</label>
+              <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} />
+              {dateFrom && dateTo && dateFrom > dateTo && <p className="font-mono text-[10px] text-[#b91c1c] mt-1">Dari tanggal tidak boleh &gt; sampai tanggal</p>}
+            </div>
+            <div>
+              <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Sampai tanggal</label>
+              <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} />
+            </div>
+            <div>
+              <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Bukti</label>
+              <select value={buktiFilter} onChange={e => { setBuktiFilter(e.target.value as any); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
+                <option value="all">Semua</option>
+                <option value="with">Dengan bukti</option>
+                <option value="without">Tanpa bukti</option>
               </select>
             </div>
-          )}
-        </div>
+            {tab === "bawahan" && (
+              <div>
+                <label className="font-mono text-[11px] tracking-wide uppercase font-semibold text-[#283338]/60">Pelaksana</label>
+                <select value={pelaksanaFilter} onChange={e => { setPelaksanaFilter(e.target.value); setPage(1); }} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }}>
+                  <option value="all">Semua pelaksana</option>
+                  {employees.filter(e => bawahanRealisasiRaw.some(r => {
+                    const plan = plans.find(p => p.id === r.planId);
+                    const owner = r.uploadedBy ?? plan?.assignedTo;
+                    return owner === e.id;
+                  })).map(e => <option key={e.id} value={e.id}>{e.name.split(",")[0]} — {e.role}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
         <div className="font-mono text-[11px] text-[#283338]/50">
-          {tab === "saya" ? `${myPlans.length} tugas` : `${bawahanRealisasiFiltered.length} dari ${bawahanRealisasiRaw.length} realisasi`} • {hasActiveFilter ? "filter aktif" : "tanpa filter"}
+          {tab === "saya" ? `${myPlans.length} tugas` : `${bawahanRealisasiFiltered.length} dari ${bawahanRealisasiRaw.length} realisasi`} • {hasActiveFilter ? "filter aktif" : "tanpa filter"} {showAdvanced ? "• lanjutan terbuka" : ""}
         </div>
       </div>
 
@@ -319,84 +327,69 @@ export default function RealisasiPage() {
                     </div>
                   );
                 }
-                // Kelompokkan per orang setelah filter
-                const byEmp = new Map<string, typeof allReals>();
-                for (const item of allReals) {
-                  const arr = byEmp.get(item.empId) ?? [];
-                  arr.push(item);
-                  byEmp.set(item.empId, arr);
-                }
+                // Flat list — opsi 1: 1 realisasi = 1 card (tanpa group per pegawai) — tombol + di pojok kanan sejajar judul
                 return (
                   <div key={plan.id} className="px-4 py-3 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
-                    <h3 className="font-medium text-[#231e21] leading-tight">{plan.title}</h3>
-                    <div className="font-mono text-xs text-[#283338]/60">Target: {plan.target} • Progress: {plan.progress}% • {allReals.length} realisasi {hasActiveFilter ? "(terfilter)" : ""}</div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-[#231e21] leading-tight">{plan.title}</h3>
+                        <div className="font-mono text-xs text-[#283338]/60">Target: {plan.target} • Progress: {plan.progress}% • {allReals.length} realisasi {hasActiveFilter ? "(terfilter)" : ""}</div>
+                      </div>
+                      {plan.assignedTo === currentUser.id && (
+                        <button onClick={() => openCreate(plan)} className="shrink-0 px-4 py-1.5 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90 whitespace-nowrap" style={{ borderRadius: 48 }}>+ Realisasi</button>
+                      )}
+                    </div>
                     <div className="mt-3 space-y-2">
-                      {[...byEmp.entries()].map(([empId, items]) => {
+                      {allReals.map(({ r, empId }) => {
+                        const canE = canEdit(r);
+                        const canD = canDelete(r);
+                        const buktiCount = attachments.filter(a => a.realizationId === r.id).length;
                         const emp = employees.find(e => e.id === empId);
                         return (
-                          <table key={empId} className="w-full border border-[#e4f0f1]" style={{ borderRadius: 8 }}>
-                            <thead className="bg-[#e4f0f1]">
-                              <tr>
-                                <th className="text-left px-2.5 py-1.5 text-xs font-semibold text-[#231e21]">{emp?.name?.split(",")[0] ?? "-"}</th>
-                                <th className="text-right px-2.5 py-1.5 text-xs font-mono text-[#283338]/60">{items.length} realisasi</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {items.map(({ r }) => {
-                                const canE = canEdit(r);
-                                const canD = canDelete(r);
-                                const buktiCount = attachments.filter(a => a.realizationId === r.id).length;
-                                return (
-                                  <tr key={r.id} className="border-t border-[#e4f0f1] bg-white">
-                                    <td className="px-2.5 py-1.5">
-                                      <button onClick={() => setSelectedRealId(r.id)} className="text-sm text-[#283338] text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">
-                                        {r.title || "Realisasi"}
-                                      </button>
-                                      {(r as any).targets && (r as any).targets.length>0 && (
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                          {(r as any).targets.map((t:any)=>(
-                                            <span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>
-                                          ))}
-                                        </div>
-                                      )}
-                                      {(r as any).participants && (r as any).participants.length>0 && (
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                          {(r as any).participants.map((pp:any)=>{
-                                            const emp = employees.find(e=>e.id===pp.employeeId);
-                                            return <span key={pp.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{emp?.avatar ?? "?"} {emp?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;
-                                          })}
-                                        </div>
-                                      )}
-                                      <div className="font-mono text-[11px] text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}{!r.uploadedBy ? " • legacy" : ""}{canD && !canE ? " • dapat dihapus atasan" : ""}</div>
-                                    </td>
-                                    <td className="px-2.5 py-1.5 text-right">
-                                      <div className="flex justify-end gap-1">
-                                        <button onClick={() => setSelectedRealId(r.id)} className="w-7 h-7 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60 flex items-center justify-center hover:border-[#a2cbcd] hover:text-[#1c5d5f]" title="Detail">
-                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
-                                        </button>
-                                        {canE && (
-                                          <button onClick={() => openEdit(r)} className="w-7 h-7 rounded-full bg-white border border-[#a2cbcd] text-[#1c5d5f] flex items-center justify-center hover:bg-[#f2f8f7]" title="Edit (hanya penulis)">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><path d="M15 5l4 4"/></svg>
-                                          </button>
-                                        )}
-                                        {canD && (
-                                          <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]" title={canE ? "Hapus" : "Hapus oleh atasan"}>
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
-                                          </button>
-                                        )}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                          <div key={r.id} className="flex gap-3 p-3 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7]/40 hover:bg-white transition">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => setSelectedRealId(r.id)} className="text-sm font-medium text-[#231e21] text-left hover:text-[#1c5d5f] hover:underline underline-offset-2 truncate" title="Lihat detail">
+                                  {r.title || "Realisasi"}
+                                </button>
+                                {emp && <span className="shrink-0 inline-flex px-1.5 py-0.5 rounded-full bg-white border border-[#e4f0f1] font-mono text-[10px] text-[#283338]/60">{emp.name.split(",")[0]}</span>}
+                              </div>
+                              {(r as any).targets && (r as any).targets.length>0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {(r as any).targets.map((t:any)=>(
+                                    <span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-white border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>
+                                  ))}
+                                </div>
+                              )}
+                              {(r as any).participants && (r as any).participants.length>0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {(r as any).participants.map((pp:any)=>{
+                                    const e2 = employees.find(e=>e.id===pp.employeeId);
+                                    return <span key={pp.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{e2?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;
+                                  })}
+                                </div>
+                              )}
+                              <div className="font-mono text-[11px] text-[#283338]/50 mt-1">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}</div>
+                            </div>
+                            <div className="flex flex-row gap-1 shrink-0 self-start">
+                              <button onClick={() => setSelectedRealId(r.id)} className="w-7 h-7 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60 flex items-center justify-center hover:border-[#a2cbcd] hover:text-[#1c5d5f]" title="Detail">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                              </button>
+                              {canE && (
+                                <button onClick={() => openEdit(r)} className="w-7 h-7 rounded-full bg-white border border-[#a2cbcd] text-[#1c5d5f] flex items-center justify-center hover:bg-[#f2f8f7]" title="Edit">
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><path d="M15 5l4 4"/></svg>
+                                </button>
+                              )}
+                              {canD && (
+                                <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]" title={canE ? "Hapus" : "Hapus oleh atasan"}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         );
                       })}
                     </div>
-                    {plan.assignedTo === currentUser.id && (
-                      <button onClick={() => openCreate(plan)} className="mt-3 w-full py-2 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90" style={{ borderRadius: 48 }}>+ Realisasi</button>
-                    )}
                   </div>
                 );
               })}
@@ -424,8 +417,8 @@ export default function RealisasiPage() {
                     return (
                       <tr key={r.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]">
                         <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB</div></td>
-                        <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{emp?.avatar ?? "?"}</span><span className="text-xs">{emp?.name.split(",")[0]}</span></div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}{r.uploadedBy ? "" : " (via penugasan)"}</div></td>
-                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{(r as any).participants && (r as any).participants.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).participants.map((pp:any)=>{ const e=employees.find(x=>x.id===pp.employeeId); return <span key={pp.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{e?.avatar ?? "?"} {e?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;})}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
+                        <td className="px-4 py-3"><div className="text-xs font-medium text-[#231e21]">{emp?.name.split(",")[0] ?? "-"}</div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}{r.uploadedBy ? "" : " (via penugasan)"}</div></td>
+                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{(r as any).participants && (r as any).participants.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).participants.map((pp:any)=>{ const e=employees.find(x=>x.id===pp.employeeId); return <span key={pp.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{e?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;})}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
                          <td className="px-4 py-3 text-right">
                            {canDel ? (
                              <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] ml-auto" title="Hapus (atasan)">

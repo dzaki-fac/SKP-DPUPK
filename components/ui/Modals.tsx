@@ -133,112 +133,119 @@ export function GlobalModals() {
 
       {showCascadeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm" onClick={() => { setShowCascadeModal(null); setCascadeTargets([]); setCascadePortions({}); setCascadeTitles({}); }}>
-          <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
-            <div className="p-6 border-b border-[#e4f0f1]"><div className="eyebrow">PELIMPAHAN KINERJA</div><h3 className="heading-serif text-lg mt-1">Kelola pelimpahan</h3><p className="text-sm text-[#283338]/70 mt-1">"{showCascadeModal.title}" • Target induk: <span className="font-bold text-[#1c5d5f]">{showCascadeModal.target}</span></p><p className="font-mono text-xs tracking-wide text-[#283338]/60 mt-1">Kelola judul & porsi per delegasi penerima — total porsi tidak boleh melebihi target induk</p></div>
-            <div className="p-6 space-y-4 max-h-[420px] overflow-y-auto">
+          <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden" style={{ borderRadius: 12, border: "1px solid #e4f0f1" }}>
+            <div className="p-5 border-b border-[#e4f0f1] shrink-0"><div className="eyebrow">PELIMPAHAN KINERJA</div><h3 className="heading-serif text-lg mt-1">Pelimpahan</h3><p className="text-sm text-[#283338]/70 mt-1 truncate">"{showCascadeModal.title}" • <span className="font-bold text-[#1c5d5f]">Target {showCascadeModal.target}</span></p></div>
+            <div className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
               {(() => {
                 if (!currentUser) return null;
                 const existing = plans.filter(p => p.parentId === showCascadeModal.id);
                 const existingTotal = existing.reduce((s,p)=> s + (parseFloat(String(p.target).replace(",","."))||0),0);
                 const parentTarget = parseFloat(String(showCascadeModal.target).replace(",","."))||0;
-                // semua pegawai bisa jadi penerima delegasi (kecuali diri sendiri & yang sudah dilimpahkan)
                 const allCandidates = employees.filter(e => e.id !== currentUser.id);
                 const existingIds = new Set(existing.map(e=>e.assignedTo));
                 const candidates = allCandidates.filter(e=> !existingIds.has(e.id));
-                const selectedTotal = cascadeTargets.reduce((s,id)=> s + (parseFloat(String(cascadePortions[id] ?? showCascadeModal.target).replace(",","."))||0),0);
+                const selectedTotal = cascadeTargets.reduce((s,id)=> s + (parseFloat(String(cascadePortions[id] ?? "1").replace(",","."))||0),0);
                 const totalAll = existingTotal + selectedTotal;
                 const over = parentTarget>0 && totalAll > parentTarget;
+                const sisa = parentTarget - existingTotal;
                 return (
                   <>
-                    {/* Sudah dilimpahkan — CRUD porsi */}
+                    {/* Ringkasan */}
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
+                      <span className="font-mono text-xs text-[#283338]/60">{existing.length} dilimpahkan • {existingTotal}{parentTarget>0?` / ${parentTarget}`:""} target</span>
+                      <span className={`font-mono text-xs font-bold ${sisa < 0 ? "text-[#b91c1c]" : "text-[#1c5d5f]"}`}>Sisa {sisa}</span>
+                    </div>
+                    {/* Sudah dilimpahkan — ringkas */}
+                    {existing.length > 0 && (
                     <div>
-                      <div className="eyebrow text-[11px] flex items-center justify-between"><span>DILIMPAHKAN ({existing.length})</span><span className={`font-mono text-xs ${over ? "text-[#b91c1c]" : "text-[#1c5d5f]"}`}>{existingTotal}{parentTarget>0?` / ${parentTarget}`:""} {over && "• melebihi!"}</span></div>
-                      {existing.length===0 ? <div className="mt-2 p-3 rounded-xl bg-[#f2f8f7] border border-dashed border-[#a2cbcd] text-xs text-[#283338]/60 text-center" style={{borderRadius:12}}>Belum ada pelimpahan</div> :
-                      <div className="mt-2 space-y-3">
+                      <div className="eyebrow text-[11px]">DILIMPAHKAN ({existing.length})</div>
+                      <div className="mt-2 space-y-2">
                         {existing.map(child=>{
                           const emp = employees.find(e=>e.id===child.assignedTo);
                           return (
-                            <div key={child.id} className="p-3 rounded-xl border bg-[#e4f0f1] border-[#a2cbcd] space-y-2" style={{borderRadius:12}}>
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <div className="w-8 h-8 rounded-full bg-[#1c5d5f] text-white flex items-center justify-center text-xs font-bold shrink-0">{emp?.avatar ?? "?"}</div>
-                                  <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate">{emp?.name ?? child.assignedTo}</div><div className="font-mono text-xs text-[#283338]/60">{child.progress}% terealisasi</div></div>
+                            <details key={child.id} className="group rounded-xl border bg-white border-[#e4f0f1] overflow-hidden" style={{ borderRadius: 12 }}>
+                              <summary className="list-none flex items-center gap-2 p-2.5 cursor-pointer">
+                                <div className="w-7 h-7 rounded-full bg-[#1c5d5f] text-white flex items-center justify-center text-[11px] font-bold shrink-0">{emp?.avatar ?? "?"}</div>
+                                <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate leading-none">{emp?.name?.split(",")[0] ?? child.assignedTo}</div><div className="font-mono text-[11px] text-[#283338]/50">{child.progress}% • porsi {child.target}</div></div>
+                                <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#e4f0f1] text-[#1c5d5f] shrink-0">{child.target}</span>
+                                <span className="text-[#283338]/30 group-open:rotate-180 transition text-xs">▾</span>
+                                <button onClick={(e)=>{ e.preventDefault(); handleDeleteDelegation(child.id, child.title); }} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] shrink-0" title="Hapus">×</button>
+                              </summary>
+                              <div className="px-3 pb-3 space-y-2 border-t border-[#e4f0f1] bg-[#f2f8f7]/50 pt-3">
+                                <div>
+                                  <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Judul</label>
+                                  <input type="text" defaultValue={child.title} placeholder={showCascadeModal.title} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}}
+                                    onBlur={e=>{ const v=e.target.value.trim(); if(v && v!==child.title) handleUpdateDelegation(child.id, child.target, v); }}
+                                    onKeyDown={e=>{ if(e.key==="Enter") (e.target as HTMLInputElement).blur(); }}
+                                  />
                                 </div>
-                                <button onClick={()=> handleDeleteDelegation(child.id, child.title)} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] shrink-0" title="Hapus pelimpahan">×</button>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-xs text-[#283338]/60">Porsi</span>
+                                  <input type="number" min={1} defaultValue={child.target} className="w-20 px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm text-center focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}}
+                                    onBlur={e=>{ const v=e.target.value.trim(); if(v && v!==child.target) handleUpdateDelegation(child.id, v, child.title); }}
+                                    onKeyDown={e=>{ if(e.key==="Enter") (e.target as HTMLInputElement).blur(); }}
+                                  />
+                                  <span className="font-mono text-xs text-[#283338]/50">/ {parentTarget || "—"}</span>
+                                </div>
                               </div>
-                              <div>
-                                <label className="font-mono text-[11px] tracking-wide text-[#283338]/60">Judul pelimpahan</label>
-                                <input type="text" defaultValue={child.title} placeholder={showCascadeModal.title} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}}
-                                  onBlur={e=>{ const v=e.target.value.trim(); if(v && v!==child.title) handleUpdateDelegation(child.id, child.target, v); }}
-                                  onKeyDown={e=>{ if(e.key==="Enter") (e.target as HTMLInputElement).blur(); }}
-                                />
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs text-[#283338]/60">Porsi:</span>
-                                <input type="number" min={1} defaultValue={child.target} placeholder={child.target} className="w-20 px-2 py-1 rounded-lg border border-[#e4f0f1] bg-white text-sm text-center focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}}
-                                  onBlur={e=>{ const v=e.target.value.trim(); if(v && v!==child.target) handleUpdateDelegation(child.id, v, child.title); }}
-                                  onKeyDown={e=>{ if(e.key==="Enter") (e.target as HTMLInputElement).blur(); }}
-                                />
-                                <span className="font-mono text-xs text-[#283338]/50">/ {parentTarget || "—"}</span>
-                              </div>
-                            </div>
+                            </details>
                           );
                         })}
-                      </div>}
-                      {parentTarget>0 && <div className="mt-2 font-mono text-xs text-[#283338]/60">Sisa kapasitas: <span className={parentTarget - existingTotal <0 ? "text-[#b91c1c] font-bold":"text-[#1c5d5f] font-bold"}>{parentTarget - existingTotal}</span></div>}
+                      </div>
                     </div>
+                    )}
+                    {existing.length===0 && <div className="p-3 rounded-xl bg-white border border-dashed border-[#a2cbcd] text-xs text-[#283338]/50 text-center" style={{borderRadius:12}}>Belum ada pelimpahan — pilih pegawai di bawah</div>}
 
-                    {/* Tambah baru — pilih bawahan + porsi */}
+                    {/* Tambah baru — simple checklist, porsi/judul collapsible */}
                     <div>
-                      <div className="eyebrow text-[11px]">TAMBAH PELIMPAHAN {cascadeTargets.length>0 && <span className="font-mono text-xs text-[#1c5d5f]">• {selectedTotal} porsi baru {parentTarget>0 && `/ sisa ${parentTarget - existingTotal}`}</span>}</div>
-                      {candidates.length===0 ? <div className="mt-2 text-xs text-[#283338]/60">Semua delegasi penerima sudah dilimpahkan</div> :
-                      <div className="mt-2 space-y-2">
+                      <div className="eyebrow text-[11px] flex items-center justify-between"><span>TAMBAH PELIMPAHAN</span>{cascadeTargets.length>0 && <span className="font-mono text-[11px] text-[#1c5d5f]">{cascadeTargets.length} dipilih • {selectedTotal} porsi</span>}</div>
+                      {candidates.length===0 ? <div className="mt-2 text-xs text-[#283338]/60">Semua pegawai sudah dilimpahkan</div> :
+                      <div className="mt-2 space-y-1.5">
                         {candidates.map(emp=>{
                           const checked = cascadeTargets.includes(emp.id);
                           return (
-                            <div key={emp.id} className={`p-3 rounded-xl border ${checked? "bg-[#f2f8f7] border-[#a2cbcd]":"bg-white border-[#e4f0f1] hover:bg-[#f2f8f7]"}`} style={{borderRadius:12}}>
-                              <label className="flex items-center gap-3 cursor-pointer">
+                            <div key={emp.id} className={`rounded-xl border px-3 py-2.5 ${checked? "bg-[#f2f8f7] border-[#a2cbcd]":"bg-white border-[#e4f0f1] hover:bg-[#f2f8f7]"}`} style={{borderRadius:12}}>
+                              <label className="flex items-center gap-2.5 cursor-pointer">
                                 <input type="checkbox" checked={checked} onChange={e=>{
                                   if(e.target.checked){
                                     setCascadeTargets([...cascadeTargets, emp.id]);
-                                    if(!cascadePortions[emp.id]) setCascadePortions({...cascadePortions, [emp.id]: showCascadeModal.target});
+                                    if(!cascadePortions[emp.id]) setCascadePortions({...cascadePortions, [emp.id]: "1"});
                                     if(!cascadeTitles[emp.id]) setCascadeTitles({...cascadeTitles, [emp.id]: showCascadeModal.title});
-                                  }
-                                  else {
+                                  } else {
                                     setCascadeTargets(cascadeTargets.filter(x=>x!==emp.id));
                                     const { [emp.id]:_, ...rest}=cascadePortions; setCascadePortions(rest);
                                     const { [emp.id]:__, ...restT}=cascadeTitles; setCascadeTitles(restT);
                                   }
-                                }} className="accent-[#1c5d5f]" />
-                                <div className="w-8 h-8 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold shrink-0">{emp.avatar}</div>
-                                <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate">{emp.name}</div><div className="font-mono text-xs text-[#283338]/60 truncate">{roleLabel[emp.role]}</div></div>
-                                <span className="font-mono text-xs px-2 py-1 rounded-full bg-[#1c5d5f] text-white" style={{borderRadius:100}}>{emp.role.toUpperCase()}</span>
+                                }} className="accent-[#1c5d5f] w-4 h-4" />
+                                <div className="w-7 h-7 rounded-full bg-[#16325a] text-white flex items-center justify-center text-[11px] font-bold shrink-0">{emp.avatar}</div>
+                                <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate leading-none">{emp.name.split(",")[0]}</div><div className="font-mono text-[11px] text-[#283338]/50 truncate">{roleLabel[emp.role]}</div></div>
+                                {checked && <span className="font-mono text-[11px] px-1.5 py-0.5 rounded-full bg-white border border-[#a2cbcd] text-[#1c5d5f]">{cascadePortions[emp.id] ?? "1"}</span>}
                               </label>
                               {checked && (
-                                <div className="mt-2 space-y-2 pl-8">
-                                  <div>
-                                    <label className="font-mono text-[11px] tracking-wide text-[#283338]/60">Judul untuk {emp.name.split(",")[0]}</label>
-                                    <input type="text" value={cascadeTitles[emp.id] ?? showCascadeModal.title} onChange={e=> setCascadeTitles({...cascadeTitles, [emp.id]: e.target.value})} placeholder={showCascadeModal.title} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}} />
+                                <details className="mt-2 group/details">
+                                  <summary className="list-none font-mono text-[11px] text-[#1c5d5f] underline cursor-pointer">Ubah judul & porsi ▾</summary>
+                                  <div className="mt-2 space-y-2 pl-6">
+                                    <input type="text" value={cascadeTitles[emp.id] ?? showCascadeModal.title} onChange={e=> setCascadeTitles({...cascadeTitles, [emp.id]: e.target.value})} placeholder={showCascadeModal.title} className="w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}} />
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-mono text-xs text-[#283338]/60">Porsi</span>
+                                      <input type="number" min={1} value={cascadePortions[emp.id] ?? "1"} onChange={e=> setCascadePortions({...cascadePortions, [emp.id]: e.target.value})} className="w-20 px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm text-center focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}} />
+                                      <span className="font-mono text-[11px] text-[#283338]/50">default 1 • sisa {sisa - selectedTotal + (parseFloat(cascadePortions[emp.id] ?? "1")||0)}</span>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-mono text-xs text-[#283338]/60">Porsi:</span>
-                                    <input type="number" min={1} value={cascadePortions[emp.id] ?? showCascadeModal.target} onChange={e=> setCascadePortions({...cascadePortions, [emp.id]: e.target.value})} className="w-20 px-2 py-1 rounded-lg border border-[#e4f0f1] bg-white text-sm text-center focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}} />
-                                    <span className="font-mono text-xs text-[#283338]/50">/ {parentTarget || "—"} total</span>
-                                  </div>
-                                </div>
+                                </details>
                               )}
                             </div>
                           );
                         })}
                       </div>}
-                      {over && <div className="mt-2 p-2 rounded-xl bg-[#f2e8e2] border border-[#d6aec1] text-xs text-[#b91c1c]" style={{borderRadius:12}}>Total porsi ({totalAll}) melebihi target induk ({parentTarget}). Kurangi porsi sebelum menyimpan.</div>}
+                      {over && <div className="mt-2 p-2 rounded-xl bg-[#f2e8e2] border border-[#d6aec1] text-xs text-[#b91c1c]" style={{borderRadius:12}}>Total {totalAll} melebihi target induk {parentTarget}</div>}
                     </div>
                   </>
                 );
               })()}
             </div>
-            <div className="p-6 border-t border-[#e4f0f1] flex gap-2 justify-between items-center">
-              <span className="font-mono text-xs text-[#283338]/60">{plans.filter(p=>p.parentId===showCascadeModal.id).length} dilimpahkan • pilih {cascadeTargets.length} baru</span>
+            <div className="p-5 border-t border-[#e4f0f1] flex gap-2 justify-between items-center shrink-0 bg-white">
+              <span className="font-mono text-xs text-[#283338]/50">{cascadeTargets.length} baru dipilih</span>
               <div className="flex gap-2"><button onClick={() => { setShowCascadeModal(null); setCascadeTargets([]); setCascadePortions({}); setCascadeTitles({}); }} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Tutup</button><button onClick={handleCascade} disabled={cascadeTargets.length===0} className={`px-5 py-2 rounded-full text-sm font-medium ${cascadeTargets.length===0 ? "bg-[#e4f0f1] text-[#283338]/40 cursor-not-allowed" : "bg-[#1c5d5f] text-white hover:bg-[#156152]"}`} style={{ borderRadius: 48 }}>Limpahkan ({cascadeTargets.length})</button></div>
             </div>
           </div>
@@ -251,19 +258,23 @@ export function GlobalModals() {
             <div className="p-6 border-b border-[#e4f0f1] shrink-0"><div className="eyebrow">REALISASI KINERJA</div><h3 className="heading-serif text-lg mt-1">{editingRealization ? "Edit Realisasi" : "Isi Realisasi"}</h3><p className="font-mono text-xs tracking-wide text-[#283338]/60">{showRealizationModal.title} • Target: {showRealizationModal.target}{editingRealization ? ` • Edit: ${editingRealization.title}` : ""}</p></div>
             <div className="p-6 space-y-3 overflow-y-auto flex-1 min-h-0 overscroll-contain">
               <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Judul Realisasi</label><input value={realForm.title} onChange={e => setRealForm({ ...realForm, title: e.target.value })} placeholder="Contoh: Webinar Registrasi 1" className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
-              <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Deskripsi</label><textarea value={realForm.description} onChange={e => setRealForm({ ...realForm, description: e.target.value })} rows={3} placeholder="Jelaskan capaian..." className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} /></div>
-              {/* Target terealisasi — diisi pengaju, max 5 */}
-              <div className="border border-[#e4f0f1] rounded-xl p-3 bg-[#f2f8f7]/50" style={{ borderRadius: 12 }}>
-                <div className="flex items-center justify-between">
-                  <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target Terealisasi</label>
-                  <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60">Pengaju isi</span>
-                </div>
-                <p className="font-mono text-[11px] text-[#283338]/60 mt-1">
+              <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Deskripsi</label><textarea value={realForm.description} onChange={e => setRealForm({ ...realForm, description: e.target.value })} rows={2} placeholder="Jelaskan capaian..." className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} /></div>
+              {/* Target terealisasi — diisi pengaju, max 5 — collapsed default (opsi 1 simplifikasi) */}
+              <details className="border border-[#e4f0f1] rounded-xl bg-[#f2f8f7]/50 group" style={{ borderRadius: 12 }} open={realForm.targets.length > 0 ? true : undefined}>
+                <summary className="list-none p-3 flex items-center justify-between cursor-pointer select-none">
+                  <span className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target Terealisasi <span className="normal-case font-normal text-[#283338]/50">• opsional</span></span>
+                  <span className="flex items-center gap-2">
+                    {realForm.targets.length > 0 && <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#1c5d5f] text-white">{realForm.targets.length}</span>}
+                    <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60 group-open:hidden">+ tambah</span>
+                    <span className="text-[#283338]/40 group-open:rotate-180 transition-transform">▾</span>
+                  </span>
+                </summary>
+                <div className="px-3 pb-3">
+                <p className="font-mono text-[11px] text-[#283338]/60">
                   Isi capaian per target. Contoh: <span className="font-semibold">jumlah peserta</span> → <span className="font-mono">250</span> <span className="italic">orang</span>
                   {showRealizationModal?.customTargets && showRealizationModal.customTargets.length>0 && (
                     <span> • <button type="button" onClick={()=>{
                       const tpl = (showRealizationModal as any).customTargets.map((ct:any)=>({ name: ct.name, value: ct.value, unit: ct.unit }));
-                      // hanya salin nama & unit, value dikosongkan agar pengaju isi capaian
                       const curNames = new Set(realForm.targets.map(t=>t.name.trim().toLowerCase()));
                       const toAdd = tpl.filter((ct:any)=> !curNames.has(ct.name.trim().toLowerCase())).map((ct:any)=>({ name: ct.name, value: "", unit: ct.unit }));
                       if (toAdd.length) setRealForm({ ...realForm, targets: [...realForm.targets, ...toAdd].slice(0,5) });
@@ -272,7 +283,7 @@ export function GlobalModals() {
                 </p>
                 <div className="mt-3 space-y-2">
                   {realForm.targets.length === 0 && (
-                    <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada target terealisasi — tambah di bawah</div>
+                    <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada target — klik tambah di bawah</div>
                   )}
                   {realForm.targets.map((ct, idx) => (
                     <div key={idx} className="grid grid-cols-[1fr_70px_70px_32px] sm:grid-cols-[1fr_80px_80px_36px] gap-1.5 sm:gap-2 items-end">
@@ -312,14 +323,20 @@ export function GlobalModals() {
                 {realForm.targets.length > 0 && (
                   <div className="mt-2 font-mono text-[11px] text-[#283338]/50 text-center">{realForm.targets.length} target akan disimpan bersama realisasi</div>
                 )}
-              </div>
-              {/* Pegawai Terlibat + Peran */}
-              <div className="border border-[#e4f0f1] rounded-xl p-3 bg-white" style={{ borderRadius: 12 }}>
-                <div className="flex items-center justify-between">
-                  <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Pegawai Terlibat</label>
-                  <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] text-[#283338]/60">{realForm.participants.length} orang</span>
                 </div>
-                <p className="font-mono text-[11px] text-[#283338]/60 mt-1">Pilih pegawai yang terlibat dan tulis perannya (mis. Narasumber, Moderator, Notulis)</p>
+              </details>
+              {/* Pegawai Terlibat + Peran — collapsed default */}
+              <details className="border border-[#e4f0f1] rounded-xl bg-white group" style={{ borderRadius: 12 }} open={realForm.participants.length > 0 ? true : undefined}>
+                <summary className="list-none p-3 flex items-center justify-between cursor-pointer select-none">
+                  <span className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Pegawai Terlibat <span className="normal-case font-normal text-[#283338]/50">• opsional</span></span>
+                  <span className="flex items-center gap-2">
+                    {realForm.participants.length > 0 && <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#1c5d5f] text-white">{realForm.participants.length} orang</span>}
+                    <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] text-[#283338]/60 group-open:hidden">+ tambah</span>
+                    <span className="text-[#283338]/40 group-open:rotate-180 transition-transform">▾</span>
+                  </span>
+                </summary>
+                <div className="px-3 pb-3">
+                <p className="font-mono text-[11px] text-[#283338]/60">Pilih pegawai yang terlibat dan tulis perannya (mis. Narasumber, Moderator)</p>
                 <div className="mt-3 space-y-2">
                   {realForm.participants.length === 0 && (
                     <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada pegawai terlibat — tambah di bawah</div>
@@ -358,12 +375,13 @@ export function GlobalModals() {
                   )}
                   {realForm.participants.length >= 10 && <p className="font-mono text-[11px] text-[#b91c1c]">Maksimal 10 pegawai</p>}
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Tanggal</label><input type="date" value={realForm.date} onChange={e => setRealForm({ ...realForm, date: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
-                <div>
-                  <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Jam (24H) — WIB</label>
-                  <div className="flex gap-2 mt-1">
+                </div>
+              </details>
+              <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Tanggal</label><input type="date" value={realForm.date} onChange={e => setRealForm({ ...realForm, date: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} />
+                <p className="font-mono text-[11px] text-[#283338]/50 mt-1">Jam otomatis WIB <span className="font-mono font-semibold text-[#1c5d5f]">{realForm.time || "09:00"} WIB</span> — ubah jika perlu:</p>
+                <details className="mt-1 group">
+                  <summary className="list-none font-mono text-xs text-[#1c5d5f] underline cursor-pointer select-none">Atur jam manual ▾</summary>
+                  <div className="flex gap-2 mt-2">
                     {(() => {
                       const [hStr, mStr] = (realForm.time || "09:00").split(":");
                       const hVal = hStr?.padStart(2,"0") ?? "09";
@@ -388,8 +406,7 @@ export function GlobalModals() {
                       );
                     })()}
                   </div>
-                  <p className="font-mono text-[11px] text-[#283338]/50 mt-1">Pilih jam & menit (00-23 : 00-59)</p>
-                </div>
+                </details>
               </div>
               <div>
                 <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Bukti (upload file) {editingRealization ? "— tambah bukti baru (opsional)" : ""}</label>
