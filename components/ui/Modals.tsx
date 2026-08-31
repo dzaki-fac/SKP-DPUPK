@@ -244,7 +244,7 @@ export function GlobalModals() {
       )}
 
       {showRealizationModal && (
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm overflow-y-auto" onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [] }); }}>
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm overflow-y-auto" onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [], participants: [] }); }}>
           <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-lg border border-[#e4f0f1] max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden my-4 sm:my-0" style={{ borderRadius: 12 }}>
             <div className="p-6 border-b border-[#e4f0f1] shrink-0"><div className="eyebrow">REALISASI KINERJA</div><h3 className="heading-serif text-lg mt-1">{editingRealization ? "Edit Realisasi" : "Isi Realisasi"}</h3><p className="font-mono text-xs tracking-wide text-[#283338]/60">{showRealizationModal.title} • Target: {showRealizationModal.target}{editingRealization ? ` • Edit: ${editingRealization.title}` : ""}</p></div>
             <div className="p-6 space-y-3 overflow-y-auto flex-1 min-h-0 overscroll-contain">
@@ -310,6 +310,52 @@ export function GlobalModals() {
                 {realForm.targets.length > 0 && (
                   <div className="mt-2 font-mono text-[11px] text-[#283338]/50 text-center">{realForm.targets.length} target akan disimpan bersama realisasi</div>
                 )}
+              </div>
+              {/* Pegawai Terlibat + Peran */}
+              <div className="border border-[#e4f0f1] rounded-xl p-3 bg-white" style={{ borderRadius: 12 }}>
+                <div className="flex items-center justify-between">
+                  <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Pegawai Terlibat</label>
+                  <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] text-[#283338]/60">{realForm.participants.length} orang</span>
+                </div>
+                <p className="font-mono text-[11px] text-[#283338]/60 mt-1">Pilih pegawai yang terlibat dan tulis perannya (mis. Narasumber, Moderator, Notulis)</p>
+                <div className="mt-3 space-y-2">
+                  {realForm.participants.length === 0 && (
+                    <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada pegawai terlibat — tambah di bawah</div>
+                  )}
+                  {realForm.participants.map((p, idx) => {
+                    const emp = employees.find(e=>e.id===p.employeeId);
+                    return (
+                      <div key={idx} className="grid grid-cols-[1fr_110px_32px] sm:grid-cols-[1fr_120px_32px] gap-1.5 sm:gap-2 items-end">
+                        <div>
+                          <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Pegawai</label>
+                          <select value={p.employeeId} onChange={e=>{
+                            const copy=[...realForm.participants];
+                            copy[idx]={...copy[idx], employeeId:e.target.value};
+                            setRealForm({...realForm, participants:copy});
+                          }} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}}>
+                            <option value="">Pilih pegawai</option>
+                            {employees.map(empOpt=>(
+                              <option key={empOpt.id} value={empOpt.id} disabled={realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===empOpt.id)}>{empOpt.name.split(",")[0]} — {empOpt.role} {realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===empOpt.id) ? "(sudah dipilih)" : ""}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Peran</label>
+                          <input value={p.role} onChange={e=>{
+                            const copy=[...realForm.participants];
+                            copy[idx]={...copy[idx], role:e.target.value};
+                            setRealForm({...realForm, participants:copy});
+                          }} placeholder="Narasumber" className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}} />
+                        </div>
+                        <button type="button" onClick={()=> setRealForm({...realForm, participants: realForm.participants.filter((_,i)=>i!==idx)})} className="mb-0.5 w-8 h-8 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]">×</button>
+                      </div>
+                    );
+                  })}
+                  {realForm.participants.length < 10 && (
+                    <button type="button" onClick={()=> setRealForm({...realForm, participants:[...realForm.participants, {employeeId:"", role:""}]})} className="w-full py-1.5 rounded-full border border-dashed border-[#a2cbcd] bg-white text-xs font-medium text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{borderRadius:48}}>+ Tambah pegawai terlibat</button>
+                  )}
+                  {realForm.participants.length >= 10 && <p className="font-mono text-[11px] text-[#b91c1c]">Maksimal 10 pegawai</p>}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Tanggal</label><input type="date" value={realForm.date} onChange={e => setRealForm({ ...realForm, date: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
@@ -384,7 +430,7 @@ export function GlobalModals() {
               </div>
             </div>
             <div className="p-6 border-t border-[#e4f0f1] flex gap-2 justify-end shrink-0 bg-white">
-              <button onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [] }); }} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button>
+              <button onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [], participants: [] }); }} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button>
               <button onClick={() => editingRealization ? handleEditRealization() : handleSubmitRealization()} className="px-5 py-2 rounded-full bg-[#16325a] text-white text-sm font-medium" style={{ borderRadius: 48 }}>{editingRealization ? "Simpan Perubahan" : "Kirim Realisasi"}</button>
             </div>
           </div>

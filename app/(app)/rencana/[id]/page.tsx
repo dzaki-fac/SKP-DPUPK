@@ -237,6 +237,14 @@ export default function RencanaDetailPage() {
                               ))}
                             </div>
                           )}
+                          {(r as any).participants && (r as any).participants.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {(r as any).participants.map((pp:any)=>{
+                                const emp = employees.find(e=>e.id===pp.employeeId);
+                                return <span key={pp.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[11px] text-[#4a2c2a]"><span className="w-4 h-4 rounded-full bg-[#16325a] text-white flex items-center justify-center text-[8px] font-bold">{emp?.avatar ?? "?"}</span> {emp?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;
+                              })}
+                            </div>
+                          )}
                           <div className="flex flex-wrap gap-x-3 mt-1">
                             <span className="font-mono text-[11px] text-[#283338]/50">{r.date}</span>
                             {sourceTitle !== plan.title && <span className="font-mono text-[11px] text-[#1c5d5f] truncate max-w-[240px]">↳ {sourceTitle}</span>}
@@ -307,6 +315,16 @@ export default function RencanaDetailPage() {
                         <span className="font-mono text-sm font-bold text-[#1c5d5f]">{t.value} <span className="font-normal text-[#283338]/60">{t.unit}</span></span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+              {(selectedReal as any).participants && (selectedReal as any).participants.length > 0 && (
+                <div><div className="eyebrow text-[11px]">PEGAWAI TERLIBAT</div>
+                  <div className="mt-1 space-y-1">
+                    {(selectedReal as any).participants.map((pp:any)=>{
+                      const emp = employees.find(e=>e.id===pp.employeeId);
+                      return <div key={pp.id} className="p-2 rounded-xl bg-[#f2e8e2]/50 border border-[#e4f0f1] flex items-center gap-2" style={{ borderRadius: 12 }}><span className="w-6 h-6 rounded-full bg-[#16325a] text-white flex items-center justify-center text-[10px] font-bold">{emp?.avatar ?? "?"}</span><span className="text-sm text-[#231e21] flex-1">{emp?.name ?? pp.employeeId}</span><span className="font-mono text-xs px-2 py-0.5 rounded-full bg-white border border-[#d6aec1] text-[#4a2c2a]">{pp.role}</span></div>;
+                    })}
                   </div>
                 </div>
               )}

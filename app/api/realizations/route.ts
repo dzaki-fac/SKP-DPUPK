@@ -4,7 +4,8 @@ import { getTokenFromHeader, verifyToken } from "@/lib/auth";
 const mapOut = (x: any) => ({
   id: x.id, planId: x.performancePlanId, title: x.title ?? "Realisasi", value: x.realizationValue,
   description: x.realizationDescription, date: x.realizationDate, time: (x as any).realizationTime ?? "09:00", uploadedBy: x.uploadedBy ?? null,
-  targets: x.targets?.map((t:any)=>({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
+  targets: x.targets?.map((t:any)=>({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? [],
+  participants: x.participants?.map((p:any)=>({ id: p.id, employeeId: p.employeeId, role: p.role })) ?? []
 });
 
 function normalizeTime(t: any): string | null {
@@ -53,7 +54,7 @@ async function propagateProgress(planId: string) {
 }
 
 export async function GET() {
-  const r = await prisma.realization.findMany({ orderBy: { realizationDate: "desc" }, include: { targets: true } });
+  const r = await prisma.realization.findMany({ orderBy: { realizationDate: "desc" }, include: { targets: true, participants: true } });
   return Response.json(r.map(mapOut));
 }
 
@@ -93,6 +94,17 @@ export async function POST(req: Request) {
       if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
       if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
     }
+    // Validasi participants (pegawai terlibat + peran)
+    const incomingParticipants: Array<{employeeId:string,role:string}> = Array.isArray(b.participants) ? b.participants : [];
+    if (incomingParticipants.length > 10) return Response.json({ error: "Maksimal 10 pegawai terlibat per realisasi" }, { status: 400 });
+    const participantIds = incomingParticipants.map(p=>String(p.employeeId).trim()).filter(Boolean);
+    if (new Set(participantIds).size !== participantIds.length) return Response.json({ error: "Pegawai terlibat tidak boleh duplikat" }, { status: 400 });
+    for (const p of incomingParticipants) {
+      if (!p.employeeId || String(p.employeeId).trim().length < 1) return Response.json({ error: "Pegawai terlibat wajib dipilih" }, { status: 400 });
+      if (!p.role || String(p.role).trim().length < 1 || String(p.role).trim().length > 30) return Response.json({ error: "Peran 1-30 karakter" }, { status: 400 });
+      const empExists = await prisma.employee.findUnique({ where: { id: String(p.employeeId).trim() } });
+      if (!empExists) return Response.json({ error: `Pegawai ${p.employeeId} tidak ditemukan` }, { status: 400 });
+    }
     const real = await prisma.realization.create({ data: {
       performancePlanId: b.planId, title: titleTrim.slice(0, 200), realizationValue: String(b.value),
       realizationDescription: b.description ? String(b.description).slice(0, 1000) : "", realizationDate: dateStr,
@@ -103,6 +115,12 @@ export async function POST(req: Request) {
     for (const t of incomingTargets) {
       await prisma.realizationTarget.create({
         data: { realizationId: real.id, name: String(t.name).trim(), value: String(t.value).trim(), unit: String(t.unit).trim() }
+      }).catch(()=>{});
+    }
+    // Simpan pegawai terlibat
+    for (const p of incomingParticipants) {
+      await prisma.realizationParticipant.create({
+        data: { realizationId: real.id, employeeId: String(p.employeeId).trim(), role: String(p.role).trim().slice(0,30) }
       }).catch(()=>{});
     }
     // banyak file bukti: prefer b.files [{fileName, filePath, fileSize}], fallback b.fileNames[]
@@ -124,7 +142,7 @@ export async function POST(req: Request) {
       if (np !== null) await prisma.performancePlan.update({ where: { id: b.planId }, data: { progress: np } }).catch(() => {});
     }
     await propagateProgress(b.planId).catch(() => {});
-    const withTargets = await prisma.realization.findUnique({ where: { id: real.id }, include: { targets: true } });
+    const withTargets = await prisma.realization.findUnique({ where: { id: real.id }, include: { targets: true, participants: true } });
     return Response.json(mapOut(withTargets ?? real), { status: 201 });
   } catch (e: any) {
     console.error("POST /api/realizations error:", e);
@@ -188,6 +206,25 @@ export async function PATCH(req: Request) {
       }).catch(()=>{});
     }
   }
+  // Handle participants update jika ada
+  if (b.participants !== undefined) {
+    const updParticipants: Array<{employeeId:string,role:string}> = Array.isArray(b.participants) ? b.participants : [];
+    if (updParticipants.length > 10) return Response.json({ error: "Maksimal 10 pegawai terlibat" }, { status: 400 });
+    const ids = updParticipants.map(p=>String(p.employeeId).trim()).filter(Boolean);
+    if (new Set(ids).size !== ids.length) return Response.json({ error: "Pegawai terlibat tidak boleh duplikat" }, { status: 400 });
+    for (const p of updParticipants) {
+      if (!p.employeeId || String(p.employeeId).trim().length < 1) return Response.json({ error: "Pegawai terlibat wajib dipilih" }, { status: 400 });
+      if (!p.role || String(p.role).trim().length < 1 || String(p.role).trim().length > 30) return Response.json({ error: "Peran 1-30 karakter" }, { status: 400 });
+      const empExists = await prisma.employee.findUnique({ where: { id: String(p.employeeId).trim() } });
+      if (!empExists) return Response.json({ error: `Pegawai ${p.employeeId} tidak ditemukan` }, { status: 400 });
+    }
+    await prisma.realizationParticipant.deleteMany({ where: { realizationId: b.id } });
+    for (const p of updParticipants) {
+      await prisma.realizationParticipant.create({
+        data: { realizationId: b.id, employeeId: String(p.employeeId).trim(), role: String(p.role).trim().slice(0,30) }
+      }).catch(()=>{});
+    }
+  }
   const updated = await prisma.realization.update({
     where: { id: b.id },
     data: {
@@ -196,7 +233,7 @@ export async function PATCH(req: Request) {
       realizationDate: b.date !== undefined ? String(b.date) : undefined,
       realizationTime: timeUpdate ?? undefined
     },
-    include: { targets: true }
+    include: { targets: true, participants: true }
   });
   // tambah bukti baru jika ada files saat edit
   const editFiles: Array<{fileName: string, filePath: string, fileSize: string}> = Array.isArray(b.files)

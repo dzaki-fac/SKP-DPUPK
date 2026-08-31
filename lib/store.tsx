@@ -34,7 +34,7 @@ type Ctx = {
   cascadeTargets: string[]; setCascadeTargets: (v: string[]) => void;
   cascadePortions: Record<string,string>; setCascadePortions: (v: Record<string,string>) => void;
   cascadeTitles: Record<string,string>; setCascadeTitles: (v: Record<string,string>) => void;
-  realForm: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}> }; setRealForm: (v: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}> }) => void;
+  realForm: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId: string, role: string}> }; setRealForm: (v: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId: string, role: string}> }) => void;
   editingRealization: Realization | null; setEditingRealization: (r: Realization | null) => void;
   periodForm: { name: string; year: number; startDate: string; endDate: string }; setPeriodForm: (v: { name: string; year: number; startDate: string; endDate: string }) => void;
   empForm: { name: string; email: string; supervisorId: string; role: Role }; setEmpForm: (v: { name: string; email: string; supervisorId: string; role: Role }) => void;
@@ -78,7 +78,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [cascadeTargets, setCascadeTargets] = useState<string[]>([]);
   const [cascadePortions, setCascadePortions] = useState<Record<string,string>>({});
   const [cascadeTitles, setCascadeTitles] = useState<Record<string,string>>({});
-  const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] as Array<{fileName: string, filePath: string, fileSize: string}>, targets: [] as Array<{name: string, value: string, unit: string}> });
+  const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] as Array<{fileName: string, filePath: string, fileSize: string}>, targets: [] as Array<{name: string, value: string, unit: string}>, participants: [] as Array<{employeeId: string, role: string}> });
   const [periodForm, setPeriodForm] = useState({ name: "", year: 2026, startDate: "", endDate: "" });
   const [empForm, setEmpForm] = useState({ name: "", email: "", supervisorId: "", role: "staff" as Role });
 
@@ -360,7 +360,14 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
       if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
     }
-    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: titleTrim, value: String(valNum), description: realForm.description, date: dateVal, time: timeVal, uploadedBy: currentUser.id, targets: realForm.targets.map(t=>({ id: "rt"+Date.now()+Math.random().toString(36).slice(2,5), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })) };
+    if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
+    const pIds = realForm.participants.map(p=>p.employeeId);
+    if (new Set(pIds).size !== pIds.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
+    for (const p of realForm.participants) {
+      if (!p.employeeId) { notify("Pilih pegawai terlibat"); return; }
+      if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
+    }
+    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: titleTrim, value: String(valNum), description: realForm.description, date: dateVal, time: timeVal, uploadedBy: currentUser.id, targets: realForm.targets.map(t=>({ id: "rt"+Date.now()+Math.random().toString(36).slice(2,5), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId:p.employeeId, role:p.role.trim() })) };
     const nextReals = [r, ...realizations];
     // untuk plan yang punya anak, progress = (langsung + anak)/target
     const newProgress = calcPlanProgress(plan.id, plans, nextReals);
@@ -381,7 +388,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       }
       return updated;
     });
-    fetch("/api/realizations", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ planId: plan.id, title: r.title, value: r.value, description: r.description, date: r.date, time: r.time, files: realForm.files, fileNames: realForm.files.map(f=>f.fileName), uploadedBy: currentUser.id, progress: newProgress, targets: realForm.targets }) }).then(async res => {
+    fetch("/api/realizations", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ planId: plan.id, title: r.title, value: r.value, description: r.description, date: r.date, time: r.time, files: realForm.files, fileNames: realForm.files.map(f=>f.fileName), uploadedBy: currentUser.id, progress: newProgress, targets: realForm.targets, participants: realForm.participants }) }).then(async res => {
       if (!res.ok) {
         const j = await res.json().catch(()=>({}));
         notify("Gagal simpan realisasi: " + (j.error || res.statusText));
@@ -409,7 +416,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       setRealizations(prev => prev.filter(x => x.id !== r.id));
       setAttachments(prev => prev.filter(a => a.realizationId !== r.id));
     });
-    addLog("Mengirim realisasi", `Mengirim realisasi "${r.title}" untuk '${plan.title}'`, "realization", r.id); notify(`Realisasi dikirim — progress jadi ${newProgress}%`); setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [] });
+    addLog("Mengirim realisasi", `Mengirim realisasi "${r.title}" untuk '${plan.title}'`, "realization", r.id); notify(`Realisasi dikirim — progress jadi ${newProgress}%`); setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [], participants: [] });
   };
 
   const handleEditRealization = () => {
@@ -449,11 +456,18 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
       if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
     }
-    const updated: Realization = { ...editingRealization, title: titleTrim, description: realForm.description, date: dateVal, time: timeVal, targets: realForm.targets.map(t=>({ id: t.name+Date.now(), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })) };
+    if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
+    const updPIds = realForm.participants.map(p=>p.employeeId);
+    if (new Set(updPIds).size !== updPIds.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
+    for (const p of realForm.participants) {
+      if (!p.employeeId) { notify("Pilih pegawai terlibat"); return; }
+      if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
+    }
+    const updated: Realization = { ...editingRealization, title: titleTrim, description: realForm.description, date: dateVal, time: timeVal, targets: realForm.targets.map(t=>({ id: t.name+Date.now(), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId:p.employeeId, role:p.role.trim() })) };
     const addedFiles = [...realForm.files];
     setRealizations(prev => prev.map(r => r.id === editingRealization.id ? updated : r));
     // jangan buat optimistic attachment — tunggu refetch dari DB setelah PATCH
-    fetch("/api/realizations", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: updated.id, title: updated.title, description: updated.description, date: updated.date, time: updated.time, files: addedFiles, fileNames: addedFiles.map(f=>f.fileName), targets: realForm.targets }) }).then(async r => {
+    fetch("/api/realizations", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: updated.id, title: updated.title, description: updated.description, date: updated.date, time: updated.time, files: addedFiles, fileNames: addedFiles.map(f=>f.fileName), targets: realForm.targets, participants: realForm.participants }) }).then(async r => {
       if (!r.ok) {
         const j = await r.json().catch(()=>({}));
         notify("Gagal ubah: " + (j.error || r.statusText));
@@ -475,7 +489,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       notify("Gagal ubah realisasi");
       setRealizations(prev => prev.map(x => x.id === updated.id ? editingRealization : x));
     });
-    setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [] });
+    setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [], participants: [] });
   };
 
   const handleDeleteRealization = async (id: string, title: string) => {

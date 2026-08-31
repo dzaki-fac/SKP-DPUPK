@@ -33,6 +33,7 @@ model Employee {
   assignedPlans  PerformancePlan[] @relation("AssignedTo")
   attachments    Attachment[]
   realizations   Realization[]     @relation("RealizationUploader")
+  participants RealizationParticipant[]
   logs           ActivityLog[]
 
   @@index([supervisorId])
@@ -113,6 +114,7 @@ model Realization {
   uploader    Employee?       @relation("RealizationUploader", fields: [uploadedBy], references: [id], onDelete: SetNull)
   attachments Attachment[]
   targets     RealizationTarget[]
+  participants RealizationParticipant[]
 
   @@index([uploadedBy])
   @@index([performancePlanId])
@@ -132,6 +134,22 @@ model RealizationTarget {
 
   @@index([realizationId])
   @@map("realization_targets")
+}
+
+// ── Pegawai Terlibat per Realisasi (pengaju pilih + peran) ─────────
+model RealizationParticipant {
+  id            String @id @default(cuid())
+  realizationId String @map("realization_id")
+  employeeId    String @map("employee_id")
+  role          String // peran dalam realisasi, e.g., "Narasumber", "Moderator", "Peserta"
+  createdAt     String @default("2026-01-01") @map("created_at")
+
+  realization Realization @relation(fields: [realizationId], references: [id], onDelete: Cascade)
+  employee    Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([realizationId])
+  @@index([employeeId])
+  @@map("realization_participants")
 }
 
 // ── Bukti (file upload) ──────────────────────────────────────
