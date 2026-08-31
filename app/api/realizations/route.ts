@@ -3,7 +3,8 @@ import { getTokenFromHeader, verifyToken } from "@/lib/auth";
 
 const mapOut = (x: any) => ({
   id: x.id, planId: x.performancePlanId, title: x.title ?? "Realisasi", value: x.realizationValue,
-  description: x.realizationDescription, date: x.realizationDate, time: (x as any).realizationTime ?? "09:00", uploadedBy: x.uploadedBy ?? null
+  description: x.realizationDescription, date: x.realizationDate, time: (x as any).realizationTime ?? "09:00", uploadedBy: x.uploadedBy ?? null,
+  targets: x.targets?.map((t:any)=>({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
 });
 
 function normalizeTime(t: any): string | null {
@@ -52,7 +53,7 @@ async function propagateProgress(planId: string) {
 }
 
 export async function GET() {
-  const r = await prisma.realization.findMany({ orderBy: { realizationDate: "desc" } });
+  const r = await prisma.realization.findMany({ orderBy: { realizationDate: "desc" }, include: { targets: true } });
   return Response.json(r.map(mapOut));
 }
 
@@ -84,12 +85,26 @@ export async function POST(req: Request) {
       return Response.json({ error: "Format jam harus HH:mm 24 jam (00:00 - 23:59)" }, { status: 400 });
     }
     const timeVal = normalizeTime(b.time) ?? normalizeTime(b.realizationTime) ?? "09:00";
+    // Validasi target rincian jika ada (pengaju isi capaian per kolom)
+    const incomingTargets: Array<{name:string,value:string,unit:string}> = Array.isArray(b.targets) ? b.targets : Array.isArray(b.realizationTargets) ? b.realizationTargets : [];
+    if (incomingTargets.length > 5) return Response.json({ error: "Maksimal 5 target per realisasi" }, { status: 400 });
+    for (const t of incomingTargets) {
+      if (!t.name || String(t.name).trim().length < 1 || String(t.name).trim().length > 50) return Response.json({ error: "Nama target 1-50 karakter" }, { status: 400 });
+      if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
+      if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
+    }
     const real = await prisma.realization.create({ data: {
       performancePlanId: b.planId, title: titleTrim.slice(0, 200), realizationValue: String(b.value),
       realizationDescription: b.description ? String(b.description).slice(0, 1000) : "", realizationDate: dateStr,
       realizationTime: timeVal,
       uploadedBy
     }});
+    // Simpan rincian target per kolom jika ada
+    for (const t of incomingTargets) {
+      await prisma.realizationTarget.create({
+        data: { realizationId: real.id, name: String(t.name).trim(), value: String(t.value).trim(), unit: String(t.unit).trim() }
+      }).catch(()=>{});
+    }
     // banyak file bukti: prefer b.files [{fileName, filePath, fileSize}], fallback b.fileNames[]
     const incomingFiles: Array<{fileName: string, filePath: string, fileSize: string}> = Array.isArray(b.files)
       ? b.files.filter((f:any)=> f && typeof f.fileName === "string" && f.fileName.trim()).map((f:any)=>({ fileName: f.fileName.trim(), filePath: f.filePath || `/uploads/${f.fileName.trim()}`, fileSize: f.fileSize || "1.2 MB" }))
@@ -109,7 +124,8 @@ export async function POST(req: Request) {
       if (np !== null) await prisma.performancePlan.update({ where: { id: b.planId }, data: { progress: np } }).catch(() => {});
     }
     await propagateProgress(b.planId).catch(() => {});
-    return Response.json(mapOut(real), { status: 201 });
+    const withTargets = await prisma.realization.findUnique({ where: { id: real.id }, include: { targets: true } });
+    return Response.json(mapOut(withTargets ?? real), { status: 201 });
   } catch (e: any) {
     console.error("POST /api/realizations error:", e);
     return Response.json({ error: "Gagal simpan realisasi", details: e?.message || String(e) }, { status: 500 });
@@ -156,6 +172,22 @@ export async function PATCH(req: Request) {
   if ((b.time !== undefined || b.realizationTime !== undefined) && timeUpdate === null) {
     return Response.json({ error: "Format jam harus HH:mm 24 jam (00:00 - 23:59)" }, { status: 400 });
   }
+  // Handle targets update jika ada
+  if (b.targets !== undefined || b.realizationTargets !== undefined) {
+    const updTargets: Array<{name:string,value:string,unit:string}> = Array.isArray(b.targets) ? b.targets : Array.isArray(b.realizationTargets) ? b.realizationTargets : [];
+    if (updTargets.length > 5) return Response.json({ error: "Maksimal 5 target per realisasi" }, { status: 400 });
+    for (const t of updTargets) {
+      if (!t.name || String(t.name).trim().length < 1 || String(t.name).trim().length > 50) return Response.json({ error: "Nama target 1-50 karakter" }, { status: 400 });
+      if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
+      if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
+    }
+    await prisma.realizationTarget.deleteMany({ where: { realizationId: b.id } });
+    for (const t of updTargets) {
+      await prisma.realizationTarget.create({
+        data: { realizationId: b.id, name: String(t.name).trim(), value: String(t.value).trim(), unit: String(t.unit).trim() }
+      }).catch(()=>{});
+    }
+  }
   const updated = await prisma.realization.update({
     where: { id: b.id },
     data: {
@@ -163,7 +195,8 @@ export async function PATCH(req: Request) {
       realizationDescription: b.description !== undefined ? String(b.description) : undefined,
       realizationDate: b.date !== undefined ? String(b.date) : undefined,
       realizationTime: timeUpdate ?? undefined
-    }
+    },
+    include: { targets: true }
   });
   // tambah bukti baru jika ada files saat edit
   const editFiles: Array<{fileName: string, filePath: string, fileSize: string}> = Array.isArray(b.files)

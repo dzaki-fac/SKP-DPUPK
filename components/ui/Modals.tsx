@@ -244,12 +244,73 @@ export function GlobalModals() {
       )}
 
       {showRealizationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm" onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] }); }}>
-          <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-lg border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
-            <div className="p-6 border-b border-[#e4f0f1]"><div className="eyebrow">REALISASI KINERJA</div><h3 className="heading-serif text-lg mt-1">{editingRealization ? "Edit Realisasi" : "Isi Realisasi"}</h3><p className="font-mono text-xs tracking-wide text-[#283338]/60">{showRealizationModal.title} • Target: {showRealizationModal.target}{editingRealization ? ` • Edit: ${editingRealization.title}` : ""}</p></div>
-            <div className="p-6 space-y-3">
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-[#283338]/30 backdrop-blur-sm overflow-y-auto" onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [] }); }}>
+          <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-lg border border-[#e4f0f1] max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden my-4 sm:my-0" style={{ borderRadius: 12 }}>
+            <div className="p-6 border-b border-[#e4f0f1] shrink-0"><div className="eyebrow">REALISASI KINERJA</div><h3 className="heading-serif text-lg mt-1">{editingRealization ? "Edit Realisasi" : "Isi Realisasi"}</h3><p className="font-mono text-xs tracking-wide text-[#283338]/60">{showRealizationModal.title} • Target: {showRealizationModal.target}{editingRealization ? ` • Edit: ${editingRealization.title}` : ""}</p></div>
+            <div className="p-6 space-y-3 overflow-y-auto flex-1 min-h-0 overscroll-contain">
               <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Judul Realisasi</label><input value={realForm.title} onChange={e => setRealForm({ ...realForm, title: e.target.value })} placeholder="Contoh: Webinar Registrasi 1" className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
               <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Deskripsi</label><textarea value={realForm.description} onChange={e => setRealForm({ ...realForm, description: e.target.value })} rows={3} placeholder="Jelaskan capaian..." className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} /></div>
+              {/* Target terealisasi — diisi pengaju, max 5 */}
+              <div className="border border-[#e4f0f1] rounded-xl p-3 bg-[#f2f8f7]/50" style={{ borderRadius: 12 }}>
+                <div className="flex items-center justify-between">
+                  <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target Terealisasi</label>
+                  <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60">Pengaju isi</span>
+                </div>
+                <p className="font-mono text-[11px] text-[#283338]/60 mt-1">
+                  Isi capaian per target. Contoh: <span className="font-semibold">jumlah peserta</span> → <span className="font-mono">250</span> <span className="italic">orang</span>
+                  {showRealizationModal?.customTargets && showRealizationModal.customTargets.length>0 && (
+                    <span> • <button type="button" onClick={()=>{
+                      const tpl = (showRealizationModal as any).customTargets.map((ct:any)=>({ name: ct.name, value: ct.value, unit: ct.unit }));
+                      // hanya salin nama & unit, value dikosongkan agar pengaju isi capaian
+                      const curNames = new Set(realForm.targets.map(t=>t.name.trim().toLowerCase()));
+                      const toAdd = tpl.filter((ct:any)=> !curNames.has(ct.name.trim().toLowerCase())).map((ct:any)=>({ name: ct.name, value: "", unit: ct.unit }));
+                      if (toAdd.length) setRealForm({ ...realForm, targets: [...realForm.targets, ...toAdd].slice(0,5) });
+                    }} className="underline text-[#1c5d5f] hover:text-[#0e4749]">salin dari target rencana ({showRealizationModal.customTargets.length})</button></span>
+                  )}
+                </p>
+                <div className="mt-3 space-y-2">
+                  {realForm.targets.length === 0 && (
+                    <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada target terealisasi — tambah di bawah</div>
+                  )}
+                  {realForm.targets.map((ct, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_70px_70px_32px] sm:grid-cols-[1fr_80px_80px_36px] gap-1.5 sm:gap-2 items-end">
+                      <div>
+                        <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Nama target</label>
+                        <input value={ct.name} onChange={e => {
+                          const copy = [...realForm.targets];
+                          copy[idx] = { ...copy[idx], name: e.target.value };
+                          setRealForm({ ...realForm, targets: copy });
+                        }} placeholder="jumlah peserta" className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 8 }} />
+                      </div>
+                      <div>
+                        <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Capaian</label>
+                        <input value={ct.value} onChange={e => {
+                          const copy = [...realForm.targets];
+                          let v = e.target.value.replace(/[^0-9]/g, "").slice(0, 20);
+                          copy[idx] = { ...copy[idx], value: v };
+                          setRealForm({ ...realForm, targets: copy });
+                        }} placeholder="250" maxLength={20} inputMode="numeric" title={ct.value} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd] font-mono truncate" style={{ borderRadius: 8 }} />
+                      </div>
+                      <div>
+                        <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Satuan</label>
+                        <input value={ct.unit} onChange={e => {
+                          const copy = [...realForm.targets];
+                          copy[idx] = { ...copy[idx], unit: e.target.value };
+                          setRealForm({ ...realForm, targets: copy });
+                        }} placeholder="orang" className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 8 }} />
+                      </div>
+                      <button type="button" onClick={() => setRealForm({ ...realForm, targets: realForm.targets.filter((_, i) => i !== idx) })} className="mb-0.5 w-8 h-8 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]">×</button>
+                    </div>
+                  ))}
+                  {realForm.targets.length < 5 && (
+                    <button type="button" onClick={() => setRealForm({ ...realForm, targets: [...realForm.targets, { name: "", value: "", unit: "" }] })} className="w-full py-1.5 rounded-full border border-dashed border-[#a2cbcd] bg-white text-xs font-medium text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>+ Tambah target terealisasi</button>
+                  )}
+                  {realForm.targets.length >= 5 && <p className="font-mono text-[11px] text-[#b91c1c]">Maksimal 5 target per realisasi</p>}
+                </div>
+                {realForm.targets.length > 0 && (
+                  <div className="mt-2 font-mono text-[11px] text-[#283338]/50 text-center">{realForm.targets.length} target akan disimpan bersama realisasi</div>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Tanggal</label><input type="date" value={realForm.date} onChange={e => setRealForm({ ...realForm, date: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
                 <div>
@@ -322,8 +383,8 @@ export function GlobalModals() {
                 <p className="font-mono text-xs tracking-wide text-[#283338]/50 mt-1">PDF, JPG, PNG, DOCX, XLSX, CSV — maks 10MB per file, boleh pilih banyak sekaligus</p>
               </div>
             </div>
-            <div className="p-6 border-t border-[#e4f0f1] flex gap-2 justify-end">
-              <button onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] }); }} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button>
+            <div className="p-6 border-t border-[#e4f0f1] flex gap-2 justify-end shrink-0 bg-white">
+              <button onClick={() => { setShowRealizationModal(null); setEditingRealization(null); setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: [] }); }} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button>
               <button onClick={() => editingRealization ? handleEditRealization() : handleSubmitRealization()} className="px-5 py-2 rounded-full bg-[#16325a] text-white text-sm font-medium" style={{ borderRadius: 48 }}>{editingRealization ? "Simpan Perubahan" : "Kirim Realisasi"}</button>
             </div>
           </div>

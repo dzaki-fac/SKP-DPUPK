@@ -230,6 +230,13 @@ export default function RencanaDetailPage() {
                         <td className="px-2.5 py-1.5 cursor-pointer group" onClick={() => setSelectedRealId(r.id)} title="Lihat detail realisasi">
                           <div className="text-sm text-[#231e21] leading-snug group-hover:text-[#1c5d5f] group-hover:underline underline-offset-2">{(r as any).title || "Realisasi"}</div>
                           {r.description && <div className="text-xs text-[#283338]/60 mt-0.5 line-clamp-2">{r.description}</div>}
+                          {(r as any).targets && (r as any).targets.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {(r as any).targets.map((t:any)=>(
+                                <span key={t.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#e4f0f1] border border-[#a2cbcd] font-mono text-[11px] text-[#1c5d5f]"><span className="font-semibold">{t.name}:</span> {t.value} {t.unit}</span>
+                              ))}
+                            </div>
+                          )}
                           <div className="flex flex-wrap gap-x-3 mt-1">
                             <span className="font-mono text-[11px] text-[#283338]/50">{r.date}</span>
                             {sourceTitle !== plan.title && <span className="font-mono text-[11px] text-[#1c5d5f] truncate max-w-[240px]">↳ {sourceTitle}</span>}
@@ -289,8 +296,20 @@ export default function RencanaDetailPage() {
                   <div className="mt-1 text-[#283338]/80">{selectedRealPlan?.title ?? "-"}</div>
                 )}
               </div>
-              <div><div className="eyebrow text-[11px]">TANGGAL</div><div className="font-mono text-xs mt-1 text-[#283338]/70">{selectedReal.date}</div></div>
+              <div><div className="eyebrow text-[11px]">TANGGAL</div><div className="font-mono text-xs mt-1 text-[#283338]/70">{selectedReal.date} • {(selectedReal as any).time ?? "09:00"} WIB</div></div>
               <div><div className="eyebrow text-[11px]">DESKRIPSI</div><div className="mt-1 leading-relaxed text-[#283338]/80 whitespace-pre-wrap">{selectedReal.description || "—"}</div></div>
+              {(selectedReal as any).targets && (selectedReal as any).targets.length > 0 && (
+                <div><div className="eyebrow text-[11px]">TARGET TEREALISASI (DIISI PENGAJU)</div>
+                  <div className="mt-1 grid grid-cols-1 gap-2">
+                    {(selectedReal as any).targets.map((t:any)=>(
+                      <div key={t.id} className="p-2 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] flex justify-between items-center" style={{ borderRadius: 12 }}>
+                        <span className="font-mono text-xs text-[#283338]/60">{t.name}</span>
+                        <span className="font-mono text-sm font-bold text-[#1c5d5f]">{t.value} <span className="font-normal text-[#283338]/60">{t.unit}</span></span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div><div className="eyebrow text-[11px]">BUKTI</div>
                 {attachments.filter(a => a.realizationId === selectedReal.id).length === 0 ? (
                   <div className="font-mono text-xs text-[#283338]/60 mt-1">Tidak ada bukti terlampir</div>

@@ -102,7 +102,7 @@ model Realization {
   id                  String  @id @default(cuid())
   performancePlanId   String  @map("performance_plan_id")
   title               String  @default("Realisasi") @map("title")
-  realizationValue    String  @default("1") @map("realization_value") // selalu "1" (1 entri = 1)
+  realizationValue    String  @default("1") @map("realization_value") // selalu "1" (1 entri = 1) — untuk progress; target rincian di RealizationTarget
   realizationDescription String @default("") @map("realization_description")
   realizationDate     String  @map("realization_date")
   realizationTime     String  @default("09:00") @map("realization_time") // jam 24H HH:mm
@@ -112,10 +112,26 @@ model Realization {
   plan        PerformancePlan @relation(fields: [performancePlanId], references: [id], onDelete: Cascade)
   uploader    Employee?       @relation("RealizationUploader", fields: [uploadedBy], references: [id], onDelete: SetNull)
   attachments Attachment[]
+  targets     RealizationTarget[]
 
   @@index([uploadedBy])
   @@index([performancePlanId])
   @@map("performance_realizations")
+}
+
+// ── Nilai Target per Realisasi (pengaju isi capaian per kolom) ─────────
+model RealizationTarget {
+  id            String @id @default(cuid())
+  realizationId String @map("realization_id")
+  name          String // e.g., "jumlah peserta" — disalin dari PlanTarget saat isi
+  value         String // capaian, e.g., "260"
+  unit          String // e.g., "orang"
+  createdAt     String @default("2026-01-01") @map("created_at")
+
+  realization Realization @relation(fields: [realizationId], references: [id], onDelete: Cascade)
+
+  @@index([realizationId])
+  @@map("realization_targets")
 }
 
 // ── Bukti (file upload) ──────────────────────────────────────

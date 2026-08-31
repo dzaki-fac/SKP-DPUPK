@@ -134,14 +134,16 @@ export default function RealisasiPage() {
     if (!plan) return;
     if (!canEdit(r)) return;
     setEditingRealization(r);
-    setRealForm({ title: r.title, value: r.value, description: r.description, date: r.date, time: (r as any).time ?? "09:00", files: [] });
+    setRealForm({ title: r.title, value: r.value, description: r.description, date: r.date, time: (r as any).time ?? "09:00", files: [], targets: (r as any).targets?.map((t:any)=>({ name: t.name, value: t.value, unit: t.unit })) ?? [] });
     setShowRealizationModal(plan);
   };
 
   const openCreate = (plan: typeof plans[number]) => {
     if (plan.assignedTo !== currentUser.id) return;
     setEditingRealization(null);
-    setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] });
+    // Prefill targets dari customTargets rencana jika ada, agar pengaju tinggal isi capaian
+    const tpl = (plan as any).customTargets?.map((ct:any)=>({ name: ct.name, value: "", unit: ct.unit })) ?? [];
+    setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: tpl });
     setShowRealizationModal(plan);
   };
 
@@ -350,6 +352,13 @@ export default function RealisasiPage() {
                                       <button onClick={() => setSelectedRealId(r.id)} className="text-sm text-[#283338] text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">
                                         {r.title || "Realisasi"}
                                       </button>
+                                      {(r as any).targets && (r as any).targets.length>0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {(r as any).targets.map((t:any)=>(
+                                            <span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>
+                                          ))}
+                                        </div>
+                                      )}
                                       <div className="font-mono text-[11px] text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}{!r.uploadedBy ? " • legacy" : ""}{canD && !canE ? " • dapat dihapus atasan" : ""}</div>
                                     </td>
                                     <td className="px-2.5 py-1.5 text-right">
@@ -408,7 +417,7 @@ export default function RealisasiPage() {
                       <tr key={r.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]">
                         <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB</div></td>
                         <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold">{emp?.avatar ?? "?"}</span><span className="text-xs">{emp?.name.split(",")[0]}</span></div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}{r.uploadedBy ? "" : " (via penugasan)"}</div></td>
-                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
+                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
                          <td className="px-4 py-3 text-right">
                            {canDel ? (
                              <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] ml-auto" title="Hapus (atasan)">
@@ -453,6 +462,18 @@ export default function RealisasiPage() {
               <div><div className="eyebrow text-[11px]">TUGAS</div><div className="mt-1 text-[#283338]/80">{selectedRealPlan?.title ?? "-"}</div></div>
               <div><div className="eyebrow text-[11px]">TANGGAL & JAM</div><div className="font-mono text-xs mt-1 text-[#283338]/70">{formatTanggal(selectedReal.date)}, {(selectedReal as any).time ?? "09:00"} WIB</div></div>
               <div><div className="eyebrow text-[11px]">DESKRIPSI</div><div className="mt-1 leading-relaxed text-[#283338]/80 whitespace-pre-wrap">{selectedReal.description || "—"}</div></div>
+              {(selectedReal as any).targets && (selectedReal as any).targets.length>0 && (
+                <div><div className="eyebrow text-[11px]">TARGET TEREALISASI (DIISI PENGAJU)</div>
+                  <div className="mt-1 grid grid-cols-1 gap-2">
+                    {(selectedReal as any).targets.map((t:any)=>(
+                      <div key={t.id} className="p-2 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] flex justify-between items-center" style={{ borderRadius: 12 }}>
+                        <span className="font-mono text-xs text-[#283338]/60">{t.name}</span>
+                        <span className="font-mono text-sm font-bold text-[#1c5d5f]">{t.value} <span className="font-normal text-[#283338]/60">{t.unit}</span></span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div><div className="eyebrow text-[11px]">BUKTI ({attachments.filter(a => a.realizationId === selectedReal.id).length})</div>
                 {attachments.filter(a => a.realizationId === selectedReal.id).length === 0 ? (
                   <div className="font-mono text-xs text-[#283338]/60 mt-1">Tidak ada bukti terlampir</div>

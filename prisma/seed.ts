@@ -1,16 +1,29 @@
 import { prisma } from "../lib/prisma";
 
 /**
- * Seeder SKP DPUPK — Skenario: Direktur wajib 6 webinar, dilimpahkan ke bawah.
+ * Seeder SKP DPUPK — Format terbaru 2026-08-31
+ * Mencerminkan struktur UI terkini:
+ * - PerformancePlan: title, target, progress, createdAt, plannedDate/plannedTime
+ * - PlanTarget: customTargets hanya untuk direktur (max 5), target = jumlah kolom
+ * - Realization: title/value/description/date/time/uploadedBy
+ * - Attachment & ActivityLog
  *
- * Tree cascading:
- *   DIREKTUR: Menyelenggarakan 6 webinar (target 6)
- *   ├── SUPERVISOR Siti   : Koordinasi Seri A (target 3)
- *   │     ├── Staff Rina  : Pelaksana 2 webinar teknis
- *   │     └── Staff Joko  : Pelaksana 1 webinar evaluasi
- *   └── SUPERVISOR Agus   : Koordinasi Seri B (target 3)
- *         ├── Staff Dewi  : Pelaksana 2 webinar sosialisasi
- *         └── Staff Budi  : Pelaksana 1 webinar dokumentasi
+ * Skenario: Direktur 5 webinar (4 customTargets + 1) dilimpahkan hierarkis,
+ * porsi total anak tidak melebihi induk (validasi UI).
+ *
+ * Tree:
+ *  DIREKTUR (pl-webinar-5) : 5 webinar — 5 customTargets, target 5, progress 20%
+ *   ├── Siti (pl-siti-seri-a) : 3 webinar, target 3, progress 33% — planned 2026-02-20
+ *   │    ├── Rina (pl-rina-teknis) : 2 webinar teknis, target 2, progress 50% — realisasi 1/2
+ *   │    └── Joko (pl-joko-evaluasi) : 1 webinar evaluasi, target 1, progress 0%
+ *   └── Agus (pl-agus-seri-b) : 2 webinar, target 2, progress 0% — planned 2026-02-22
+ *        ├── Dewi (pl-dewi-sosialisasi) : 1 webinar sosialisasi, target 1
+ *        └── Budi (pl-budi-dokumentasi)  : 1 webinar dokumentasi, target 1
+ *
+ * Sum porsi: Siti 3 + Agus 2 = 5 (induk 5) ✓
+ *            Rina 2 + Joko 1 = 3 (Siti 3) ✓
+ *            Dewi 1 + Budi 1 = 2 (Agus 2) ✓
+ * Progress: Rina 1/2=50% → Siti 1/3=33% → Root 1/5=20%
  */
 
 const PERIODE = "sp2026";
@@ -19,7 +32,9 @@ async function main() {
   // ===== Reset =====
   await prisma.activityLog.deleteMany();
   await prisma.attachment.deleteMany();
+  await prisma.realizationTarget.deleteMany();
   await prisma.realization.deleteMany();
+  await prisma.planTarget.deleteMany();
   await prisma.performancePlan.deleteMany();
   await prisma.skpPeriod.deleteMany();
   await prisma.employee.deleteMany();
@@ -43,46 +58,65 @@ async function main() {
     data: { id: PERIODE, name: "SKP 2026", year: 2026, startDate: "2026-01-01", endDate: "2026-12-31" }
   });
 
-  const base = {
-    skpPeriodId: PERIODE,
-  };
+  const base = { skpPeriodId: PERIODE };
 
-  // ===== LEVEL 1 — DIREKTUR: kewajiban 6 webinar =====
-  // Progress dihitung otomatis: Siti 33% (1/3) + Agus 0% (0/3) = 1/6 = 17%
+  // ===== LEVEL 1 — DIREKTUR: 5 webinar dengan 5 customTargets (target = 5) =====
   const root = await prisma.performancePlan.create({
     data: {
       ...base,
-      id: "pl-webinar-6",
+      id: "pl-webinar-5",
       parentId: null,
       createdBy: "e-direktur",
       assignedTo: "e-direktur",
-      title: "Menyelenggarakan 6 webinar pelayanan publik",
-      target: "6",
-      progress: 17,
+      title: "Menyelenggarakan 5 webinar pelayanan publik",
+      target: "5", // = jumlah customTargets (format direktur)
+      progress: 20, // 1 realisasi turunan / 5
+      createdAt: "2026-01-05 09:00",
+      plannedDate: "2026-02-15",
+      plannedTime: "09:00",
     }
   });
 
-  // ===== LEVEL 2 — Supervisor masing-masing koordinasi 3 webinar =====
+  // CustomTargets hanya direktur (max 5) — contoh format UI Modals/CustomTargetsEditorInline
+  await prisma.planTarget.createMany({
+    data: [
+      { planId: root.id, name: "jumlah peserta", value: "300", unit: "orang" },
+      { planId: root.id, name: "durasi", value: "120", unit: "menit" },
+      { planId: root.id, name: "narasumber", value: "3", unit: "orang" },
+      { planId: root.id, name: "materi", value: "5", unit: "modul" },
+      { planId: root.id, name: "kepuasan", value: "85", unit: "persen" },
+    ]
+  });
+
+  // ===== LEVEL 2 — Supervisor =====
   const supA = await prisma.performancePlan.create({
     data: {
       ...base,
+      id: "pl-siti-seri-a",
       parentId: root.id,
       createdBy: "e-direktur",
       assignedTo: "e-siti",
       title: "Mengoordinasikan pelaksanaan 3 webinar Seri A (teknis & evaluasi)",
-      target: "3",
-      progress: 33,
+      target: "3", // 2+1 =3
+      progress: 33, // 1/3 via Rina
+      createdAt: "2026-01-06 10:00",
+      plannedDate: "2026-02-20",
+      plannedTime: "09:30",
     }
   });
   const supB = await prisma.performancePlan.create({
     data: {
       ...base,
+      id: "pl-agus-seri-b",
       parentId: root.id,
       createdBy: "e-direktur",
       assignedTo: "e-agus",
-      title: "Mengoordinasikan pelaksanaan 3 webinar Seri B (sosialisasi & dokumentasi)",
-      target: "3",
+      title: "Mengoordinasikan pelaksanaan 2 webinar Seri B (sosialisasi & dokumentasi)",
+      target: "2", // 1+1=2
       progress: 0,
+      createdAt: "2026-01-06 10:30",
+      plannedDate: "2026-02-22",
+      plannedTime: "10:00",
     }
   });
 
@@ -90,49 +124,65 @@ async function main() {
   const sA1 = await prisma.performancePlan.create({
     data: {
       ...base,
+      id: "pl-rina-teknis",
       parentId: supA.id,
       createdBy: "e-siti",
       assignedTo: "e-rina",
       title: "Melaksanakan 2 webinar teknis registrasi peserta",
       target: "2",
-      progress: 50,
+      progress: 50, // 1/2
+      createdAt: "2026-01-08 09:00",
+      plannedDate: "2026-03-01",
+      plannedTime: "09:00",
     }
   });
   const sA2 = await prisma.performancePlan.create({
     data: {
       ...base,
+      id: "pl-joko-evaluasi",
       parentId: supA.id,
       createdBy: "e-siti",
       assignedTo: "e-joko",
       title: "Melaksanakan 1 webinar evaluasi layanan",
       target: "1",
       progress: 0,
+      createdAt: "2026-01-08 09:30",
+      plannedDate: "2026-03-05",
+      plannedTime: "13:00",
     }
   });
   const sB1 = await prisma.performancePlan.create({
     data: {
       ...base,
+      id: "pl-dewi-sosialisasi",
       parentId: supB.id,
       createdBy: "e-agus",
       assignedTo: "e-dewi",
-      title: "Melaksanakan 2 webinar sosialisasi kebijakan",
-      target: "2",
+      title: "Melaksanakan 1 webinar sosialisasi kebijakan",
+      target: "1",
       progress: 0,
+      createdAt: "2026-01-08 14:00",
+      plannedDate: "2026-03-10",
+      plannedTime: "10:00",
     }
   });
   const sB2 = await prisma.performancePlan.create({
     data: {
       ...base,
+      id: "pl-budi-dokumentasi",
       parentId: supB.id,
       createdBy: "e-agus",
       assignedTo: "e-budi",
       title: "Melaksanakan 1 webinar dokumentasi & arsip digital",
       target: "1",
       progress: 0,
+      createdAt: "2026-01-08 14:30",
+      plannedDate: "2026-03-12",
+      plannedTime: "08:30",
     }
   });
 
-  // ===== Realisasi contoh (Rina sudah 1 dari 2, diajukan) =====
+  // ===== Realisasi (tiap entri = 1 progress, format terbaru: title/value/description/date/time/uploadedBy) =====
   const r1 = await prisma.realization.create({
     data: {
       performancePlanId: sA1.id,
@@ -142,6 +192,7 @@ async function main() {
       realizationDate: "2026-03-15",
       realizationTime: "09:30",
       uploadedBy: "e-rina",
+      createdAt: "2026-03-15 16:00",
     }
   });
   await prisma.attachment.create({
@@ -153,32 +204,45 @@ async function main() {
       fileSize: "850 KB",
       uploadedBy: "e-rina",
       date: "2026-03-15",
+      createdAt: "2026-03-15 16:00",
     }
   });
+  // Target terealisasi — diisi pengaju (contoh: Rina isi capaian per kolom)
+  await prisma.realizationTarget.createMany({
+    data: [
+      { realizationId: r1.id, name: "jumlah peserta", value: "250", unit: "orang" },
+      { realizationId: r1.id, name: "durasi", value: "110", unit: "menit" },
+    ]
+  });
 
-  // ===== Audit log alur pelimpahan =====
+  // ===== Audit log =====
   await prisma.activityLog.createMany({
     data: [
-      { id: "log-1", userId: "e-direktur", userName: "Bambang Wijaya", action: "Membuat rencana kinerja", description: "Kewajiban menyelenggarakan 6 webinar pelayanan publik", entityType: "performance_plan", entityId: root.id, createdAt: "2026-01-05 09:00" },
-      { id: "log-2", userId: "e-direktur", userName: "Bambang Wijaya", action: "Pelimpahan kinerja", description: "Melimpahkan 6 webinar kepada Siti Rahayu (Seri A) dan Agus Prasetyo (Seri B)", entityType: "performance_plan", entityId: root.id, createdAt: "2026-01-06 10:30" },
-      { id: "log-3", userId: "e-siti", userName: "Siti Rahayu", action: "Pelimpahan kinerja", description: "Menurunkan koordinasi ke Rina Marlina dan Joko Santoso", entityType: "performance_plan", entityId: supA.id, createdAt: "2026-01-08 13:45" },
-      { id: "log-4", userId: "e-agus", userName: "Agus Prasetyo", action: "Pelimpahan kinerja", description: "Menurunkan koordinasi ke Dewi Lestari dan Budi Hermawan", entityType: "performance_plan", entityId: supB.id, createdAt: "2026-01-08 14:20" },
+      { id: "log-1", userId: "e-direktur", userName: "Bambang Wijaya", action: "Membuat rencana kinerja", description: "Kewajiban menyelenggarakan 5 webinar (5 target kustom)", entityType: "performance_plan", entityId: root.id, createdAt: "2026-01-05 09:00" },
+      { id: "log-2", userId: "e-direktur", userName: "Bambang Wijaya", action: "Pelimpahan kinerja", description: "Melimpahkan 5 webinar kepada Siti Rahayu (3) dan Agus Prasetyo (2)", entityType: "performance_plan", entityId: root.id, createdAt: "2026-01-06 10:30" },
+      { id: "log-3", userId: "e-siti", userName: "Siti Rahayu", action: "Pelimpahan kinerja", description: "Menurunkan koordinasi ke Rina Marlina (2) dan Joko Santoso (1)", entityType: "performance_plan", entityId: supA.id, createdAt: "2026-01-08 13:45" },
+      { id: "log-4", userId: "e-agus", userName: "Agus Prasetyo", action: "Pelimpahan kinerja", description: "Menurunkan koordinasi ke Dewi Lestari (1) dan Budi Hermawan (1)", entityType: "performance_plan", entityId: supB.id, createdAt: "2026-01-08 14:20" },
       { id: "log-5", userId: "e-rina", userName: "Rina Marlina", action: "Mengirim realisasi", description: "Realisasi 1 webinar teknis (50%) + bukti sertifikat", entityType: "realization", entityId: r1.id, createdAt: "2026-03-15 16:10" },
     ]
   });
 
+  // Log customTargets & realizationTargets untuk verifikasi
+  const targets = await prisma.planTarget.findMany({ where: { planId: root.id } });
+  const rTargets = await prisma.realizationTarget.findMany({ where: { realizationId: r1.id } });
   console.log(`
-Seed selesai — skenario 6 WEBINAR:
+Seed selesai — format terbaru 2026-08-31 (5 WEBINAR + customTargets + realizationTargets):
 
-DIREKTUR (pl-webinar-6) : 6 webinar [dilimpahkan]
-├── Siti    : 3 webinar Seri A [dilimpahkan]
-│   ├── Rina : 2 webinar teknis    [aktif, realisasi 1/2 diajukan]
-│   └── Joko : 1 webinar evaluasi  [aktif]
-└── Agus    : 3 webinar Seri B [dilimpahkan]
-    ├── Dewi : 2 webinar sosialisasi [aktif]
-    └── Budi : 1 webinar dokumentasi [draft]
+DIREKTUR (pl-webinar-5) : 5 webinar [5 customTargets] — 20% (1/5)
+  customTargets: ${targets.map(t => `${t.name} ${t.value} ${t.unit}`).join(', ')}
+├── Siti    (pl-siti-seri-a) : 3 webinar [33%] — planned 2026-02-20 09:30
+│   ├── Rina (pl-rina-teknis) : 2 webinar teknis [50% 1/2] — realisasi 1 + targets [${rTargets.map(t=>`${t.name} ${t.value} ${t.unit}`).join(', ')}]
+│   └── Joko (pl-joko-evaluasi) : 1 webinar evaluasi [0%]
+└── Agus    (pl-agus-seri-b) : 2 webinar [0%] — planned 2026-02-22 10:00
+    ├── Dewi (pl-dewi-sosialisasi) : 1 webinar sosialisasi [0%]
+    └── Budi (pl-budi-dokumentasi) : 1 webinar dokumentasi [0%]
 
-Total 6 webinar = 2+1+2+1 (staff) terkoordinasi 3+3 (supervisor)
+Total 5 = 3+2 = (2+1)+(1+1) — semua porsi valid (tidak melebihi induk)
+Semua rencana punya createdAt + plannedDate/plannedTime
 Login: direktur@dpupk.go.id / password
 `);
 }
