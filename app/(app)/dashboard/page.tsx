@@ -17,14 +17,12 @@ type Tone = keyof typeof TONE;
 
 const roleTone: Record<Role, Tone> = { direktur: "teal", supervisor: "navy", staff: "sage", admin: "rose" };
 
-// Warna fungsional untuk ikon & tombol — biru (info), kuning (proses/perhatian),
-// hijau (selesai/berhasil), merah (rendah/perlu tindakan). Dipakai terpisah dari
-// tone identitas role di atas, supaya makna warnanya konsisten dengan fungsinya.
+// Warna fungsional — vibrant modern flat tanpa gradasi
 const FN = {
   blue: { bg: "#e3eef6", fg: "#2e6f9e", border: "#a9c9e0" },
-  amber: { bg: "#fbf0d0", fg: "#96720a", border: "#e3c15e" },
-  green: { bg: "#e1f3ea", fg: "#1f8a5f", border: "#8bcdad" },
-  red: { bg: "#fbe4e1", fg: "#c0392b", border: "#e8a89f" },
+  amber: { bg: "#fef3c7", fg: "#d97706", border: "#fcd34d" },
+  green: { bg: "#dcfce7", fg: "#10b981", border: "#6ee7b7" },
+  red: { bg: "#ffe4e6", fg: "#f43f5e", border: "#fda4af" },
 } as const;
 function gaugeFn(pct: number) { return pct >= 70 ? FN.green : pct >= 40 ? FN.amber : FN.red; }
 
@@ -42,7 +40,7 @@ function Gauge({ value, size = 108, stroke = 10 }: { value: number; size?: numbe
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(100, value));
   const offset = c * (1 - pct / 100);
-  const fn = gaugeFn(pct); // merah <40%, kuning 40–69%, hijau ≥70% — feedback fungsional capaian
+  const fn = gaugeFn(pct);
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e4f0f1" strokeWidth={stroke} />
@@ -67,16 +65,13 @@ function Bar({ pct, color }: { pct: number; color?: string }) {
   );
 }
 
-function Tile({ eyebrow, value, sub, mono, fn }: { eyebrow: string; value: string | number; sub: string; mono: string; fn: keyof typeof FN }) {
+function Tile({ eyebrow, value, sub, fn }: { eyebrow: string; value: string | number; sub: string; fn: keyof typeof FN }) {
   const t = FN[fn];
   return (
-    <div className="p-5 border bg-white flex items-start gap-4" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
-      <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5" style={{ background: t.bg, color: t.fg }}>{mono}</div>
-      <div className="min-w-0">
-        <div className="text-xs text-[#283338]/60">{eyebrow}</div>
-        <div className="text-[28px] font-bold leading-none mt-1.5">{value}</div>
-        <div className="text-[11px] text-[#283338]/55 mt-1.5 leading-snug">{sub}</div>
-      </div>
+    <div className="p-5 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
+      <div className="text-[11px] font-semibold tracking-[0.08em] uppercase" style={{ color: t.fg }}>{eyebrow}</div>
+      <div className="text-[28px] font-bold leading-none mt-2 tracking-tight" style={{ color: "#16325a" }}>{value}</div>
+      <div className="text-[12px] text-[#283338]/60 mt-1.5 leading-snug">{sub}</div>
     </div>
   );
 }
@@ -316,11 +311,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Tiles — warna fungsional: biru=info, kuning=proses, hijau=selesai */}
+      {/* Tiles — flat tanpa circle & tanpa aksen garis atas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Tile fn="blue" mono="PGW" eyebrow="Pegawai" value={totalPegawai} sub={`${totalDirektur} Direktur · ${totalSupervisor} Supervisor · ${totalStaff} Staff · ${totalAdmin} Admin`} />
-        <Tile fn="amber" mono="RCN" eyebrow="Rencana" value={totalRencana} sub={`${berjalanCount} berjalan · ${belumMulaiCount} belum mulai`} />
-        <Tile fn="green" mono="RLS" eyebrow="Realisasi" value={totalRealisasi} sub={`${selesaiCount} rencana selesai · rata-rata ${avgRealisasiPerRencana} entri`} />
+        <Tile fn="blue" eyebrow="Pegawai" value={totalPegawai} sub={`${totalDirektur} Direktur · ${totalSupervisor} Supervisor · ${totalStaff} Staff · ${totalAdmin} Admin`} />
+        <Tile fn="amber" eyebrow="Rencana" value={totalRencana} sub={`${berjalanCount} berjalan · ${belumMulaiCount} belum mulai`} />
+        <Tile fn="green" eyebrow="Realisasi" value={totalRealisasi} sub={`${selesaiCount} rencana selesai · rata-rata ${avgRealisasiPerRencana} entri`} />
       </div>
 
       {/* Rencana yang saya terlibat */}
@@ -381,7 +376,7 @@ export default function DashboardPage() {
       {/* Breakdown */}
       {showBreakdown && (
         <div className="grid lg:grid-cols-2 gap-4">
-          <div className="p-5 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1", borderTop: "3px solid #a2cbcd" }}>
+          <div className="p-5 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
             <div className="text-sm font-semibold mb-3">Per role</div>
             <div className="space-y-3">
               {perRole.map(j => {
@@ -397,7 +392,7 @@ export default function DashboardPage() {
               })}
             </div>
           </div>
-          <div className="p-5 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1", borderTop: "3px solid #d6aec1" }}>
+          <div className="p-5 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
             <div className="text-sm font-semibold mb-3">{role === "supervisor" ? "Tim Anda" : "Per pegawai"}</div>
             <div className="space-y-3">
               {perPegawai.slice(0, 8).map(r => {

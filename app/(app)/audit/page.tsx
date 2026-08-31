@@ -87,9 +87,9 @@ const actionIcon: Record<ActionKind, React.ReactNode> = {
 };
 const actionKindTone: Record<ActionKind, { bg: string; fg: string }> = {
   create: { bg: "#2e6f9e", fg: "#fff" },   // biru — membuat
-  edit: { bg: "#96720a", fg: "#fff" },     // kuning/amber — mengubah
-  submit: { bg: "#1f8a5f", fg: "#fff" },   // hijau — kirim/setuju/delegasi
-  delete: { bg: "#c0392b", fg: "#fff" },   // merah — menghapus
+  edit: { bg: "#d97706", fg: "#fff" },     // amber vibrant — mengubah
+  submit: { bg: "#10b981", fg: "#fff" },   // emerald vibrant — kirim/setuju/delegasi
+  delete: { bg: "#f43f5e", fg: "#fff" },   // rose vibrant — menghapus
   other: { bg: "#8b96a0", fg: "#fff" },
 };
 
@@ -119,13 +119,12 @@ const roleAvatarColor: Record<string, string> = {
   admin: "#8a5a3d",
 };
 
-// Warna fungsional untuk ikon & tombol kontrol — biru (cari/muat), kuning (filter aksi),
-// hijau (filter entitas), merah (reset/hapus filter) — biar tombolnya nggak seragam.
+// Warna fungsional — vibrant modern (sinkron dengan dashboard)
 const FN = {
   blue: { bg: "#e3eef6", fg: "#2e6f9e", border: "#a9c9e0" },
-  amber: { bg: "#fbf0d0", fg: "#96720a", border: "#e3c15e" },
-  green: { bg: "#e1f3ea", fg: "#1f8a5f", border: "#8bcdad" },
-  red: { bg: "#fbe4e1", fg: "#c0392b", border: "#e8a89f" },
+  amber: { bg: "#fef3c7", fg: "#d97706", border: "#fcd34d" },
+  green: { bg: "#dcfce7", fg: "#10b981", border: "#6ee7b7" },
+  red: { bg: "#ffe4e6", fg: "#f43f5e", border: "#fda4af" },
   violet: { bg: "#ece5f5", fg: "#6b3fa0", border: "#c7aee0" },
   teal: { bg: "#e4f0f1", fg: "#1c5d5f", border: "#a2cbcd" },
 } as const;
@@ -447,28 +446,26 @@ export default function AuditPage() {
                       <button
                         key={l.id}
                         onClick={() => setDetailLog(l)}
-                        className="w-full text-left flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 p-3 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] hover:border-[#a2cbcd] transition-colors"
+                        className="w-full text-left flex gap-3 p-3 rounded-xl bg-[#f2f8f7] border border-[#e4f0f1] hover:border-[#a2cbcd] transition-colors"
                         style={{ borderRadius: 12 }}
                       >
-                        <div className="flex gap-3 min-w-0">
-                          <div className="relative shrink-0">
-                            <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold" style={{ background: avatarColor }}>{l.userName.slice(0, 2).toUpperCase()}</div>
-                            <div
-                              className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center border-2 border-[#f2f8f7]"
-                              style={{ background: kindTone.bg, color: kindTone.fg }}
-                              title={kind}
-                            >
-                              {actionIcon[kind]}
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm"><span className="font-semibold">{l.userName}</span> <span className="text-[#283338]/70">{l.action}</span></div>
-                            <div className="text-xs text-[#283338]/60 mt-0.5 break-words">{l.description}</div>
+                        <div className="relative shrink-0">
+                          <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold" style={{ background: avatarColor }}>{l.userName.slice(0, 2).toUpperCase()}</div>
+                          <div
+                            className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center border-2 border-[#f2f8f7]"
+                            style={{ background: kindTone.bg, color: kindTone.fg }}
+                            title={kind}
+                          >
+                            {actionIcon[kind]}
                           </div>
                         </div>
-                        <div className="flex items-center justify-between sm:flex-col sm:items-end gap-1.5 sm:shrink-0 pl-11 sm:pl-0">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm"><span className="font-semibold">{l.userName}</span> <span className="text-[#283338]/70">{l.action}</span></div>
+                          <div className="text-xs text-[#283338]/60 mt-0.5 break-words">{l.description}</div>
+                        </div>
+                        <div className="shrink-0 flex flex-col items-end gap-1 text-right ml-2">
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: tone.bg, color: tone.fg }}>{entityLabel[l.entityType] ?? l.entityType} #{shortId(l.entityId)}</span>
-                          <span className="text-xs text-[#283338]/50 whitespace-nowrap">{l.createdAt}</span>
+                          <span className="text-[11px] text-[#283338]/50 whitespace-nowrap">{l.createdAt}</span>
                         </div>
                       </button>
                     );

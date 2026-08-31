@@ -75,6 +75,25 @@ export default function RencanaDetailPage() {
     byEmp.set(item.empId, arr);
   }
 
+  // Realisasi total per target kustom — agregat dari semua realisasi (langsung + delegasi turunan)
+  const customRealisasiTotals = (() => {
+    if (!plan.customTargets || plan.customTargets.length === 0) return [] as Array<{ ct: NonNullable<typeof plan.customTargets>[number]; total: number; targetVal: number; pct: number; sisa: number }>;
+    return plan.customTargets.map(ct => {
+      const targetVal = parseFloat(String(ct.value).replace(",",".")) || 0;
+      const norm = ct.name.trim().toLowerCase();
+      let total = 0;
+      for (const { r } of allReals) {
+        const targs = (r as any).targets as Array<{ name: string; value: string }> | undefined;
+        if (!targs) continue;
+        for (const t of targs) {
+          if (t.name.trim().toLowerCase() === norm) total += parseFloat(String(t.value).replace(",",".")) || 0;
+        }
+      }
+      const pct = targetVal > 0 ? Math.min(150, Math.round((total / targetVal) * 100)) : 0;
+      return { ct, total, targetVal, pct, sisa: targetVal - total };
+    });
+  })();
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -136,6 +155,46 @@ export default function RencanaDetailPage() {
                 <div className="font-mono text-sm font-bold text-[#1c5d5f] mt-1">{ct.value} <span className="font-normal text-[#283338]/60">{ct.unit}</span></div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Realisasi Total per Target Kustom — agregat dari semua realisasi (langsung + delegasi) */}
+      {plan.customTargets && plan.customTargets.length > 0 && (
+        <div className="p-4 rounded-xl bg-white border border-[#e4f0f1]" style={{ borderRadius: 12 }}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="eyebrow text-[11px]">REALISASI TOTAL PER TARGET KUSTOM</div>
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#e4f0f1] border border-[#a2cbcd] text-[#1c5d5f]">{allReals.length} realisasi • {directReals.length} langsung + {childReals.length} delegasi</span>
+          </div>
+          <p className="font-mono text-[11px] text-[#283338]/50 mt-1">Jumlah nilai terealisasi dijumlahkan per nama target kustom (case-insensitive) dari semua realisasi turunan.</p>
+          <div className="mt-3 space-y-3">
+            {customRealisasiTotals.map(({ ct, total, targetVal, pct, sisa }) => {
+              const dispTotal = Number.isInteger(total) ? total : Number(total.toFixed(1));
+              const dispSisa = Number.isInteger(Math.abs(sisa)) ? Math.abs(sisa) : Number(Math.abs(sisa).toFixed(1));
+              const over = sisa < 0;
+              return (
+                <div key={ct.id} className="p-3 rounded-xl border bg-[#f2f8f7]" style={{ borderRadius: 12, borderColor: pct >= 100 ? "#1c5d5f" : "#e4f0f1" }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-mono text-xs font-semibold uppercase tracking-wide text-[#1c5d5f] truncate">{ct.name}</div>
+                    <span className={`shrink-0 font-mono text-xs font-bold px-2 py-0.5 rounded-full border ${pct >= 100 ? "bg-[#1c5d5f] text-white border-[#1c5d5f]" : pct >= 50 ? "bg-[#e4f0f1] text-[#1c5d5f] border-[#a2cbcd]" : "bg-white text-[#283338]/70 border-[#e4f0f1]"}`} style={{ borderRadius: 100 }}>{pct}%</span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs">
+                    <span className="text-[#283338]"><span className="text-[#283338]/50">Target:</span> <span className="font-bold text-[#1c5d5f]">{ct.value} {ct.unit}</span></span>
+                    <span className="text-[#283338]"><span className="text-[#283338]/50">Terealisasi:</span> <span className={`font-bold ${over ? "text-[#b91c1c]" : "text-[#1c5d5f]"}`}>{dispTotal} {ct.unit}</span></span>
+                    <span className={`text-[11px] ${over ? "text-[#b91c1c] font-semibold" : sisa === 0 ? "text-[#1c5d5f] font-semibold" : "text-[#283338]/60"}`}>{over ? `+${dispSisa} ${ct.unit} melebihi target` : sisa === 0 ? "✓ tepat target" : `Sisa ${dispSisa} ${ct.unit}`}</span>
+                  </div>
+                  <div className="mt-2 h-2.5 bg-white rounded-full overflow-hidden border border-[#e4f0f1]"><div className={`h-full ${pct > 100 ? "bg-[#b91c1c]" : pct >= 100 ? "bg-[#1c5d5f]" : "bg-[#a2cbcd]"}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div>
+                  <div className="mt-1 font-mono text-[11px] text-[#283338]/50">{dispTotal} / {targetVal} {ct.unit}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 p-2.5 rounded-xl bg-[#1c5d5f] text-white flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]" style={{ borderRadius: 12 }}>
+            <span className="opacity-90">Jenis target: {plan.customTargets.length}</span>
+            <span className="opacity-50">•</span>
+            <span>Tercapai {customRealisasiTotals.filter(x => x.pct >= 100).length}/{plan.customTargets.length} jenis (100%+)</span>
+            <span className="opacity-50">•</span>
+            <span className="opacity-80">Klik entri realisasi di bawah untuk rincian per entri</span>
           </div>
         </div>
       )}
