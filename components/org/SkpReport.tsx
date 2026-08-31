@@ -3,9 +3,11 @@ import { useMemo } from "react";
 import { useSKP } from "@/lib/store";
 import { ROLE_LABEL } from "@/lib/roles";
 
-// Laporan SKP (pekerjaan/kinerja) — Admin only.
+// Laporan SKP (pekerjaan/kinerja).
 // Menggunakan data SKP SUDAH ADA (plans + realizations). Bisa di-export ke CSV
 // yang langsung terbuka di Excel (delimiter ';' + BOM, sesuai regional Excel Indonesia).
+// Hak akses mengikuti lingkup kewenangan: admin = semua, pimpinan_1/2/3 = struktur
+// kewenangannya, staf = akun sendiri (sama untuk tabel & export CSV).
 
 function escCSV(v: string | number | null | undefined): string {
   const s = v == null ? "" : String(v);
@@ -14,13 +16,50 @@ function escCSV(v: string | number | null | undefined): string {
 
 export default function SkpReport() {
   const { plans, realizations, employees, periods, getActiveSupervisors, currentUser } = useSKP();
-  const isAdmin = !!currentUser && currentUser.role === "admin";
+
+  // Lingkup pegawai yang boleh dilihat sesuai role:
+  // - admin: seluruh pegawai.
+  // - staf: akun sendiri.
+  // - pimpinan_1/2/3: diri sendiri + pegawai dalam struktur/kewenangannya. Struktur
+  //   menggabungkan relasi aktif Staff↔Pimpinan (EmployeeSupervisor) — satu staf dengan
+  //   beberapa pimpinan aktif terlihat oleh SEMUA pimpinan aktif yang berelasi dengannya,
+  //   tanpa duplikasi data SKP (filter per plan) — dengan pohon supervisorId (fallback).
+  const canViewIds = useMemo(() => {
+    if (!currentUser) return new Set<string>();
+    const me = currentUser.id;
+    if (currentUser.role === "staf") return new Set([me]);
+    if (currentUser.role === "admin") return new Set(employees.map(e => e.id));
+    const supIdsOf = new Map<string, Set<string>>();
+    employees.forEach(e => {
+      const rel = getActiveSupervisors(e.id).map(s => s.supervisorId);
+      supIdsOf.set(e.id, rel.length ? new Set(rel) : (e.supervisorId ? new Set([e.supervisorId]) : new Set()));
+    });
+    const children = new Map<string, string[]>();
+    supIdsOf.forEach((supIds, empId) => supIds.forEach(sid => {
+      const arr = children.get(sid) ?? [];
+      arr.push(empId);
+      children.set(sid, arr);
+    }));
+    const out = new Set<string>([me]);
+    const queue = [me];
+    while (queue.length) {
+      const cur = queue.shift()!;
+      for (const c of children.get(cur) ?? []) {
+        if (out.has(c)) continue;
+        out.add(c);
+        queue.push(c);
+      }
+    }
+    return out;
+  }, [employees, currentUser, getActiveSupervisors]);
 
   const rows = useMemo(() => {
     const nameOf = (id: string) => employees.find(e => e.id === id);
     const periodName = (id: string) => periods.find(p => p.id === id)?.name || id;
 
-    return plans
+    const accessible = currentUser ? plans.filter(p => canViewIds.has(p.assignedTo)) : [];
+
+    return accessible
       .map(p => {
         const assigned = nameOf(p.assignedTo);
         const created = nameOf(p.createdBy);
@@ -53,7 +92,7 @@ export default function SkpReport() {
         };
       })
       .sort((a, b) => a.nama.localeCompare(b.nama));
-  }, [plans, realizations, employees, periods, getActiveSupervisors]);
+  }, [plans, realizations, employees, periods, getActiveSupervisors, canViewIds, currentUser]);
 
   const exportCSV = () => {
     const header = [
@@ -82,9 +121,8 @@ export default function SkpReport() {
         <div className="px-4 py-3 border-b border-[#f1f5f9] flex flex-wrap items-center justify-between gap-2">
           <div>
             <span className="text-[11px] font-mono uppercase tracking-[0.07em] text-[#6b7280]">Laporan SKP (Pekerjaan / Kinerja)</span>
-            <p className="mt-0.5 text-[12px] text-[#9ca3af]">Data sasaran, target, realisasi, dan capaian dari rencana kinerja yang ada.</p>
           </div>
-          {isAdmin && (
+          {currentUser && (
             <button
               onClick={exportCSV}
               disabled={rows.length === 0}
@@ -95,9 +133,9 @@ export default function SkpReport() {
           )}
         </div>
 
-        {!isAdmin ? (
+        {!currentUser ? (
           <div className="px-4 py-14 text-center text-[#6b7280] text-sm">
-            Laporan SKP hanya dapat dilihat oleh Administrator.
+            Memuat data laporan…
           </div>
         ) : rows.length === 0 ? (
           <div className="px-4 py-14 text-center text-[#6b7280] text-sm">Belum ada data rencana kinerja.</div>

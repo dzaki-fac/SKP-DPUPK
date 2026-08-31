@@ -47,18 +47,16 @@ function OrganisasiContent() {
                 Riwayat Aktivitas
               </button>
             )}
-            {isAdmin && (
-              <button onClick={() => setTab("laporan")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2 ${tab === "laporan" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
-                Laporan SKP
-              </button>
-            )}
+            <button onClick={() => setTab("laporan")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2 ${tab === "laporan" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
+              Laporan SKP
+            </button>
           </div>
         </div>
 
         {tab === "struktur" && <OrgStructure />}
         {tab === "pegawai" && isAdmin && <EmployeeManager />}
         {tab === "aktivitas" && isAdmin && <OrgAdminActivity />}
-        {tab === "laporan" && isAdmin && <SkpReport />}
+        {tab === "laporan" && <SkpReport />}
       </div>
     </div>
   );
