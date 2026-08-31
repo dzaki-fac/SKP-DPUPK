@@ -85,6 +85,14 @@ export async function POST(req: Request) {
       avatar: b.avatar ?? b.name.slice(0, 2).toUpperCase(),
     },
   });
+
+  // Simpan relasi Staff ↔ Pimpinan awal (jika ada) di tabel history.
+  if (b.supervisorId) {
+    await prisma.employeeSupervisor.create({
+      data: { employeeId: emp.id, supervisorId: b.supervisorId, startDate: new Date().toISOString().slice(0, 10), endDate: null },
+    }).catch(() => { });
+  }
+
   await audit(payload.id, payload.name, "Menambah pegawai", `Menambah pegawai ${emp.name} (${b.role})`, emp.id);
   return Response.json(toDTO(emp), { status: 201 });
 }
@@ -171,6 +179,25 @@ export async function PATCH(req: Request) {
     if (b.isActive !== undefined) changes.push(b.isActive ? "aktif" : "non-aktif");
     if (b.role) changes.push(`role ${b.role}`);
     if (b.supervisorId !== undefined) changes.push("atasan");
+
+    // Sinkronkan tabel relasi/history bila atasan berubah: akhiri relasi aktif lama
+    // yang tidak lagi cocok dan buat relasi baru (riwayat tetap tersimpan).
+    if (b.supervisorId !== undefined) {
+      const today = new Date().toISOString().slice(0, 10);
+      const existingSup = await prisma.employeeSupervisor.findMany({ where: { employeeId: emp.id } });
+      const active = existingSup.filter(s => s.endDate == null);
+      const targetPrimary = b.supervisorId || null;
+      if (targetPrimary) {
+        await prisma.employeeSupervisor.updateMany({ where: { employeeId: emp.id, endDate: null, supervisorId: { not: targetPrimary } }, data: { endDate: today } });
+        const hasPrimary = active.some(s => s.supervisorId === targetPrimary && s.endDate == null);
+        if (!hasPrimary) {
+          await prisma.employeeSupervisor.create({ data: { employeeId: emp.id, supervisorId: targetPrimary, startDate: today, endDate: null } });
+        }
+      } else {
+        await prisma.employeeSupervisor.updateMany({ where: { employeeId: emp.id, endDate: null }, data: { endDate: today } });
+      }
+    }
+
     const desc = changes.length ? `Perbarui ${emp.name}: ${changes.join(", ")}` : `Perbarui data ${emp.name}`;
     await audit(payload.id, payload.name, "Mengubah akun/pegawai", desc, emp.id);
     return Response.json(toDTO(emp));

@@ -29,6 +29,11 @@ model Employee {
   supervisor Employee?  @relation("Supervisor", fields: [supervisorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   subordinates Employee[] @relation("Supervisor")
 
+  // Relasi/history fleksibel Staff ↔ Pimpinan (1 NIP tetap 1 Employee).
+  // employeeId = staf, supervisorId = pimpinan. Aktif = endDate kosong.
+  supervisorsOf  EmployeeSupervisor[] @relation("SupervisorshipSupervisor")
+  supervisorsAsEmployee EmployeeSupervisor[] @relation("SupervisorshipEmployee")
+
   createdPlans   PerformancePlan[] @relation("CreatedBy")
   assignedPlans  PerformancePlan[] @relation("AssignedTo")
   attachments    Attachment[]
@@ -39,6 +44,28 @@ model Employee {
   @@index([supervisorId])
   @@index([role])
   @@map("employees")
+}
+
+// ── Relasi/history Staff ↔ Pimpinan ──────────────────────────
+// 1 NIP = 1 Employee (Akun). Seorang staf punya 1..n pimpinan yang
+// dicatat DI SINI (bukan supervisorId2/3). Aktif = endDate NULL.
+// Berpindah pimpinan = isi endDate pada baris lama + buat baris baru.
+// supervisorId pada Employee tetap dipakai sebagai pimpinan utama/aktif
+// untuk kompatibilitas pohon & delegasi rencana.
+model EmployeeSupervisor {
+  id           String  @id @default(cuid())
+  employeeId   String  @map("employee_id")
+  supervisorId String  @map("supervisor_id")
+  startDate    String  @map("start_date")
+  endDate      String? @map("end_date")
+  createdAt    String  @default("2026-01-01") @map("created_at")
+
+  employee   Employee @relation("SupervisorshipEmployee", fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  supervisor Employee @relation("SupervisorshipSupervisor", fields: [supervisorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([employeeId])
+  @@index([supervisorId])
+  @@map("employee_supervisors")
 }
 
 // ── Periode SKP ──────────────────────────────────────────────

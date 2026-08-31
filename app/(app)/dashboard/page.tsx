@@ -4,9 +4,8 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import { useSKP } from "@/lib/store";
 import { ROLE_SHORT } from "@/lib/roles";
-import type { Role } from "@/lib/types";
+import type { Employee, Role } from "@/lib/types";
 
-// Palet varian per role/tipe — tetap di dalam token DESIGN.md (teal, navy, sage, rose)
 const TONE = {
   teal: { bg: "#e4f0f1", fg: "#1c5d5f", dot: "#1c5d5f" },
   navy: { bg: "#e6ebf2", fg: "#16325a", dot: "#16325a" },
@@ -17,7 +16,6 @@ type Tone = keyof typeof TONE;
 
 const roleTone: Record<Role, Tone> = { pimpinan_1: "teal", pimpinan_2: "navy", pimpinan_3: "sage", staf: "sage", admin: "rose" };
 
-// Warna fungsional — vibrant modern flat tanpa gradasi
 const FN = {
   blue: { bg: "#e3eef6", fg: "#2e6f9e", border: "#a9c9e0" },
   amber: { bg: "#fef3c7", fg: "#d97706", border: "#fcd34d" },
@@ -145,12 +143,13 @@ function PillDropdown({
 }
 
 export default function DashboardPage() {
-  const { currentUser, employees, plans, realizations, periods, dbLoaded, visiblePlans, getSubordinates } = useSKP();
+  const { currentUser, employees, plans, realizations, periods, dbLoaded, visiblePlans, getSubordinates } = useSKP() as any;
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
 
   if (!currentUser) return null;
 
-  if (!dbLoaded) {
+  const dbReady = (dbLoaded as boolean | undefined) ?? true;
+  if (!dbReady) {
     return (
       <div className={`${dashFont.variable} space-y-6`} style={dashFontScope}>
         <div>
@@ -173,52 +172,58 @@ export default function DashboardPage() {
     );
   }
 
-  const role = currentUser.role;
+  const role: Role = currentUser.role;
 
-  const scopeEmployees =
+  const scopeEmployees: Employee[] =
     role === "admin" || role === "pimpinan_1" ? employees :
     role === "pimpinan_2" || role === "pimpinan_3" ? [currentUser, ...getSubordinates(currentUser.id)] :
     [currentUser];
 
   const scopeLabel =
     role === "admin" || role === "pimpinan_1" ? "Seluruh organisasi" :
-    role === "pimpinan_2" ? "Anda & tim Anda" :
-    role === "pimpinan_3" ? "Anda & staf binaan" : "Ringkasan Anda";
+    role === "pimpinan_2" || role === "pimpinan_3" ? "Anda & tim Anda" : "Ringkasan Anda";
+
+  const countByNip = (list: Employee[], filter: (e: Employee) => boolean) => {
+    const seen = new Set<string>();
+    list.forEach(e => { if (!filter(e)) return; const k = e.employeeNumber || e.id; if (!seen.has(k)) seen.add(k); });
+    return seen.size;
+  };
 
   const periodAktif = periods[0];
   const effectivePeriodId = selectedPeriodId || periodAktif?.id || "";
   const showAllPeriods = effectivePeriodId === "__all__";
-  const scopedPlans = visiblePlans.filter(p => showAllPeriods || !effectivePeriodId || p.skpPeriodId === effectivePeriodId);
-  const scopedPlanIds = new Set(scopedPlans.map(p => p.id));
-  const scopedRealizations = realizations.filter(r => scopedPlanIds.has(r.planId));
+  const scopedPlans = visiblePlans.filter((p: any) => showAllPeriods || !effectivePeriodId || p.skpPeriodId === effectivePeriodId);
+  const scopedPlanIds = new Set(scopedPlans.map((p: any) => p.id));
+  const scopedRealizations = realizations.filter((r: any) => scopedPlanIds.has(r.planId));
 
-  const totalPegawai = scopeEmployees.length;
-  const totalPimpinan2 = scopeEmployees.filter(e => e.role === "pimpinan_2").length;
-  const totalPimpinan3 = scopeEmployees.filter(e => e.role === "pimpinan_3").length;
-  const totalStaff = scopeEmployees.filter(e => e.role === "staf").length;
-  const totalPimpinan1 = scopeEmployees.filter(e => e.role === "pimpinan_1").length;
-  const totalAdmin = scopeEmployees.filter(e => e.role === "admin").length;
+  const totalPegawai = countByNip(scopeEmployees, () => true);
+  const totalPimpinan1 = countByNip(scopeEmployees, e => e.role === "pimpinan_1");
+  const totalPimpinan2 = countByNip(scopeEmployees, e => e.role === "pimpinan_2");
+  const totalPimpinan3 = countByNip(scopeEmployees, e => e.role === "pimpinan_3");
+  const totalStaff = countByNip(scopeEmployees, e => e.role === "staf");
+  const totalAdmin = countByNip(scopeEmployees, e => e.role === "admin");
   const totalRencana = scopedPlans.length;
-  const selesaiCount = scopedPlans.filter(p => p.progress >= 100).length;
-  const belumMulaiCount = scopedPlans.filter(p => p.progress === 0).length;
+  const selesaiCount = scopedPlans.filter((p: any) => p.progress >= 100).length;
+  const belumMulaiCount = scopedPlans.filter((p: any) => p.progress === 0).length;
   const berjalanCount = totalRencana - selesaiCount - belumMulaiCount;
-  const orgProgress = Math.round(scopedPlans.reduce((a, b) => a + b.progress, 0) / (scopedPlans.length || 1));
+  const orgProgress = Math.round(scopedPlans.reduce((a: number, b: any) => a + b.progress, 0) / (scopedPlans.length || 1));
   const totalRealisasi = scopedRealizations.length;
   const avgRealisasiPerRencana = totalRencana ? (totalRealisasi / totalRencana).toFixed(1) : "0";
 
   const perRole = (["pimpinan_1","pimpinan_2","pimpinan_3","staf","admin"] as const).map(r => {
-    const emps = scopeEmployees.filter(e => e.role === r);
-    const pls = scopedPlans.filter(p => emps.some(e => e.id === p.assignedTo));
-    const avg = pls.length ? Math.round(pls.reduce((a, b) => a + b.progress, 0) / pls.length) : 0;
-    return { role: r, emps: emps.length, pls: pls.length, avg };
+    const empsDistinct = countByNip(scopeEmployees, e => e.role === r);
+    const emps = scopeEmployees.filter((e: Employee) => e.role === r);
+    const pls = scopedPlans.filter((p: any) => emps.some(e => e.id === p.assignedTo));
+    const avg = pls.length ? Math.round(pls.reduce((a: number, b: any) => a + b.progress, 0) / pls.length) : 0;
+    return { role: r, emps: empsDistinct, pls: pls.length, avg };
   }).filter(j => j.emps > 0);
 
   const perPegawai = [...scopeEmployees]
     .map(e => {
-      const pls = scopedPlans.filter(p => p.assignedTo === e.id);
-      const avg = pls.length ? Math.round(pls.reduce((a, b) => a + b.progress, 0) / pls.length) : 0;
-      const reals = scopedRealizations.filter(r => {
-        const pl = scopedPlans.find(p => p.id === r.planId);
+      const pls = scopedPlans.filter((p: any) => p.assignedTo === e.id);
+      const avg = pls.length ? Math.round(pls.reduce((a: number, b: any) => a + b.progress, 0) / pls.length) : 0;
+      const reals = scopedRealizations.filter((r: any) => {
+        const pl = scopedPlans.find((p: any) => p.id === r.planId);
         return pl?.assignedTo === e.id;
       }).length;
       return { e, pls: pls.length, avg, reals };
@@ -239,9 +244,9 @@ export default function DashboardPage() {
     for (const r of realizations) {
       const parts = (r as any).participants as Array<{employeeId:string,role:string}> | undefined;
       if (!parts) continue;
-      const myPart = parts.find(pp => pp.employeeId === currentUser.id);
+      const myPart = parts.find((pp: any) => pp.employeeId === currentUser.id);
       if (myPart) {
-        const plan = plans.find(p => p.id === r.planId);
+        const plan = plans.find((p: any) => p.id === r.planId);
         if (!plan) continue;
         const entry = map.get(plan.id) ?? { plan, roles: new Set<string>() };
         entry.roles.add(myPart.role);
@@ -249,11 +254,11 @@ export default function DashboardPage() {
       }
     }
     for (const r of realizations) {
-      if (r.uploadedBy === currentUser.id) {
-        const plan = plans.find(p => p.id === r.planId);
+      if ((r as any).uploadedBy === currentUser.id) {
+        const plan = plans.find((p: any) => p.id === (r as any).planId);
         if (!plan || plan.assignedTo === currentUser.id) continue;
         const parts = (r as any).participants as Array<{employeeId:string,role:string}> | undefined;
-        const already = parts?.some(p=>p.employeeId===currentUser.id);
+        const already = parts?.some((p: any)=>p.employeeId===currentUser.id);
         if (already) continue;
         const entry = map.get(plan.id) ?? { plan, roles: new Set<string>() };
         entry.roles.add("Kontributor");
@@ -276,7 +281,7 @@ export default function DashboardPage() {
           onChange={v => setSelectedPeriodId(v)}
           tone={FN.blue}
           icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M4 9.5h16M8 3v3M16 3v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>}
-          options={[...periods.map(p => ({ value: p.id, label: p.name })), { value: "__all__", label: "Semua periode" }]}
+          options={[...periods.map((p: any) => ({ value: p.id, label: p.name })), { value: "__all__", label: "Semua periode" }]}
         />
       </div>
 
@@ -284,10 +289,10 @@ export default function DashboardPage() {
         <Gauge value={orgProgress} />
         <div className="flex-1 min-w-[200px]">
           <div className="text-sm font-semibold">
-            {showAllPeriods ? "Semua periode" : periods.find(p => p.id === effectivePeriodId)?.name ?? ""}
+            {showAllPeriods ? "Semua periode" : periods.find((p: any) => p.id === effectivePeriodId)?.name ?? ""}
           </div>
           <div className="text-xs text-[#283338]/60 mt-1">
-            {showAllPeriods ? "Gabungan seluruh periode SKP" : periods.find(p => p.id === effectivePeriodId) ? `${periods.find(p => p.id === effectivePeriodId)!.startDate} → ${periods.find(p => p.id === effectivePeriodId)!.endDate}` : "—"}
+            {showAllPeriods ? "Gabungan seluruh periode SKP" : periods.find((p: any) => p.id === effectivePeriodId) ? `${periods.find((p: any) => p.id === effectivePeriodId)!.startDate} → ${periods.find((p: any) => p.id === effectivePeriodId)!.endDate}` : "—"}
           </div>
           <div className="mt-4 flex items-center gap-3">
             <Bar pct={totalRencana ? (selesaiCount / totalRencana) * 100 : 0} color={FN.green.fg} />
@@ -331,7 +336,7 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {myInvolved.map(({ plan, roles }) => {
-                  const period = periods.find(p=>p.id===plan.skpPeriodId);
+                  const period = periods.find((p:any)=>p.id===plan.skpPeriodId);
                   const isPelaksana = roles.has("Pelaksana");
                   return (
                     <tr key={plan.id} className="border-b border-[#e4f0f1]/60 hover:bg-[#f2f8f7]/50">

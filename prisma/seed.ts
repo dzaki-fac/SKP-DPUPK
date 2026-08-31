@@ -38,6 +38,7 @@ async function main() {
   await prisma.planTarget.deleteMany();
   await prisma.performancePlan.deleteMany();
   await prisma.skpPeriod.deleteMany();
+  await prisma.employeeSupervisor.deleteMany();
   await prisma.employee.deleteMany();
 
   // ===== Pegawai (role = jabatan tunggal) =====
@@ -59,6 +60,29 @@ async function main() {
       { id: "e-staf-b21", userId: "u-staf-b21", employeeNumber: "199711232020012015", name: "Lukman Hakim, S.E", email: "lukman.h@dpupk.go.id", supervisorId: "e-p3b2", role: "staf", avatar: "LH" },
       { id: "e-staf-b22", userId: "u-staf-b22", employeeNumber: "200005302021022016", name: "Indah Permata, S.Ak", email: "indah.p@dpupk.go.id", supervisorId: "e-p3b2", role: "staf", avatar: "IP" },
       { id: "e-admin", userId: "u-admin", employeeNumber: "198805122008012008", name: "Admin Sistem", email: "admin@dpupk.go.id", supervisorId: null, role: "admin", avatar: "AD" },
+    ]
+  });
+
+  // ===== Relasi/history Staff ↔ Pimpinan (1 NIP = 1 Employee) =====
+  // Aktif = endDate NULL; riwayat = endDate terisi (relasi lama tetap tersimpan).
+  // Demonstrasi: Dewi berpindah pimpinan (Agus → Rina), Budi punya 2 pimpinan aktif.
+  await prisma.employeeSupervisor.createMany({
+    data: [
+      // Dewi: history pindah pimpinan Agus (Jan–Mar) → Rina (aktif)
+      { id: "es-dewi-1", employeeId: "e-dewi", supervisorId: "e-agus", startDate: "2026-01-01", endDate: "2026-03-31", createdAt: "2026-01-01" },
+      { id: "es-dewi-2", employeeId: "e-dewi", supervisorId: "e-rina", startDate: "2026-04-01", endDate: null, createdAt: "2026-04-01" },
+      // Fitri: 1 pimpinan aktif (Rina)
+      { id: "es-fitri", employeeId: "e-fitri", supervisorId: "e-rina", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
+      // Budi: 2 pimpinan aktif (Joko + Rina)
+      { id: "es-budi-1", employeeId: "e-budi", supervisorId: "e-joko", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
+      { id: "es-budi-2", employeeId: "e-budi", supervisorId: "e-rina", startDate: "2026-06-01", endDate: null, createdAt: "2026-06-01" },
+      // Gunawan: 1 pimpinan aktif (Joko)
+      { id: "es-gunawan", employeeId: "e-gunawan", supervisorId: "e-joko", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
+      // Staf kabinet kedua: 1 pimpinan aktif
+      { id: "es-a21", employeeId: "e-staf-a21", supervisorId: "e-p3a2", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
+      { id: "es-a22", employeeId: "e-staf-a22", supervisorId: "e-p3a2", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
+      { id: "es-b21", employeeId: "e-staf-b21", supervisorId: "e-p3b2", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
+      { id: "es-b22", employeeId: "e-staf-b22", supervisorId: "e-p3b2", startDate: "2026-01-01", endDate: null, createdAt: "2026-01-01" },
     ]
   });
 
