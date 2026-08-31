@@ -146,11 +146,9 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const visiblePlans = useMemo(() => {
     if (!currentUser) return [];
     if (currentUser.role === "admin" || currentUser.role === "pimpinan_1") return plans;
-    if (currentUser.role === "pimpinan_2" || currentUser.role === "pimpinan_3") {
-      const subs = getSubordinates(currentUser.id).map(s => s.id);
-      return plans.filter(p => p.assignedTo === currentUser.id || subs.includes(p.assignedTo) || p.createdBy === currentUser.id);
-    }
-    return plans.filter(p => p.assignedTo === currentUser.id);
+    // Semua pegawai (termasuk staf) dapat melihat: tugas sendiri, tugas yang dibuatnya, dan tugas tim/bawahan
+    const subs = getSubordinates(currentUser.id).map(s => s.id);
+    return plans.filter(p => p.assignedTo === currentUser.id || p.createdBy === currentUser.id || subs.includes(p.assignedTo));
   }, [currentUser, plans, employees]);
 
   const filteredPlans = visiblePlans.filter(p => !search || p.title.toLowerCase().includes(search.toLowerCase()));
@@ -161,17 +159,14 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const handleCreatePlan = () => {
     if (!currentUser) return;
     if (!planForm.title) { notify("Judul wajib diisi"); return; }
-    // Untuk pimpinan_1, Target otomatis dari jumlah target kustom
-    if (currentUser.role === "pimpinan_1") {
-      if (planCustomTargets.length === 0) { notify("Minimal 1 target kustom"); return; }
+    // Target seperti form realisasi: jika rincian target diisi -> target otomatis = jumlah baris, else wajib isi target jumlah manual
+    let effectiveTarget: string;
+    if (planCustomTargets.length > 0) {
+      effectiveTarget = String(planCustomTargets.length);
     } else {
-      if (!planForm.target) { notify("Judul dan target wajib diisi"); return; }
-    }
-    const effectiveTarget = currentUser.role === "pimpinan_1" ? String(planCustomTargets.length) : planForm.target!;
-    // Validasi custom targets hanya untuk pimpinan_1
-    if (planCustomTargets.length > 0 && currentUser.role !== "pimpinan_1" && currentUser.role !== "admin") {
-      notify("Hanya direktur yang dapat membuat target kustom");
-      return;
+      if (!planForm.target) { notify("Target wajib diisi — atau isi Rincian Target di bawah"); return; }
+      effectiveTarget = String(planForm.target).trim();
+      if (!effectiveTarget) { notify("Target wajib diisi"); return; }
     }
     if (planCustomTargets.length > 5) { notify("Maksimal 5 target kustom"); return; }
     for (const ct of planCustomTargets) {

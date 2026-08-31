@@ -18,18 +18,18 @@ function CustomTargetsEditorInline() {
   return (
     <div className="border border-[#e4f0f1] rounded-xl p-3 bg-[#f2f8f7]/50 mt-3" style={{ borderRadius: 12 }}>
       <div className="flex items-center justify-between">
-        <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target Kustom</label>
-        <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60">Direktur</span>
+        <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Rincian Target</label>
+        <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60">{planCustomTargets.length} / 5</span>
       </div>
-      <p className="font-mono text-[11px] text-[#283338]/60 mt-1">Contoh: <span className="font-semibold">jumlah peserta</span> → <span className="font-mono">250</span> <span className="italic">orang</span>, <span className="font-semibold">honor</span> → <span className="font-mono">500000</span> <span className="italic">perjam</span></p>
+      <p className="font-mono text-[11px] text-[#283338]/60 mt-1">Seperti form realisasi — Contoh: <span className="font-semibold">jumlah peserta</span> → <span className="font-mono">250</span> <span className="italic">orang</span>, <span className="font-semibold">honor</span> → <span className="font-mono">500000</span> <span className="italic">perjam</span> • Jika diisi, Target (jumlah) otomatis = jumlah baris</p>
       <div className="mt-3 space-y-2">
         {planCustomTargets.length === 0 && (
-          <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada target kustom</div>
+          <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada rincian target — tambah di bawah (opsional, maks 5)</div>
         )}
         {planCustomTargets.map((ct, idx) => (
-          <div key={idx} className="grid grid-cols-[1fr_80px_80px_36px] gap-2 items-end">
+          <div key={idx} className="grid grid-cols-[1fr_70px_70px_32px] sm:grid-cols-[1fr_80px_80px_36px] gap-1.5 sm:gap-2 items-end">
             <div>
-              <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Nama kolom</label>
+              <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Nama target</label>
               <input value={ct.name} onChange={e => {
                 const copy = [...planCustomTargets];
                 copy[idx] = { ...copy[idx], name: e.target.value };
@@ -40,12 +40,10 @@ function CustomTargetsEditorInline() {
               <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Nilai</label>
               <input value={ct.value} onChange={e => {
                 const copy = [...planCustomTargets];
-                // batasi 20 digit agar tidak overflow & kursor hilang
                 let v = e.target.value.replace(/[^0-9]/g, "").slice(0, 20);
                 copy[idx] = { ...copy[idx], value: v };
                 setPlanCustomTargets(copy);
-              }} placeholder="250" maxLength={20} inputMode="numeric" title={ct.value} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd] font-mono truncate" style={{ borderRadius: 8, textOverflow: "ellipsis" }} onFocus={e => { const v = e.target.value; // pastikan kursor terlihat di akhir
-                requestAnimationFrame(() => e.target.setSelectionRange(v.length, v.length)); }} />
+              }} placeholder="250" maxLength={20} inputMode="numeric" title={ct.value} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd] font-mono truncate" style={{ borderRadius: 8, textOverflow: "ellipsis" }} onFocus={e => { const v = e.target.value; requestAnimationFrame(() => e.target.setSelectionRange(v.length, v.length)); }} />
             </div>
             <div>
               <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Satuan</label>
@@ -59,15 +57,17 @@ function CustomTargetsEditorInline() {
           </div>
         ))}
         {planCustomTargets.length < 5 && (
-          <button type="button" onClick={() => setPlanCustomTargets([...planCustomTargets, { name: "", value: "", unit: "" }])} className="w-full py-1.5 rounded-full border border-dashed border-[#a2cbcd] bg-white text-xs font-medium text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>+ Tambah kolom target</button>
+          <button type="button" onClick={() => setPlanCustomTargets([...planCustomTargets, { name: "", value: "", unit: "" }])} className="w-full py-1.5 rounded-full border border-dashed border-[#a2cbcd] bg-white text-xs font-medium text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>+ Tambah target</button>
         )}
-        {planCustomTargets.length >= 5 && <p className="font-mono text-[11px] text-[#b91c1c]">Maksimal 5 target kustom</p>}
+        {planCustomTargets.length >= 5 && <p className="font-mono text-[11px] text-[#b91c1c]">Maksimal 5 target</p>}
       </div>
-      <div className="mt-3 p-2 rounded-xl bg-white border border-[#e4f0f1] text-center" style={{ borderRadius: 12 }}>
-        <span className="font-mono text-[11px] text-[#283338]/60">Target (jumlah) otomatis: </span>
-        <span className="font-mono text-xs font-bold text-[#1c5d5f]">{planCustomTargets.length}</span>
-        <span className="font-mono text-[11px] text-[#283338]/60"> kolom</span>
-      </div>
+      {planCustomTargets.length > 0 && (
+        <div className="mt-3 p-2 rounded-xl bg-white border border-[#e4f0f1] text-center" style={{ borderRadius: 12 }}>
+          <span className="font-mono text-[11px] text-[#283338]/60">Target (jumlah) otomatis: </span>
+          <span className="font-mono text-xs font-bold text-[#1c5d5f]">{planCustomTargets.length}</span>
+          <span className="font-mono text-[11px] text-[#283338]/60"> kolom</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -117,11 +117,13 @@ export function GlobalModals() {
                   </div>
                 </div>
               </div>
-              {currentUser?.role === "pimpinan_1" ? (
-                <CustomTargetsEditorInline />
-              ) : (
-                <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target (jumlah)</label><input value={planForm.target ?? ""} onChange={e => setPlanForm({ ...planForm, target: e.target.value })} placeholder="6" className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
-              )}
+              <div>
+                <label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target (jumlah)</label>
+                <input value={planCustomTargets.length > 0 ? String(planCustomTargets.length) : (planForm.target ?? "")} onChange={e => setPlanForm({ ...planForm, target: e.target.value })} placeholder="6" disabled={planCustomTargets.length > 0} title={planCustomTargets.length > 0 ? "Otomatis dari jumlah Rincian Target di bawah — hapus rincian untuk edit manual" : undefined} className={`mt-1 w-full px-3 py-2 rounded-xl border text-sm focus:outline-none focus:border-[#a2cbcd] ${planCustomTargets.length > 0 ? "bg-[#e4f0f1] border-[#a2cbcd] text-[#1c5d5f] font-mono font-bold" : "bg-[#f2f8f7] border-[#e4f0f1]"}`} style={{ borderRadius: 12 }} />
+                {planCustomTargets.length > 0 && <p className="font-mono text-[11px] text-[#1c5d5f] mt-1">Otomatis = {planCustomTargets.length} dari rincian di bawah</p>}
+                {planCustomTargets.length === 0 && <p className="font-mono text-[11px] text-[#283338]/50 mt-1">Atau isi Rincian Target di bawah — jumlah baris akan jadi Target otomatis</p>}
+              </div>
+              <CustomTargetsEditorInline />
               <p className="font-mono text-[11px] text-[#283338]/50">Deskripsi, indikator, bobot & tanggal akan diisi otomatis.</p>
             </div>
             <div className="p-6 border-t border-[#e4f0f1] flex gap-2 justify-end"><button onClick={() => setShowPlanModal(false)} className="px-4 py-2 rounded-full border border-[#e4f0f1] bg-white text-sm" style={{ borderRadius: 48 }}>Batal</button><button onClick={handleCreatePlan} className="px-5 py-2 rounded-full bg-[#1c5d5f] text-white text-sm font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>{editingPlan ? "Simpan Perubahan" : "Buat Rencana"}</button></div>

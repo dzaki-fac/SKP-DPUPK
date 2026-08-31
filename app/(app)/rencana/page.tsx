@@ -22,10 +22,9 @@ export default function RencanaPage() {
   const menuRef = useRef<HTMLDivElement>(null);
   if (!currentUser) return null;
 
-  const isStaff = currentUser.role === "staf";
-  // Staff selalu "mine"; atasan bisa pilih
-  const activeScope: Scope = isStaff ? "mine" : scope;
-  const canManage = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
+  // Semua pegawai bisa pilih cakupan & melimpahkan — tidak ada batas role
+  const activeScope: Scope = scope;
+  const canManage = true;
 
   const basePlans = activeScope === "mine" ? myPlans : filteredPlans;
   const shown = basePlans.filter(p => !search || p.title.toLowerCase().includes(search.toLowerCase()));
@@ -161,7 +160,7 @@ export default function RencanaPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
             {activeScope === "mine" ? (() => {
-              const canCascade = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
+              const canCascade = true;
               const canEdit = p.createdBy === currentUser.id || currentUser.role === "admin";
               const canDelete = canEdit;
               return (
@@ -211,15 +210,12 @@ export default function RencanaPage() {
         </div>
         <div className="flex gap-2">
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari..." className="px-3 py-1.5 rounded-full border bg-white text-sm border-[#e4f0f1] w-40 focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 100 }} />
-          {(currentUser.role === "pimpinan_1" || currentUser.role === "pimpinan_2" || currentUser.role === "pimpinan_3" || currentUser.role === "admin") && (
-            <button onClick={() => { setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026" }); setPlanCustomTargets([]); setShowPlanModal(true); }} className="px-4 py-1.5 rounded-full bg-[#1c5d5f] text-white text-xs font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>+ Buat</button>
-          )}
+          <button onClick={() => { setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026" }); setPlanCustomTargets([]); setShowPlanModal(true); }} className="px-4 py-1.5 rounded-full bg-[#1c5d5f] text-white text-xs font-medium hover:bg-[#156152]" style={{ borderRadius: 48 }}>+ Buat</button>
         </div>
       </div>
 
-      {/* Toggle cakupan — hanya untuk atasan */}
-      {!isStaff && (
-        <div className="flex gap-2">
+      {/* Toggle cakupan — semua pegawai */}
+      <div className="flex gap-2">
           <button onClick={() => setScope("mine")} className={`px-4 py-1.5 rounded-full text-xs font-medium border ${activeScope === "mine" ? "bg-[#1c5d5f] text-white border-[#1c5d5f]" : "bg-[#e4f0f1] border-[#e4f0f1] text-[#283338]"}`} style={{ borderRadius: 100 }}>
             Tugas Saya ({myPlans.length})
           </button>
@@ -231,7 +227,6 @@ export default function RencanaPage() {
           </button>
           {search && <button onClick={() => setSearch("")} className="px-3 py-1.5 rounded-full text-xs bg-white border border-[#e4f0f1]" style={{ borderRadius: 100 }}>Reset cari ×</button>}
         </div>
-      )}
 
       {/* Konfirmasi hapus */}
       {confirmPlan && (
@@ -274,7 +269,7 @@ export default function RencanaPage() {
         <div ref={menuRef} className="fixed z-50 w-44 bg-white border border-[#e4f0f1] shadow-sm overflow-hidden" style={{ borderRadius: 12, left: openMenu.x, top: openMenu.y }}>
           {(() => {
             const p = openMenu.plan;
-            const canCascade = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
+            const canCascade = true;
             const canRealize = p.assignedTo === currentUser.id;
             const canEdit = p.createdBy === currentUser.id || currentUser.role === "admin";
             const canDelete = canEdit;

@@ -38,8 +38,13 @@ export async function POST(req: Request) {
     return Response.json({ error: "Validasi gagal", details: parsed.error.flatten() }, { status: 400 });
   }
   const b = parsed.data;
-  // Basic role check
-  if (!["admin","pimpinan_1","pimpinan_2","pimpinan_3"].includes(payload.role) && b.createdBy !== payload.id) return Response.json({ error: "Hanya atasan dapat membuat rencana" }, { status: 403 });
+  // Semua pegawai boleh membuat tugas — tidak ada batas role, cukup pastikan pembuat adalah pemilik token (atau admin)
+  if (b.createdBy !== payload.id && payload.role !== "admin" && payload.role !== "pimpinan_1") {
+    // Izinkan staf/pimpinan membuat untuk dirinya sendiri; admin/pimpinan_1 boleh buat untuk siapa saja
+    // Jika ingin membuat untuk orang lain tanpa izin admin, tolak
+    // Tapi delegasi (child) tetap mengharuskan createdBy == pelimpah, jadi tetap lolos
+    return Response.json({ error: "Hanya pemilik akun yang dapat membuat atas namanya" }, { status: 403 });
+  }
   // Validasi porsi: total bawahan tidak boleh melebihi target induk
   if (b.parentId) {
     const parent = await prisma.performancePlan.findUnique({ where: { id: b.parentId } });
@@ -54,10 +59,7 @@ export async function POST(req: Request) {
     }
   }
   try {
-    // Jika customTargets disediakan, hanya pimpinan_1/admin yang boleh
-    if (b.customTargets && b.customTargets.length > 0 && !["pimpinan_1","admin"].includes(payload.role)) {
-      return Response.json({ error: "Hanya direktur yang dapat membuat target kustom" }, { status: 403 });
-    }
+    // Rincian target (seperti form realisasi) — boleh untuk semua pegawai, maks 5
     if (b.customTargets && b.customTargets.length > 5) {
       return Response.json({ error: "Maksimal 5 target kustom per rencana" }, { status: 400 });
     }
@@ -123,11 +125,8 @@ export async function PATCH(req: Request) {
       }
     }
   }
-  // Handle custom targets update (hanya pimpinan_1/admin)
+  // Handle custom targets update — boleh untuk semua pegawai (seperti realisasi)
   if (b.customTargets !== undefined) {
-    if (b.customTargets && (b.customTargets as any[]).length > 0 && !["pimpinan_1","admin"].includes(payload.role)) {
-      return Response.json({ error: "Hanya direktur yang dapat mengubah target kustom" }, { status: 403 });
-    }
     if (Array.isArray(b.customTargets) && b.customTargets.length > 5) {
       return Response.json({ error: "Maksimal 5 target kustom" }, { status: 400 });
     }

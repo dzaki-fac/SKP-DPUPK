@@ -36,7 +36,7 @@ export default function RencanaDetailPage() {
   };
 
   const parentPlan = plan.parentId ? plans.find(p => p.id === plan.parentId) : null;
-  const canManage = ["pimpinan_1","pimpinan_2","pimpinan_3","admin"].includes(currentUser.role);
+  const canManage = true;
 
   // Delegasi penerima
   const children = plans.filter(c => c.parentId === plan.id).sort((a,b) => {
