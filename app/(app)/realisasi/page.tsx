@@ -487,11 +487,10 @@ export default function RealisasiPage() {
                         const rows = parts.map((pp, idx) => {
                           const emp = pp.employeeId ? employees.find(e=>e.id===pp.employeeId) : null;
                           const name = emp?.name ?? pp.customName ?? pp.employeeId ?? "-";
-                          const status = pp.employeeId ? "Dalam sistem" : "Luar sistem";
                           const empNo = emp?.employeeNumber ?? "-";
-                          return [idx+1, name, emp?.role ?? "-", pp.role, status, empNo];
+                          return [idx+1, name, emp?.role ?? "-", pp.role, empNo];
                         });
-                        const header = ["No","Nama","Jabatan","Peran di Realisasi","Status","NIP"];
+                        const header = ["No","Nama","Jabatan","Peran di Realisasi","NIP"];
                         const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
                         const bom = "\uFEFF";
                         const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
@@ -516,7 +515,7 @@ export default function RealisasiPage() {
                       const emp = pp.employeeId ? employees.find(e=>e.id===pp.employeeId) : null;
                       const displayName = emp?.name ?? pp.customName ?? pp.employeeId ?? "-";
                       const isCustom = !pp.employeeId && !!pp.customName;
-                      return <div key={pp.id} className="p-2 rounded-xl bg-[#f2e8e2]/50 border border-[#e4f0f1] flex items-center gap-2" style={{ borderRadius: 12 }}><span className="w-6 h-6 rounded-full bg-[#16325a] text-white flex items-center justify-center text-[10px] font-bold">{emp?.avatar ?? (isCustom ? "?" : "?")}</span><span className="text-sm text-[#231e21] flex-1">{displayName} {isCustom ? <span className="font-mono text-[10px] text-[#283338]/60">(luar sistem)</span> : ""}</span><span className="font-mono text-xs px-2 py-0.5 rounded-full bg-white border border-[#d6aec1] text-[#4a2c2a]">{pp.role}</span></div>;
+                      return <div key={pp.id} className="p-2 rounded-xl bg-[#f2e8e2]/50 border border-[#e4f0f1] flex items-center gap-2" style={{ borderRadius: 12 }}><span className="text-sm text-[#231e21] flex-1">{displayName} {isCustom ? <span className="font-mono text-[10px] text-[#283338]/60">(luar sistem)</span> : ""}</span><span className="font-mono text-xs px-2 py-0.5 rounded-full bg-white border border-[#d6aec1] text-[#4a2c2a]">{pp.role}</span></div>;
                     })}
                   </div>
                 </div>
