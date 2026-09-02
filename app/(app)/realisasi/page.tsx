@@ -135,7 +135,7 @@ export default function RealisasiPage() {
     if (!plan) return;
     if (!canEdit(r)) return;
     setEditingRealization(r);
-    setRealForm({ title: r.title, value: r.value, description: r.description, date: r.date, time: (r as any).time ?? "09:00", files: [], targets: (r as any).targets?.map((t:any)=>({ name: t.name, value: t.value, unit: t.unit })) ?? [], participants: (r as any).participants?.map((p:any)=>({ employeeId: p.employeeId, role: p.role })) ?? [] });
+    setRealForm({ title: r.title, value: r.value, description: r.description, date: r.date, time: (r as any).time ?? "09:00", files: [], targets: (r as any).targets?.map((t:any)=>({ name: t.name, value: t.value, unit: t.unit })) ?? [], participants: (r as any).participants?.map((p:any)=>({ employeeId: p.employeeId ?? undefined, customName: p.customName ?? undefined, role: p.role })) ?? [] });
     setShowRealizationModal(plan);
   };
 
@@ -361,14 +361,6 @@ export default function RealisasiPage() {
                                   ))}
                                 </div>
                               )}
-                              {(r as any).participants && (r as any).participants.length>0 && (
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {(r as any).participants.map((pp:any)=>{
-                                    const e2 = employees.find(e=>e.id===pp.employeeId);
-                                    return <span key={pp.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{e2?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;
-                                  })}
-                                </div>
-                              )}
                               <div className="font-mono text-[11px] text-[#283338]/50 mt-1">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}</div>
                             </div>
                             <div className="flex flex-row gap-1 shrink-0 self-start">
@@ -418,7 +410,7 @@ export default function RealisasiPage() {
                       <tr key={r.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]">
                         <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB</div></td>
                         <td className="px-4 py-3"><div className="text-xs font-medium text-[#231e21]">{emp?.name.split(",")[0] ?? "-"}</div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}{r.uploadedBy ? "" : " (via penugasan)"}</div></td>
-                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{(r as any).participants && (r as any).participants.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).participants.map((pp:any)=>{ const e=employees.find(x=>x.id===pp.employeeId); return <span key={pp.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{e?.name?.split(",")[0] ?? pp.employeeId} — {pp.role}</span>;})}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
+                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
                          <td className="px-4 py-3 text-right">
                            {canDel ? (
                              <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] ml-auto" title="Hapus (atasan)">
@@ -476,11 +468,44 @@ export default function RealisasiPage() {
                 </div>
               )}
               {(selectedReal as any).participants && (selectedReal as any).participants.length>0 && (
-                <div><div className="eyebrow text-[11px]">PEGAWAI TERLIBAT</div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="eyebrow text-[11px]">PEGAWAI TERLIBAT</div>
+                    <button
+                      onClick={() => {
+                        const parts = (selectedReal as any).participants as any[];
+                        const rows = parts.map((pp, idx) => {
+                          const emp = pp.employeeId ? employees.find(e=>e.id===pp.employeeId) : null;
+                          const name = emp?.name ?? pp.customName ?? pp.employeeId ?? "-";
+                          const empNo = emp?.employeeNumber ?? "-";
+                          return [idx+1, name, emp?.role ?? "-", pp.role, empNo];
+                        });
+                        const header = ["No","Nama","Jabatan","Peran di Realisasi","NIP"];
+                        const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+                        const bom = "\uFEFF";
+                        const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `pegawai-terlibat-${selectedReal.title.replace(/[^a-zA-Z0-9]/g,"_").slice(0,30)}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="font-mono text-[11px] px-2 py-1 rounded-full bg-white border border-[#e4f0f1] text-[#1c5d5f] hover:bg-[#f2f8f7] flex items-center gap-1"
+                      title="Ekspor ke Excel (CSV)"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      Ekspor Excel
+                    </button>
+                  </div>
                   <div className="mt-1 space-y-1">
                     {(selectedReal as any).participants.map((pp:any)=>{
-                      const emp = employees.find(e=>e.id===pp.employeeId);
-                      return <div key={pp.id} className="p-2 rounded-xl bg-[#f2e8e2]/50 border border-[#e4f0f1] flex items-center gap-2" style={{ borderRadius: 12 }}><span className="w-6 h-6 rounded-full bg-[#16325a] text-white flex items-center justify-center text-[10px] font-bold">{emp?.avatar ?? "?"}</span><span className="text-sm text-[#231e21] flex-1">{emp?.name ?? pp.employeeId}</span><span className="font-mono text-xs px-2 py-0.5 rounded-full bg-white border border-[#d6aec1] text-[#4a2c2a]">{pp.role}</span></div>;
+                      const emp = pp.employeeId ? employees.find(e=>e.id===pp.employeeId) : null;
+                      const displayName = emp?.name ?? pp.customName ?? pp.employeeId ?? "-";
+                      const isCustom = !pp.employeeId && !!pp.customName;
+                      return <div key={pp.id} className="p-2 rounded-xl bg-[#f2e8e2]/50 border border-[#e4f0f1] flex items-center gap-2" style={{ borderRadius: 12 }}><span className="text-sm text-[#231e21] flex-1">{displayName} {isCustom ? <span className="font-mono text-[10px] text-[#283338]/60">(luar sistem)</span> : ""}</span><span className="font-mono text-xs px-2 py-0.5 rounded-full bg-white border border-[#d6aec1] text-[#4a2c2a]">{pp.role}</span></div>;
                     })}
                   </div>
                 </div>

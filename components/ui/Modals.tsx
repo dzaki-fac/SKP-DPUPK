@@ -343,35 +343,91 @@ export function GlobalModals() {
                   )}
                   {realForm.participants.map((p, idx) => {
                     const emp = employees.find(e=>e.id===p.employeeId);
+                    const displayValue = p.employeeId ? (emp?.name ?? "") : (p.customName ?? "");
+                    const filteredEmps = (() => {
+                      const q = displayValue.toLowerCase().trim();
+                      if (!q) return employees.filter(e => !realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===e.id)).slice(0,8);
+                      return employees.filter(e => {
+                        if (realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===e.id)) return false;
+                        return e.name.toLowerCase().includes(q) || e.role.toLowerCase().includes(q);
+                      }).slice(0,8);
+                    })();
+                    const showDropdown = displayValue.trim().length > 0 && filteredEmps.length > 0 && !(emp && displayValue === emp.name);
+                    const isCustom = !p.employeeId && displayValue.trim().length > 0 && !employees.some(e=>e.name.toLowerCase()===displayValue.toLowerCase().trim());
                     return (
-                      <div key={idx} className="grid grid-cols-[1fr_110px_32px] sm:grid-cols-[1fr_120px_32px] gap-1.5 sm:gap-2 items-end">
-                        <div>
-                          <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Pegawai</label>
-                          <select value={p.employeeId} onChange={e=>{
-                            const copy=[...realForm.participants];
-                            copy[idx]={...copy[idx], employeeId:e.target.value};
-                            setRealForm({...realForm, participants:copy});
-                          }} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}}>
-                            <option value="">Pilih pegawai</option>
-                            {employees.map(empOpt=>(
-                              <option key={empOpt.id} value={empOpt.id} disabled={realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===empOpt.id)}>{empOpt.name.split(",")[0]} — {empOpt.role} {realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===empOpt.id) ? "(sudah dipilih)" : ""}</option>
-                            ))}
-                          </select>
+                      <div key={idx} className="space-y-1">
+                        <div className="grid grid-cols-[1fr_110px_32px] sm:grid-cols-[1fr_120px_32px] gap-1.5 sm:gap-2 items-start">
+                          <div className="relative">
+                            <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Pegawai <span className="normal-case font-normal text-[#283338]/40">(ketik nama)</span></label>
+                            <input
+                              value={displayValue}
+                              onChange={e=>{
+                                const val = e.target.value;
+                                const copy=[...realForm.participants];
+                                const matched = employees.find(empOpt => empOpt.name.toLowerCase() === val.toLowerCase().trim() || empOpt.name.split(",")[0].toLowerCase() === val.toLowerCase().trim());
+                                if (matched && !realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===matched.id)) {
+                                  copy[idx]={...copy[idx], employeeId: matched.id, customName: undefined};
+                                } else {
+                                  const exactMatch = employees.find(empOpt => empOpt.name.toLowerCase() === val.toLowerCase().trim());
+                                  if (exactMatch) {
+                                    copy[idx]={...copy[idx], employeeId: exactMatch.id, customName: undefined};
+                                  } else {
+                                    copy[idx]={...copy[idx], employeeId: undefined, customName: val};
+                                  }
+                                }
+                                setRealForm({...realForm, participants:copy});
+                              }}
+                              onBlur={()=>{
+                                const val = displayValue.trim();
+                                if (!val) return;
+                                const matched = employees.find(empOpt => empOpt.name.toLowerCase() === val.toLowerCase() || empOpt.name.split(",")[0].toLowerCase() === val.toLowerCase());
+                                if (matched && !realForm.participants.some((pp,i)=>i!==idx && pp.employeeId===matched.id)) {
+                                  const copy=[...realForm.participants];
+                                  copy[idx]={...copy[idx], employeeId: matched.id, customName: undefined};
+                                  setRealForm({...realForm, participants:copy});
+                                }
+                              }}
+                              placeholder="Ketik nama pegawai..."
+                              className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}}
+                            />
+                            {showDropdown && (
+                              <div className="absolute z-20 w-full mt-1 bg-white border border-[#e4f0f1] rounded-lg shadow-lg max-h-32 overflow-y-auto" style={{borderRadius:8}}>
+                                {filteredEmps.map(empOpt=>(
+                                  <div
+                                    key={empOpt.id}
+                                    onMouseDown={e=>{
+                                      e.preventDefault();
+                                      const copy=[...realForm.participants];
+                                      copy[idx]={...copy[idx], employeeId: empOpt.id, customName: undefined};
+                                      setRealForm({...realForm, participants:copy});
+                                    }}
+                                    className="px-2 py-1.5 hover:bg-[#f2f8f7] cursor-pointer text-xs flex items-center justify-between"
+                                  >
+                                    <span>{empOpt.name.split(",")[0]} <span className="text-[#283338]/60">— {empOpt.role}</span></span>
+                                    <span className="text-[10px] bg-[#e4f0f1] px-1.5 py-0.5 rounded-full">Pilih</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Peran</label>
+                            <input value={p.role} onChange={e=>{
+                              const copy=[...realForm.participants];
+                              copy[idx]={...copy[idx], role:e.target.value};
+                              setRealForm({...realForm, participants:copy});
+                            }} placeholder="Narasumber" className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}} />
+                          </div>
+                          <button type="button" onClick={()=> setRealForm({...realForm, participants: realForm.participants.filter((_,i)=>i!==idx)})} className="mt-5 w-8 h-8 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] shrink-0">×</button>
                         </div>
-                        <div>
-                          <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Peran</label>
-                          <input value={p.role} onChange={e=>{
-                            const copy=[...realForm.participants];
-                            copy[idx]={...copy[idx], role:e.target.value};
-                            setRealForm({...realForm, participants:copy});
-                          }} placeholder="Narasumber" className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{borderRadius:8}} />
-                        </div>
-                        <button type="button" onClick={()=> setRealForm({...realForm, participants: realForm.participants.filter((_,i)=>i!==idx)})} className="mb-0.5 w-8 h-8 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]">×</button>
+                        {isCustom && displayValue.trim() && (
+                          <div className="font-mono text-[10px] text-[#1c5d5f] ml-1">↳ Nama custom (tidak di sistem) — akan disimpan sebagai "{displayValue.trim()}"</div>
+                        )}
                       </div>
                     );
                   })}
                   {realForm.participants.length < 10 && (
-                    <button type="button" onClick={()=> setRealForm({...realForm, participants:[...realForm.participants, {employeeId:"", role:""}]})} className="w-full py-1.5 rounded-full border border-dashed border-[#a2cbcd] bg-white text-xs font-medium text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{borderRadius:48}}>+ Tambah pegawai terlibat</button>
+                    <button type="button" onClick={()=> setRealForm({...realForm, participants:[...realForm.participants, {customName:"", role:""}]})} className="w-full py-1.5 rounded-full border border-dashed border-[#a2cbcd] bg-white text-xs font-medium text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{borderRadius:48}}>+ Tambah pegawai terlibat</button>
                   )}
                   {realForm.participants.length >= 10 && <p className="font-mono text-[11px] text-[#b91c1c]">Maksimal 10 pegawai</p>}
                 </div>

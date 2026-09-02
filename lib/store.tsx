@@ -37,7 +37,7 @@ type Ctx = {
   cascadeTargets: string[]; setCascadeTargets: (v: string[]) => void;
   cascadePortions: Record<string,string>; setCascadePortions: (v: Record<string,string>) => void;
   cascadeTitles: Record<string,string>; setCascadeTitles: (v: Record<string,string>) => void;
-  realForm: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId: string, role: string}> }; setRealForm: (v: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId: string, role: string}> }) => void;
+  realForm: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId?: string, customName?: string, role: string}> }; setRealForm: (v: { title: string; value: string; description: string; date: string; time: string; files: Array<{fileName: string, filePath: string, fileSize: string}>; targets: Array<{name: string, value: string, unit: string}>; participants: Array<{employeeId?: string, customName?: string, role: string}> }) => void;
   editingRealization: Realization | null; setEditingRealization: (r: Realization | null) => void;
   periodForm: { name: string; year: number; startDate: string; endDate: string }; setPeriodForm: (v: { name: string; year: number; startDate: string; endDate: string }) => void;
   empForm: { name: string; email: string; supervisorId: string; role: Role }; setEmpForm: (v: { name: string; email: string; supervisorId: string; role: Role }) => void;
@@ -81,7 +81,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const [cascadeTargets, setCascadeTargets] = useState<string[]>([]);
   const [cascadePortions, setCascadePortions] = useState<Record<string,string>>({});
   const [cascadeTitles, setCascadeTitles] = useState<Record<string,string>>({});
-  const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] as Array<{fileName: string, filePath: string, fileSize: string}>, targets: [] as Array<{name: string, value: string, unit: string}>, participants: [] as Array<{employeeId: string, role: string}> });
+  const [realForm, setRealForm] = useState({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [] as Array<{fileName: string, filePath: string, fileSize: string}>, targets: [] as Array<{name: string, value: string, unit: string}>, participants: [] as Array<{employeeId?: string, customName?: string, role: string}> });
   const [periodForm, setPeriodForm] = useState({ name: "", year: 2026, startDate: "", endDate: "" });
   const [empForm, setEmpForm] = useState({ name: "", email: "", supervisorId: "", role: "staf" as Role });
   const [dbLoaded, setDbLoaded] = useState(false);
@@ -363,13 +363,17 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
     }
     if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
-    const pIds = realForm.participants.map(p=>p.employeeId);
-    if (new Set(pIds).size !== pIds.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
+    // Validasi duplikat berdasarkan employeeId atau customName
+    const pKeys = realForm.participants.map(p => p.employeeId ? `id:${p.employeeId}` : `custom:${(p.customName||"").toLowerCase().trim()}`);
+    if (new Set(pKeys).size !== pKeys.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
     for (const p of realForm.participants) {
-      if (!p.employeeId) { notify("Pilih pegawai terlibat"); return; }
+      const hasEmployee = !!p.employeeId;
+      const hasCustom = !!(p.customName && p.customName.trim());
+      if (!hasEmployee && !hasCustom) { notify("Isi nama pegawai terlibat (ketik nama, pilih dari daftar jika ada)"); return; }
+      if (hasEmployee && hasCustom) { notify("Peserta tidak boleh punya employeeId dan customName bersamaan"); return; }
       if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
     }
-    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: titleTrim, value: String(valNum), description: realForm.description, date: dateVal, time: timeVal, uploadedBy: currentUser.id, targets: realForm.targets.map(t=>({ id: "rt"+Date.now()+Math.random().toString(36).slice(2,5), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId:p.employeeId, role:p.role.trim() })) };
+    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: titleTrim, value: String(valNum), description: realForm.description, date: dateVal, time: timeVal, uploadedBy: currentUser.id, targets: realForm.targets.map(t=>({ id: "rt"+Date.now()+Math.random().toString(36).slice(2,5), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId: p.employeeId || null, customName: p.customName?.trim() || null, role:p.role.trim() } as any)) };
     const nextReals = [r, ...realizations];
     // untuk plan yang punya anak, progress = (langsung + anak)/target
     const newProgress = calcPlanProgress(plan.id, plans, nextReals);
@@ -459,13 +463,15 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
     }
     if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
-    const updPIds = realForm.participants.map(p=>p.employeeId);
-    if (new Set(updPIds).size !== updPIds.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
+    const updPKeys = realForm.participants.map(p => p.employeeId ? `id:${p.employeeId}` : `custom:${(p.customName||"").toLowerCase().trim()}`);
+    if (new Set(updPKeys).size !== updPKeys.length) { notify("Pegawai terlibat tidak boleh duplikat"); return; }
     for (const p of realForm.participants) {
-      if (!p.employeeId) { notify("Pilih pegawai terlibat"); return; }
+      const hasEmployee = !!p.employeeId;
+      const hasCustom = !!(p.customName && p.customName.trim());
+      if (!hasEmployee && !hasCustom) { notify("Isi nama pegawai terlibat (ketik nama, pilih dari daftar jika ada)"); return; }
       if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
     }
-    const updated: Realization = { ...editingRealization, title: titleTrim, description: realForm.description, date: dateVal, time: timeVal, targets: realForm.targets.map(t=>({ id: t.name+Date.now(), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId:p.employeeId, role:p.role.trim() })) };
+    const updated: Realization = { ...editingRealization, title: titleTrim, description: realForm.description, date: dateVal, time: timeVal, targets: realForm.targets.map(t=>({ id: t.name+Date.now(), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId: p.employeeId || null, customName: p.customName?.trim() || null, role:p.role.trim() } as any)) };
     const addedFiles = [...realForm.files];
     setRealizations(prev => prev.map(r => r.id === editingRealization.id ? updated : r));
     // jangan buat optimistic attachment — tunggu refetch dari DB setelah PATCH
