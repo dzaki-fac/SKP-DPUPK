@@ -478,7 +478,39 @@ export default function RealisasiPage() {
                 </div>
               )}
               {(selectedReal as any).participants && (selectedReal as any).participants.length>0 && (
-                <div><div className="eyebrow text-[11px]">PEGAWAI TERLIBAT</div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="eyebrow text-[11px]">PEGAWAI TERLIBAT</div>
+                    <button
+                      onClick={() => {
+                        const parts = (selectedReal as any).participants as any[];
+                        const rows = parts.map((pp, idx) => {
+                          const emp = pp.employeeId ? employees.find(e=>e.id===pp.employeeId) : null;
+                          const name = emp?.name ?? pp.customName ?? pp.employeeId ?? "-";
+                          const status = pp.employeeId ? "Dalam sistem" : "Luar sistem";
+                          const empNo = emp?.employeeNumber ?? "-";
+                          return [idx+1, name, emp?.role ?? "-", pp.role, status, empNo];
+                        });
+                        const header = ["No","Nama","Jabatan","Peran di Realisasi","Status","NIP"];
+                        const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+                        const bom = "\uFEFF";
+                        const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `pegawai-terlibat-${selectedReal.title.replace(/[^a-zA-Z0-9]/g,"_").slice(0,30)}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="font-mono text-[11px] px-2 py-1 rounded-full bg-white border border-[#e4f0f1] text-[#1c5d5f] hover:bg-[#f2f8f7] flex items-center gap-1"
+                      title="Ekspor ke Excel (CSV)"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      Ekspor Excel
+                    </button>
+                  </div>
                   <div className="mt-1 space-y-1">
                     {(selectedReal as any).participants.map((pp:any)=>{
                       const emp = pp.employeeId ? employees.find(e=>e.id===pp.employeeId) : null;
