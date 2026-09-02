@@ -37,7 +37,7 @@ export interface PerformancePlan {
 }
 
 export interface RealizationTarget { id: string; name: string; value: string; unit: string; }
-export interface RealizationParticipant { id: string; employeeId: string; role: string; }
+export interface RealizationParticipant { id: string; employeeId?: string | null; customName?: string | null; role: string; }
 export interface Realization {
   id: string;
   planId: string;

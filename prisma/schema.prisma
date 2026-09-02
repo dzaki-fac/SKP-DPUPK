@@ -136,16 +136,17 @@ model RealizationTarget {
   @@map("realization_targets")
 }
 
-// ── Pegawai Terlibat per Realisasi (pengaju pilih + peran) ─────────
+// ── Pegawai Terlibat per Realisasi (pengaju pilih + peran, bisa custom) ─────────
 model RealizationParticipant {
   id            String @id @default(cuid())
   realizationId String @map("realization_id")
-  employeeId    String @map("employee_id")
+  employeeId    String? @map("employee_id") // nullable untuk nama custom tidak di sistem
+  customName    String? @map("custom_name") // nama custom jika tidak ada di sistem
   role          String // peran dalam realisasi, e.g., "Narasumber", "Moderator", "Peserta"
   createdAt     String @default("2026-01-01") @map("created_at")
 
   realization Realization @relation(fields: [realizationId], references: [id], onDelete: Cascade)
-  employee    Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee    Employee?   @relation(fields: [employeeId], references: [id], onDelete: SetNull)
 
   @@index([realizationId])
   @@index([employeeId])

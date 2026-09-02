@@ -5,7 +5,7 @@ const mapOut = (x: any) => ({
   id: x.id, planId: x.performancePlanId, title: x.title ?? "Realisasi", value: x.realizationValue,
   description: x.realizationDescription, date: x.realizationDate, time: (x as any).realizationTime ?? "09:00", uploadedBy: x.uploadedBy ?? null,
   targets: x.targets?.map((t:any)=>({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? [],
-  participants: x.participants?.map((p:any)=>({ id: p.id, employeeId: p.employeeId, role: p.role })) ?? []
+  participants: x.participants?.map((p:any)=>({ id: p.id, employeeId: p.employeeId ?? null, customName: p.customName ?? null, role: p.role })) ?? []
 });
 
 function normalizeTime(t: any): string | null {
@@ -94,16 +94,29 @@ export async function POST(req: Request) {
       if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
       if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
     }
-    // Validasi participants (pegawai terlibat + peran)
-    const incomingParticipants: Array<{employeeId:string,role:string}> = Array.isArray(b.participants) ? b.participants : [];
+    // Validasi participants (pegawai terlibat + peran) — dukung customName
+    const incomingParticipants: Array<{employeeId?:string, customName?:string, role:string}> = Array.isArray(b.participants) ? b.participants : [];
     if (incomingParticipants.length > 10) return Response.json({ error: "Maksimal 10 pegawai terlibat per realisasi" }, { status: 400 });
-    const participantIds = incomingParticipants.map(p=>String(p.employeeId).trim()).filter(Boolean);
-    if (new Set(participantIds).size !== participantIds.length) return Response.json({ error: "Pegawai terlibat tidak boleh duplikat" }, { status: 400 });
-    for (const p of incomingParticipants) {
-      if (!p.employeeId || String(p.employeeId).trim().length < 1) return Response.json({ error: "Pegawai terlibat wajib dipilih" }, { status: 400 });
+    const pKeys = incomingParticipants.map(p => {
+      if (p.employeeId && String(p.employeeId).trim()) return `id:${String(p.employeeId).trim()}`;
+      if ((p as any).customName && String((p as any).customName).trim()) return `custom:${String((p as any).customName).toLowerCase().trim()}`;
+      if ((p as any).name && String((p as any).name).trim()) return `custom:${String((p as any).name).toLowerCase().trim()}`;
+      return "";
+    }).filter(Boolean);
+    if (new Set(pKeys).size !== pKeys.length) return Response.json({ error: "Pegawai terlibat tidak boleh duplikat" }, { status: 400 });
+    for (const p of incomingParticipants as any[]) {
+      const hasEmployee = p.employeeId && String(p.employeeId).trim().length > 0;
+      const hasCustom = (p.customName && String(p.customName).trim().length > 0) || (p.name && String(p.name).trim().length > 0);
+      const customVal = p.customName ?? p.name;
+      if (!hasEmployee && !hasCustom) return Response.json({ error: "Isi nama pegawai terlibat (ketik nama, pilih dari daftar jika ada)" }, { status: 400 });
+      if (hasEmployee && hasCustom) return Response.json({ error: "Peserta tidak boleh punya employeeId dan nama custom bersamaan" }, { status: 400 });
       if (!p.role || String(p.role).trim().length < 1 || String(p.role).trim().length > 30) return Response.json({ error: "Peran 1-30 karakter" }, { status: 400 });
-      const empExists = await prisma.employee.findUnique({ where: { id: String(p.employeeId).trim() } });
-      if (!empExists) return Response.json({ error: `Pegawai ${p.employeeId} tidak ditemukan` }, { status: 400 });
+      if (hasEmployee) {
+        const empExists = await prisma.employee.findUnique({ where: { id: String(p.employeeId).trim() } });
+        if (!empExists) return Response.json({ error: `Pegawai ${p.employeeId} tidak ditemukan` }, { status: 400 });
+      } else {
+        if (String(customVal).trim().length > 50) return Response.json({ error: "Nama custom maksimal 50 karakter" }, { status: 400 });
+      }
     }
     const real = await prisma.realization.create({ data: {
       performancePlanId: b.planId, title: titleTrim.slice(0, 200), realizationValue: String(b.value),
@@ -118,9 +131,10 @@ export async function POST(req: Request) {
       }).catch(()=>{});
     }
     // Simpan pegawai terlibat
-    for (const p of incomingParticipants) {
+    for (const p of incomingParticipants as any[]) {
+      const hasEmployee = p.employeeId && String(p.employeeId).trim().length > 0;
       await prisma.realizationParticipant.create({
-        data: { realizationId: real.id, employeeId: String(p.employeeId).trim(), role: String(p.role).trim().slice(0,30) }
+        data: { realizationId: real.id, employeeId: hasEmployee ? String(p.employeeId).trim() : null, customName: !hasEmployee ? String(p.customName ?? p.name).trim().slice(0,50) : null, role: String(p.role).trim().slice(0,30) }
       }).catch(()=>{});
     }
     // banyak file bukti: prefer b.files [{fileName, filePath, fileSize}], fallback b.fileNames[]
@@ -206,22 +220,36 @@ export async function PATCH(req: Request) {
       }).catch(()=>{});
     }
   }
-  // Handle participants update jika ada
+  // Handle participants update jika ada — dukung customName
   if (b.participants !== undefined) {
-    const updParticipants: Array<{employeeId:string,role:string}> = Array.isArray(b.participants) ? b.participants : [];
+    const updParticipants: Array<{employeeId?:string, customName?:string, role:string}> = Array.isArray(b.participants) ? b.participants : [];
     if (updParticipants.length > 10) return Response.json({ error: "Maksimal 10 pegawai terlibat" }, { status: 400 });
-    const ids = updParticipants.map(p=>String(p.employeeId).trim()).filter(Boolean);
-    if (new Set(ids).size !== ids.length) return Response.json({ error: "Pegawai terlibat tidak boleh duplikat" }, { status: 400 });
-    for (const p of updParticipants) {
-      if (!p.employeeId || String(p.employeeId).trim().length < 1) return Response.json({ error: "Pegawai terlibat wajib dipilih" }, { status: 400 });
+    const pKeys = (updParticipants as any[]).map(p => {
+      if (p.employeeId && String(p.employeeId).trim()) return `id:${String(p.employeeId).trim()}`;
+      const cn = p.customName ?? (p as any).name;
+      if (cn && String(cn).trim()) return `custom:${String(cn).toLowerCase().trim()}`;
+      return "";
+    }).filter(Boolean);
+    if (new Set(pKeys).size !== pKeys.length) return Response.json({ error: "Pegawai terlibat tidak boleh duplikat" }, { status: 400 });
+    for (const p of updParticipants as any[]) {
+      const hasEmployee = p.employeeId && String(p.employeeId).trim().length > 0;
+      const hasCustom = (p.customName && String(p.customName).trim().length > 0) || (p.name && String(p.name).trim().length > 0);
+      if (!hasEmployee && !hasCustom) return Response.json({ error: "Isi nama pegawai terlibat (ketik nama, pilih dari daftar jika ada)" }, { status: 400 });
+      if (hasEmployee && hasCustom) return Response.json({ error: "Peserta tidak boleh punya employeeId dan nama custom bersamaan" }, { status: 400 });
       if (!p.role || String(p.role).trim().length < 1 || String(p.role).trim().length > 30) return Response.json({ error: "Peran 1-30 karakter" }, { status: 400 });
-      const empExists = await prisma.employee.findUnique({ where: { id: String(p.employeeId).trim() } });
-      if (!empExists) return Response.json({ error: `Pegawai ${p.employeeId} tidak ditemukan` }, { status: 400 });
+      if (hasEmployee) {
+        const empExists = await prisma.employee.findUnique({ where: { id: String(p.employeeId).trim() } });
+        if (!empExists) return Response.json({ error: `Pegawai ${p.employeeId} tidak ditemukan` }, { status: 400 });
+      } else {
+        const cn = p.customName ?? (p as any).name;
+        if (String(cn).trim().length > 50) return Response.json({ error: "Nama custom maksimal 50 karakter" }, { status: 400 });
+      }
     }
     await prisma.realizationParticipant.deleteMany({ where: { realizationId: b.id } });
-    for (const p of updParticipants) {
+    for (const p of updParticipants as any[]) {
+      const hasEmployee = p.employeeId && String(p.employeeId).trim().length > 0;
       await prisma.realizationParticipant.create({
-        data: { realizationId: b.id, employeeId: String(p.employeeId).trim(), role: String(p.role).trim().slice(0,30) }
+        data: { realizationId: b.id, employeeId: hasEmployee ? String(p.employeeId).trim() : null, customName: !hasEmployee ? String(p.customName ?? (p as any).name).trim().slice(0,50) : null, role: String(p.role).trim().slice(0,30) }
       }).catch(()=>{});
     }
   }
