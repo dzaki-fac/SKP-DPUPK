@@ -361,16 +361,6 @@ export default function RealisasiPage() {
                                   ))}
                                 </div>
                               )}
-                              {(r as any).participants && (r as any).participants.length>0 && (
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {(r as any).participants.map((pp:any)=>{
-                                    const e2 = pp.employeeId ? employees.find(e=>e.id===pp.employeeId) : null;
-                                    const displayName = e2?.name?.split(",")[0] ?? pp.customName ?? pp.employeeId ?? "-";
-                                    const isCustom = !pp.employeeId && !!pp.customName;
-                                    return <span key={pp.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{displayName} — {pp.role}{isCustom ? " (luar)" : ""}</span>;
-                                  })}
-                                </div>
-                              )}
                               <div className="font-mono text-[11px] text-[#283338]/50 mt-1">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB{buktiCount>0 ? ` • 📎 ${buktiCount}` : ""}</div>
                             </div>
                             <div className="flex flex-row gap-1 shrink-0 self-start">
@@ -420,7 +410,7 @@ export default function RealisasiPage() {
                       <tr key={r.id} className="border-b border-[#e4f0f1] hover:bg-[#f2f8f7]">
                         <td className="px-4 py-3"><div className="font-medium truncate max-w-[260px]">{plan?.title}</div><div className="text-xs text-[#283338]/60 truncate">{r.description}</div><div className="font-mono text-xs text-[#283338]/50">{formatTanggal(r.date)}, {(r as any).time ?? "09:00"} WIB</div></td>
                         <td className="px-4 py-3"><div className="text-xs font-medium text-[#231e21]">{emp?.name.split(",")[0] ?? "-"}</div><div className="font-mono text-[11px] text-[#283338]/50">{emp?.role}{r.uploadedBy ? "" : " (via penugasan)"}</div></td>
-                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{(r as any).participants && (r as any).participants.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).participants.map((pp:any)=>{ const e=pp.employeeId ? employees.find(x=>x.id===pp.employeeId) : null; const displayName = e?.name?.split(",")[0] ?? pp.customName ?? pp.employeeId ?? "-"; const isCustom = !pp.employeeId && !!pp.customName; return <span key={pp.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2e8e2] border border-[#d6aec1] font-mono text-[10px] text-[#4a2c2a]">{displayName} — {pp.role}{isCustom ? " (luar)" : ""}</span>;})}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
+                         <td className="px-4 py-3"><button onClick={() => setSelectedRealId(r.id)} className="font-medium text-xs text-[#231e21] truncate text-left hover:text-[#1c5d5f] hover:underline underline-offset-2" title="Lihat detail realisasi">{r.title || "Realisasi"}</button><div className="text-xs text-[#283338]/60 truncate">{r.description || "—"}</div>{(r as any).targets && (r as any).targets.length>0 && (<div className="flex flex-wrap gap-1 mt-1">{(r as any).targets.map((t:any)=>(<span key={t.id} className="inline-flex px-1.5 py-0.5 rounded-full bg-[#f2f8f7] border border-[#e4f0f1] font-mono text-[10px] text-[#1c5d5f]">{t.name}: {t.value} {t.unit}</span>))}</div>)}{attachments.filter(a => a.realizationId === r.id).map(a => <div key={a.id} className="text-xs text-[#1c5d5f] mt-1">📎 {a.fileName}</div>)}</td>
                          <td className="px-4 py-3 text-right">
                            {canDel ? (
                              <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2] ml-auto" title="Hapus (atasan)">
