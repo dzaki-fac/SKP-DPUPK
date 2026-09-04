@@ -60,10 +60,9 @@ export function AppNav() {
  {navItems.map(n => {
  const active = pathname === n.href || (n.href === "/rencana"&& pathname.startsWith("/rencana"));
  return (
- <Link key={n.href} href={n.href} className={`h-[32px] px-3 inline-flex items-center text-[14px] transition-colors ${active ? " text-[#0c0a09] font-medium": " text-[#78716c] font-normal hover:text-[#0c0a09]"}`}>
- {n.label}
- {active && <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-[#3ba6f1]"/>}
- </Link>
+  <Link key={n.href} href={n.href} className={`h-[32px] px-3.5 inline-flex items-center text-[14px] transition-colors ${active ? " bg-[#3ba6f1] text-white font-medium rounded-full": " text-[#78716c] font-normal hover:text-[#0c0a09]"}`}>
+  {n.label}
+  </Link>
  );
  })}
  </nav>
@@ -80,10 +79,13 @@ export function AppNav() {
  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-[#a8a29e] hidden lg:block"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
  </button>
 
- {showUserMenu && (
- <div className="absolute right-0 top-full mt-2 w-[300px] bg-white border border-[#e8e6e5] rounded-[10px] overflow-hidden z-40" style={{ boxShadow: "rgba(0,0,0,0.05) 0px 4px 16px 0px"}}>
- <div className="p-4 bg-[#fafaf9] border-b border-[#e8e6e5]">
- <div className="flex items-center gap-3">
+  {showUserMenu && (
+  <div className="absolute right-0 top-full mt-2 w-[300px] bg-white border border-[#e8e6e5] rounded-[10px] overflow-hidden z-40" style={{ boxShadow: "rgba(0,0,0,0.05) 0px 4px 16px 0px"}}>
+  <div className="p-4 bg-[#fafaf9] border-b border-[#e8e6e5] relative">
+  <Link href="/pengaturan" onClick={() => setShowUserMenu(false)} title="Pengaturan akun" aria-label="Pengaturan akun" className="absolute top-3 right-3 w-8 h-8 inline-flex items-center justify-center rounded-full text-[#78716c] hover:text-[#0c0a09] hover:bg-white hover:border-[#e8e6e5] border border-transparent transition">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" strokeWidth="1.8"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1h.09a2 2 0 1 1 0 4h-.09c0 .35-.08.69-.22 1Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+  </Link>
+  <div className="flex items-center gap-3 pr-8">
  <span className="w-9 h-9 rounded-full bg-[#0c0a09] text-white flex items-center justify-center text-[14px] font-medium shrink-0" style={{ borderRadius: 9999 }}>{currentUser.avatar}</span>
  <div>
  <div className="text-[14px] font-medium text-[#0c0a09]">{currentUser.name.split(",")[0]}</div>
@@ -92,7 +94,13 @@ export function AppNav() {
  </div>
  </div>
  </div>
- <div className="p-2 border-t border-[#e8e6e5]">
+  <div className="p-2">
+  <Link href="/pengaturan" onClick={() => setShowUserMenu(false)} className="w-full px-3 py-2 rounded-[8px] flex items-center gap-2.5 text-[14px] text-[#0c0a09] hover:bg-[#fafaf9] transition">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden className="text-[#78716c] shrink-0"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" strokeWidth="1.8"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1h.09a2 2 0 1 1 0 4h-.09c0 .35-.08.69-.22 1Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+  Pengaturan akun
+  </Link>
+  </div>
+  <div className="p-2 pt-0 border-t border-[#e8e6e5]">
   <button onClick={async () => { await logout(); router.push("/login"); setShowUserMenu(false); }} className="w-full py-2 rounded-full bg-white border border-[#e8e6e5] text-[14px] text-[#0c0a09] hover:bg-[#fafaf9]" style={{ borderRadius: 9999 }}>Keluar</button>
  </div>
  </div>
