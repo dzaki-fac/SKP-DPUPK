@@ -20,7 +20,7 @@ export default function proxy(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized — silakan login" }, { status: 401 });
     }
     const url = req.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }

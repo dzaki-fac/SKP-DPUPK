@@ -1,36 +1,47 @@
 export function IllustrationLeft() {
-  return (
-    <svg viewBox="0 0 200 180" className="w-[180px] h-[160px] lg:w-[220px] lg:h-[200px]" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <rect x="16" y="18" width="120" height="98" rx="8" stroke="#231e21" strokeWidth="2" fill="white" />
-      <circle cx="28" cy="30" r="3" fill="#1c5d5f" /><circle cx="38" cy="30" r="3" fill="#65b8a2" /><circle cx="48" cy="30" r="3" fill="#d6aec1" />
-      <line x1="16" y1="40" x2="136" y2="40" stroke="#231e21" strokeWidth="1.2" />
-      <circle cx="76" cy="68" r="18" stroke="#231e21" strokeWidth="2" fill="#f2e8e2" />
-      <circle cx="71" cy="66" r="1.8" fill="#231e21" /><circle cx="81" cy="66" r="1.8" fill="#231e21" />
-      <path d="M70 74 Q76 78 82 74" stroke="#231e21" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-      <path d="M60 44 Q76 28 92 44 Q88 50 76 52 Q64 50 60 44" fill="#231e21" />
-      <path d="M48 96 Q76 92 104 96 L98 120 H54 Z" fill="#65b8a2" stroke="#231e21" strokeWidth="1.6" />
-      <path d="M150 36 L154 44 L162 48 L154 52 L150 60 L146 52 L138 48 L146 44 Z" fill="#65b8a2" stroke="#231e21" strokeWidth="1" />
-      <circle cx="168" cy="80" r="10" stroke="#d6aec1" strokeWidth="1.6" fill="none" />
-      <path d="M18 138 Q40 130 56 138 Q40 146 18 138" fill="#d6aec1" opacity="0.7" />
-      <path d="M120 132 L136 132 M128 124 L128 140" stroke="#231e21" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
+ // Seline mascot sticker — hooded outline-only with soft drop shadow
+ return (
+ <div className="relative select-none pointer-events-none" aria-hidden style={{ filter: " drop-shadow(rgba(0,0,0,0.12) 0px 6px 18px)"}}>
+ <svg viewBox="0 0 120 120" width="170" height="170" fill="none" xmlns="http://www.w3.org/2000/svg">
+ {/* sticker backing */}
+ <rect x="10" y="10" width="100" height="90" rx="16" fill="white" stroke="#e8e6e5" strokeWidth="1.2"/>
+ {/* hooded character peek */}
+ <path d="M46 72 C46 48 74 48 74 72 L62 78 L58 68 L62 62 L58 54 L50 62 L54 68 L46 72Z" stroke="#0c0a09" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+ <circle cx="56" cy="67" r="1.4" fill="#0c0a09"/>
+ <circle cx="66" cy="67" r="1.4" fill="#0c0a09"/>
+ <path d="M56 72 Q61 74 66 72" stroke="#0c0a09" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+ {/* cyan spark */}
+ <g transform="translate(88 18)">
+ <path d="M6 1.5 L7.2 5.2 L11 6 L7.2 6.8 L6 10.5 L4.8 6.8 L1 6 L4.8 5.2 Z" fill="#3ba6f1" stroke="#3398e1" strokeWidth="0.9"/>
+ </g>
+ {/* tiny dots */}
+ <circle cx="28" cy="34" r="1.2" fill="#e8e6e5"/>
+ <circle cx="34" cy="28" r="0.9" fill="#d6d3d1"/>
+ </svg>
+ <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#3ba6f1] border-2 border-white flex items-center justify-center text-white text-[10px] font-medium">✓</span>
+ </div>
+ );
 }
 export function IllustrationRight() {
-  return (
-    <svg viewBox="0 0 200 180" className="w-[180px] h-[160px] lg:w-[220px] lg:h-[200px]" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <rect x="44" y="22" width="130" height="102" rx="8" stroke="#231e21" strokeWidth="2" fill="white" />
-      <circle cx="58" cy="34" r="3" fill="#1c5d5f" /><circle cx="68" cy="34" r="3" fill="#a2cbcd" /><circle cx="78" cy="34" r="3" fill="#d6aec1" />
-      <line x1="44" y1="44" x2="174" y2="44" stroke="#231e21" strokeWidth="1.2" />
-      <circle cx="108" cy="74" r="18" stroke="#231e21" strokeWidth="2" fill="white" />
-      <circle cx="103" cy="72" r="1.8" fill="#231e21" /><circle cx="113" cy="72" r="1.8" fill="#231e21" />
-      <path d="M102 80 Q108 84 114 80" stroke="#231e21" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-      <path d="M92 50 Q108 34 124 50 Q120 56 108 58 Q96 56 92 50" fill="#1c5d5f" />
-      <path d="M82 102 Q108 98 134 102 L128 126 H88 Z" fill="white" stroke="#231e21" strokeWidth="1.6" />
-      <rect x="96" y="106" width="24" height="14" rx="2" fill="#e4f0f1" stroke="#231e21" strokeWidth="1" />
-      <path d="M32 50 L36 58 L44 62 L36 66 L32 74 L28 66 L20 62 L28 58 Z" fill="#d6aec1" stroke="#231e21" strokeWidth="1" />
-      <path d="M150 138 Q168 128 180 138" stroke="#65b8a2" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      <circle cx="30" cy="116" r="6" fill="#cae1e2" stroke="#231e21" strokeWidth="1" />
-    </svg>
-  );
+ return (
+ <div className="relative select-none pointer-events-none" aria-hidden style={{ filter: " drop-shadow(rgba(0,0,0,0.12) 0px 6px 18px)"}}>
+ <svg viewBox="0 0 120 120" width="170" height="170" fill="none" xmlns="http://www.w3.org/2000/svg">
+ <rect x="10" y="10" width="100" height="90" rx="16" fill="white" stroke="#e8e6e5" strokeWidth="1.2"/>
+ {/* browser mock dashed */}
+ <rect x="22" y="22" width="76" height="54" rx="8" stroke="#0c0a09" strokeWidth="1.2" fill="white"/>
+ <line x1="22" y1="32" x2="98" y2="32" stroke="#e8e6e5" strokeWidth="1"/>
+ <circle cx="30" cy="27" r="1.8" fill="#e8e6e5"/>
+ <circle cx="36" cy="27" r="1.8" fill="#d6d3d1"/>
+ {/* chart bars muted */}
+ <rect x="32" y="54" width="10" height="12" rx="2" fill="#c1e1f7" stroke="#3ba6f1" strokeWidth="0.8"/>
+ <rect x="46" y="48" width="10" height="18" rx="2" fill="#fafaf9" stroke="#e8e6e5" strokeWidth="0.8"/>
+ <rect x="60" y="44" width="10" height="22" rx="2" fill="#0c0a09"/>
+ <rect x="74" y="50" width="10" height="16" rx="2" fill="white" stroke="#e8e6e5" strokeWidth="0.8"/>
+ {/* hooded peek from behind card */}
+ <path d="M84 88 C80 72 96 70 96 88" stroke="#0c0a09" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
+ <circle cx="88" cy="80" r="1.2" fill="#0c0a09"/>
+ <circle cx="94" cy="80" r="1.2" fill="#0c0a09"/>
+ </svg>
+ </div>
+ );
 }

@@ -6,129 +6,115 @@ import { useSKP } from "@/lib/store";
 import { roleLabel } from "@/lib/data";
 
 export function AppNav() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { currentUser, employees, login, logout } = useSKP();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+ const pathname = usePathname();
+ const router = useRouter();
+ const { currentUser, logout } = useSKP();
+ const [showUserMenu, setShowUserMenu] = useState(false);
+ const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const h = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowUserMenu(false); };
-    document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h);
-  }, []);
+ useEffect(() => {
+ const h = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowUserMenu(false); };
+ document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h);
+ }, []);
 
-  const navItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/rencana", label: "Rencana" },
-    { href: "/tree", label: "Cascading" },
-    { href: "/realisasi", label: "Realisasi" },
-    { href: "/organisasi", label: "Organisasi" },
-    { href: "/periode", label: "Periode" },
-    { href: "/audit", label: "Audit" },
-  ].filter(n => {
-    if (!currentUser) return false;
-    if (n.href === "/tree" && currentUser.role === "staf") return false;
-    if (n.href === "/periode" && !["admin","pimpinan_1"].includes(currentUser.role)) return false;
-    return true;
-  });
+ const navItems = [
+ { href: "/dashboard", label: "Dashboard"},
+ { href: "/rencana", label: "Rencana"},
+ { href: "/tree", label: "Cascading"},
+ { href: "/realisasi", label: "Realisasi"},
+ { href: "/organisasi", label: "Organisasi"},
+ { href: "/periode", label: "Periode"},
+ { href: "/audit", label: "Audit"},
+ ].filter(n => {
+ if (!currentUser) return false;
+ if (n.href === "/tree"&& currentUser.role === "staf") return false;
+ if (n.href === "/periode"&& !["admin","pimpinan_1"].includes(currentUser.role)) return false;
+ return true;
+ });
 
-  if (!currentUser) return null;
+ if (!currentUser) return null;
 
-  return (
-    <header className="sticky top-0 z-30 bg-white border-b border-[#e4f0f1]">
-      {/* Top bar — Gov editorial, not pill-slop */}
-      <div className="max-w-[1200px] mx-auto px-4 lg:px-6">
-        <div className="flex items-center h-[64px] gap-6">
-          {/* Logo — refined */}
-          <Link href="/dashboard" className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-[8px] bg-[#1c5d5f] flex items-center justify-center text-white">
-              {/* shield emblem */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 3L4 7v6c0 4.2 2.9 8 8 9 5.1-1 8-4.8 8-9V7l-8-4z" stroke="white" strokeWidth="1.6" fill="none" />
-                <path d="M8 12l3 3 5-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <div className="hidden sm:block leading-tight">
-              <div className="font-semibold text-[15px] tracking-[-0.01em] text-[#231e21] leading-none">SKP DPUPK</div>
-              <div className="mt-1 font-mono text-[9.5px] tracking-[0.06em] uppercase text-[#283338]/60 leading-none">Perpustakaan • 2026</div>
-            </div>
-          </Link>
+ return (
+ <header className="sticky top-0 z-30 bg-white border-b border-[#e8e6e5] backdrop-blur">
+ <div className="max-w-[1200px] mx-auto px-4 lg:px-6">
+ <div className="flex items-center h-[56px] gap-6">
+ {/* Logo wordmark — Seline compact */}
+  <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
+  <span className="w-[32px] h-[32px] rounded-[8px] bg-[#0c0a09] flex items-center justify-center">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+  <path d="M18 6.00002V6.75002H18.75V6.00002H18ZM15.7172 2.32614L15.6111 1.58368L15.7172 2.32614ZM4.91959 3.86865L4.81353 3.12619H4.81353L4.91959 3.86865ZM5.07107 6.75002H18V5.25002H5.07107V6.75002ZM18.75 6.00002V4.30604H17.25V6.00002H18.75ZM15.6111 1.58368L4.81353 3.12619L5.02566 4.61111L15.8232 3.0686L15.6111 1.58368ZM4.81353 3.12619C3.91638 3.25435 3.25 4.0227 3.25 4.92895H4.75C4.75 4.76917 4.86749 4.63371 5.02566 4.61111L4.81353 3.12619ZM18.75 4.30604C18.75 2.63253 17.2678 1.34701 15.6111 1.58368L15.8232 3.0686C16.5763 2.96103 17.25 3.54535 17.25 4.30604H18.75ZM5.07107 5.25002C4.89375 5.25002 4.75 5.10627 4.75 4.92895H3.25C3.25 5.9347 4.06532 6.75002 5.07107 6.75002V5.25002Z" fill="white"/>
+  <path d="M8 12H16" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+  <path d="M8 15.5H13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+  <path d="M4 6V19C4 20.6569 5.34315 22 7 22H17C18.6569 22 20 20.6569 20 19V14M4 6V5M4 6H17C18.6569 6 20 7.34315 20 9V10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+  </span>
+ <span className="hidden sm:block leading-none">
+ <span className="font-medium text-[14px] tracking-[-0.015em] text-[#0c0a09]" style={{ fontFamily: "var(--font-inter)"}}>SKP DPUPK</span>
+ </span>
+ </Link>
 
-          {/* Divider */}
-          <div className="hidden lg:block w-px h-8 bg-[#e4f0f1] ml-1" />
+ <span className="hidden lg:block w-px h-6 bg-[#e8e6e5] ml-1"/>
 
-          {/* Nav — editorial underline, not pill fill */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1">
-            {navItems.map(n => {
-              const active = pathname === n.href || (n.href === "/rencana" && pathname.startsWith("/rencana"));
-              return (
-                <Link key={n.href} href={n.href} className={`relative px-3 py-2 text-[14px] font-medium transition-colors ${active ? "text-[#1c5d5f]" : "text-[#283338]/70 hover:text-[#283338]"}`}>
-                  {n.label}
-                  {active && <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#1c5d5f] rounded-full" />}
-                </Link>
-              );
-            })}
-          </nav>
+ {/* Nav — Seline Navigation Link: 14px Inter 400, #78716c, 32px height, hover #0c0a09, active cyan underline? Use pill for active */}
+ <nav className="hidden lg:flex items-center gap-1 flex-1">
+ {navItems.map(n => {
+ const active = pathname === n.href || (n.href === "/rencana"&& pathname.startsWith("/rencana"));
+ return (
+ <Link key={n.href} href={n.href} className={`h-[32px] px-3 inline-flex items-center text-[14px] transition-colors ${active ? " text-[#0c0a09] font-medium": " text-[#78716c] font-normal hover:text-[#0c0a09]"}`}>
+ {n.label}
+ {active && <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-[#3ba6f1]"/>}
+ </Link>
+ );
+ })}
+ </nav>
 
-          {/* Right — user only */}
-          <div className="flex items-center gap-2 ml-auto">
-            {/* User — perfect circle */}
-            <div className="relative" ref={menuRef}>
-              <button onClick={() => setShowUserMenu(v => !v)} className="flex items-center gap-3 pl-1 pr-1 py-1 rounded-full hover:bg-[#f2f8f7] transition">
-                <div className="text-right hidden lg:block leading-none">
-                  <div className="text-[13px] font-semibold text-[#231e21] leading-none">{currentUser.name.split(",")[0]}</div>
-                  <div className="mt-1 font-mono text-[10px] tracking-[0.06em] uppercase text-[#1c5d5f] leading-none">{roleLabel[currentUser.role]}</div>
-                </div>
-                <div className="w-9 h-9 rounded-full bg-[#16325a] text-white flex items-center justify-center text-xs font-bold shrink-0 leading-none aspect-square overflow-hidden" style={{ borderRadius: 9999 }}>{currentUser.avatar}</div>
-              </button>
+ {/* Right */}
+ <div className="flex items-center gap-2 ml-auto">
+ <div className="relative" ref={menuRef}>
+ <button onClick={() => setShowUserMenu(v => !v)} className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full border border-transparent hover:bg-[#fafaf9] hover:border-[#e8e6e5] transition">
+ <span className="hidden lg:block text-right leading-none">
+ <span className="block text-[12px] font-medium text-[#0c0a09] leading-none">{currentUser.name.split(",")[0]}</span>
+ <span className="block mt-1 text-[10px] tracking-[0.06em] uppercase text-[#3ba6f1] font-semibold leading-none">{roleLabel[currentUser.role]}</span>
+ </span>
+ <span className="w-8 h-8 rounded-full bg-[#0c0a09] text-white flex items-center justify-center text-[12px] font-medium shrink-0" style={{ borderRadius: 9999 }}>{currentUser.avatar}</span>
+ <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-[#a8a29e] hidden lg:block"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+ </button>
 
-              {showUserMenu && (
-                <div className="absolute right-0 top-full mt-2 w-[300px] bg-white border border-[#e4f0f1] rounded-xl shadow-none overflow-hidden" style={{ borderRadius: 12 }}>
-                  <div className="p-4 bg-[#f2f8f7] border-b border-[#e4f0f1]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#16325a] text-white flex items-center justify-center text-sm font-bold shrink-0 leading-none aspect-square overflow-hidden" style={{ borderRadius: 9999 }}>{currentUser.avatar}</div>
-                      <div>
-                        <div className="text-sm font-semibold text-[#231e21]">{currentUser.name}</div>
-                        <div className="font-mono text-xs text-[#283338]/60">{currentUser.email}</div>
-                        <div className="font-mono text-[11px] tracking-[0.06em] uppercase px-2 py-0.5 rounded-full bg-[#1c5d5f] text-white inline-block mt-1" style={{ borderRadius: 100 }}>{currentUser.role}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-2 max-h-[220px] overflow-y-auto">
-                    <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-[#283338]/50 px-2 py-1">Ganti peran (demo)</div>
-                    {employees.map(e => (
-                      <button key={e.id} onClick={async () => { await login(e.email, "password"); setShowUserMenu(false); }} className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-xl text-sm ${currentUser.id === e.id ? "bg-[#e4f0f1] border border-[#a2cbcd]" : "hover:bg-[#f2f8f7] border border-transparent"}`} style={{ borderRadius: 12 }}>
-                        <span className="w-7 h-7 rounded-full bg-white border border-[#e4f0f1] flex items-center justify-center text-xs font-bold shrink-0 leading-none aspect-square overflow-hidden" style={{ borderRadius: 9999 }}>{e.avatar}</span>
-                        <span className="flex-1"><span className="font-medium text-[#283338]">{e.name.split(",")[0]}</span><span className="font-mono text-xs text-[#283338]/50 ml-1">• {e.role}</span></span>
-                        {currentUser.id === e.id && <span className="text-[#1c5d5f] text-xs">●</span>}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="p-2 border-t border-[#e4f0f1] flex gap-2">
-                    <button onClick={async () => { await logout(); router.push("/"); setShowUserMenu(false); }} className="flex-1 py-2 rounded-full bg-white border border-[#e4f0f1] text-sm font-medium text-[#283338] hover:border-[#a2cbcd]" style={{ borderRadius: 48 }}>Keluar</button>
-                    <Link href="/audit" onClick={() => setShowUserMenu(false)} className="flex-1 py-2 rounded-full bg-[#1c5d5f] text-white text-sm font-medium text-center hover:bg-[#156152]" style={{ borderRadius: 48 }}>Audit Trail</Link>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+ {showUserMenu && (
+ <div className="absolute right-0 top-full mt-2 w-[300px] bg-white border border-[#e8e6e5] rounded-[10px] overflow-hidden z-40" style={{ boxShadow: "rgba(0,0,0,0.05) 0px 4px 16px 0px"}}>
+ <div className="p-4 bg-[#fafaf9] border-b border-[#e8e6e5]">
+ <div className="flex items-center gap-3">
+ <span className="w-9 h-9 rounded-full bg-[#0c0a09] text-white flex items-center justify-center text-[14px] font-medium shrink-0" style={{ borderRadius: 9999 }}>{currentUser.avatar}</span>
+ <div>
+ <div className="text-[14px] font-medium text-[#0c0a09]">{currentUser.name.split(",")[0]}</div>
+ <div className="text-[12px] text-[#78716c]">{currentUser.email}</div>
+ <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-[#3ba6f1] text-white text-[10px] font-semibold tracking-[0.04em] uppercase" style={{ borderRadius: 9999 }}>{roleLabel[currentUser.role]}</span>
+ </div>
+ </div>
+ </div>
+ <div className="p-2 border-t border-[#e8e6e5]">
+  <button onClick={async () => { await logout(); router.push("/login"); setShowUserMenu(false); }} className="w-full py-2 rounded-full bg-white border border-[#e8e6e5] text-[14px] text-[#0c0a09] hover:bg-[#fafaf9]" style={{ borderRadius: 9999 }}>Keluar</button>
+ </div>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
+ </div>
 
-      {/* Mobile nav — underline style */}
-      <div className="lg:hidden border-t border-[#e4f0f1] bg-white">
-        <nav className="flex gap-1 px-2 py-2 overflow-x-auto scrollbar-none">
-          {navItems.map(n => {
-            const active = pathname === n.href;
-            return (
-              <Link key={n.href} href={n.href} className={`shrink-0 relative px-3 py-1.5 text-xs font-medium whitespace-nowrap ${active ? "text-[#1c5d5f]" : "text-[#283338]/60"}`}>
-                {n.label}
-                {active && <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#1c5d5f] rounded-full" />}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-    </header>
-  );
+ {/* Mobile nav — Seline horizontal pill scroll */}
+ <div className="lg:hidden border-t border-[#e8e6e5] bg-white">
+ <nav className="flex gap-1 px-2 py-2 overflow-x-auto">
+ {navItems.map(n => {
+ const active = pathname === n.href || (n.href === "/rencana"&& pathname.startsWith("/rencana"));
+ return (
+ <Link key={n.href} href={n.href} className={`shrink-0 px-3 py-1.5 text-[12px] font-medium whitespace-nowrap rounded-full ${active ? " bg-[#0c0a09] text-white": " text-[#78716c] border border-[#e8e6e5] bg-[#fafaf9]"}`} style={{ borderRadius: 9999 }}>
+ {n.label}
+ </Link>
+ );
+ })}
+ </nav>
+ </div>
+ </header>
+ );
 }
