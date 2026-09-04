@@ -3,6 +3,8 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import OrgStructure from "@/components/org/OrgStructure";
 import EmployeeManager from "@/components/org/EmployeeManager";
+import OrgAdminActivity from "@/components/org/OrgAdminActivity";
+import SkpReport from "@/components/org/SkpReport";
 import { useSKP } from "@/lib/store";
 import { ROLE_SHORT } from "@/lib/roles";
 
@@ -10,8 +12,13 @@ function OrganisasiContent() {
   const { currentUser } = useSKP();
   const isAdmin = !!currentUser && currentUser.role === "admin";
   const params = useSearchParams();
-  const initialTab = isAdmin && params.get("tab") === "pegawai" ? "pegawai" : "struktur";
-  const [tab, setTab] = useState<"struktur" | "pegawai">(initialTab);
+  const rawTab = params.get("tab");
+  const initialTab: "struktur" | "pegawai" | "aktivitas" | "laporan" =
+    rawTab === "pegawai" && isAdmin ? "pegawai"
+    : rawTab === "aktivitas" && isAdmin ? "aktivitas"
+    : rawTab === "laporan" ? "laporan"
+    : "struktur";
+  const [tab, setTab] = useState<"struktur" | "pegawai" | "aktivitas" | "laporan">(initialTab);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 -mx-4 sm:-mx-6 lg:-mx-8 -mt-8 -mb-8 bg-[#f8fafc]">
@@ -31,20 +38,30 @@ function OrganisasiContent() {
         </div>
 
         <div>
-          <div className="flex items-center gap-8 border-b border-[#e5e7eb]">
-            <button onClick={() => setTab("struktur")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors ${tab === "struktur" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
+          <div className="flex items-center gap-8 border-b border-[#e5e7eb] overflow-x-auto">
+            <button onClick={() => setTab("struktur")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors whitespace-nowrap ${tab === "struktur" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
               Struktur Organisasi
             </button>
             {isAdmin && (
-              <button onClick={() => setTab("pegawai")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2 ${tab === "pegawai" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
+              <button onClick={() => setTab("pegawai")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${tab === "pegawai" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
                 Kelola Akun
               </button>
             )}
+            {isAdmin && (
+              <button onClick={() => setTab("aktivitas")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${tab === "aktivitas" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
+                Riwayat Aktivitas
+              </button>
+            )}
+            <button onClick={() => setTab("laporan")} className={`-mb-px pb-3 pt-1 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${tab === "laporan" ? "text-[#0e7490] border-[#0e7490]" : "text-[#6b7280] border-transparent hover:text-[#111827]"}`}>
+              Laporan SKP
+            </button>
           </div>
         </div>
 
         {tab === "struktur" && <OrgStructure />}
         {tab === "pegawai" && isAdmin && <EmployeeManager />}
+        {tab === "aktivitas" && isAdmin && <OrgAdminActivity />}
+        {tab === "laporan" && <SkpReport />}
       </div>
     </div>
   );
