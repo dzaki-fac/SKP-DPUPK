@@ -86,13 +86,37 @@ export async function POST(req: Request) {
       return Response.json({ error: "Format jam harus HH:mm 24 jam (00:00 - 23:59)" }, { status: 400 });
     }
     const timeVal = normalizeTime(b.time) ?? normalizeTime(b.realizationTime) ?? "09:00";
-    // Validasi target rincian jika ada (pengaju isi capaian per kolom)
+    // Validasi target rincian: hanya dari pembuat rencana (effective customTargets) boleh diisi
     const incomingTargets: Array<{name:string,value:string,unit:string}> = Array.isArray(b.targets) ? b.targets : Array.isArray(b.realizationTargets) ? b.realizationTargets : [];
     if (incomingTargets.length > 5) return Response.json({ error: "Maksimal 5 target per realisasi" }, { status: 400 });
-    for (const t of incomingTargets) {
-      if (!t.name || String(t.name).trim().length < 1 || String(t.name).trim().length > 50) return Response.json({ error: "Nama target 1-50 karakter" }, { status: 400 });
-      if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
-      if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
+    // Ambil rincian efektif (plan sendiri atau induk terdekat yang punya customTargets)
+    const getEffectiveForPost = async (pid: string): Promise<Array<{name:string,unit:string}>> => {
+      const plan = await prisma.performancePlan.findUnique({ where: { id: pid }, include: { customTargets: true } });
+      if (!plan) return [];
+      const ct = (plan as any).customTargets as Array<{name:string,unit:string}> | undefined;
+      if (ct && ct.length > 0) return ct.map(t => ({ name: t.name, unit: t.unit }));
+      if (!plan.parentId) return [];
+      return getEffectiveForPost(plan.parentId);
+    };
+    const effectiveForPost = await getEffectiveForPost(b.planId);
+    if (effectiveForPost.length === 0) {
+      if (incomingTargets.length > 0) return Response.json({ error: "Rencana ini tidak memiliki rincian target — target terealisasi tidak boleh diisi. Hapus semua target." }, { status: 400 });
+    } else {
+      if (incomingTargets.length > effectiveForPost.length) return Response.json({ error: `Maksimal ${effectiveForPost.length} target sesuai rincian rencana` }, { status: 400 });
+      const effMapPost = new Map(effectiveForPost.map(e => [e.name.trim().toLowerCase(), e]));
+      const seenPost = new Set<string>();
+      for (const t of incomingTargets) {
+        if (!t.name || String(t.name).trim().length < 1 || String(t.name).trim().length > 50) return Response.json({ error: "Nama target 1-50 karakter" }, { status: 400 });
+        if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
+        if (!/^\d+$/.test(String(t.value).trim())) return Response.json({ error: `Nilai capaian untuk "${t.name}" harus angka` }, { status: 400 });
+        if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
+        const key = String(t.name).trim().toLowerCase();
+        const eff = effMapPost.get(key);
+        if (!eff) return Response.json({ error: `Target "${t.name}" tidak ada di rincian rencana. Hanya: ${effectiveForPost.map(e=>e.name).join(", ")}` }, { status: 400 });
+        if (String(t.unit).trim() !== String(eff.unit).trim()) return Response.json({ error: `Satuan untuk "${t.name}" harus "${eff.unit}" sesuai rencana` }, { status: 400 });
+        if (seenPost.has(key)) return Response.json({ error: `Target "${t.name}" duplikat` }, { status: 400 });
+        seenPost.add(key);
+      }
     }
     // Validasi participants (pegawai terlibat + peran) — dukung customName
     const incomingParticipants: Array<{employeeId?:string, customName?:string, role:string}> = Array.isArray(b.participants) ? b.participants : [];
@@ -134,7 +158,7 @@ export async function POST(req: Request) {
     for (const p of incomingParticipants as any[]) {
       const hasEmployee = p.employeeId && String(p.employeeId).trim().length > 0;
       await prisma.realizationParticipant.create({
-        data: { realizationId: real.id, employeeId: hasEmployee ? String(p.employeeId).trim() : null, customName: !hasEmployee ? String(p.customName ?? p.name).trim().slice(0,50) : null, role: String(p.role).trim().slice(0,30) }
+        data: { realizationId: real.id, employeeId: hasEmployee ? String(p.employeeId).trim() : null, customName: !hasEmployee ? String(p.customName ?? p.name).trim().slice(0,50) : null, role: String(p.role).trim().slice(0,30) } as any
       }).catch(()=>{});
     }
     // banyak file bukti: prefer b.files [{fileName, filePath, fileSize}], fallback b.fileNames[]
@@ -204,14 +228,38 @@ export async function PATCH(req: Request) {
   if ((b.time !== undefined || b.realizationTime !== undefined) && timeUpdate === null) {
     return Response.json({ error: "Format jam harus HH:mm 24 jam (00:00 - 23:59)" }, { status: 400 });
   }
-  // Handle targets update jika ada
+  // Handle targets update jika ada — hanya dari pembuat rencana
   if (b.targets !== undefined || b.realizationTargets !== undefined) {
     const updTargets: Array<{name:string,value:string,unit:string}> = Array.isArray(b.targets) ? b.targets : Array.isArray(b.realizationTargets) ? b.realizationTargets : [];
     if (updTargets.length > 5) return Response.json({ error: "Maksimal 5 target per realisasi" }, { status: 400 });
-    for (const t of updTargets) {
-      if (!t.name || String(t.name).trim().length < 1 || String(t.name).trim().length > 50) return Response.json({ error: "Nama target 1-50 karakter" }, { status: 400 });
-      if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
-      if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
+    // validasi vs effective
+    const getEffectiveForPatch = async (pid: string): Promise<Array<{name:string,unit:string}>> => {
+      const plan = await prisma.performancePlan.findUnique({ where: { id: pid }, include: { customTargets: true } });
+      if (!plan) return [];
+      const ct = (plan as any).customTargets as Array<{name:string,unit:string}> | undefined;
+      if (ct && ct.length > 0) return ct.map(t => ({ name: t.name, unit: t.unit }));
+      if (!plan.parentId) return [];
+      return getEffectiveForPatch(plan.parentId);
+    };
+    const effectiveForPatch = await getEffectiveForPatch(existing.performancePlanId);
+    if (effectiveForPatch.length === 0) {
+      if (updTargets.length > 0) return Response.json({ error: "Rencana ini tidak memiliki rincian target — target terealisasi tidak boleh diisi. Hapus semua target." }, { status: 400 });
+    } else {
+      if (updTargets.length > effectiveForPatch.length) return Response.json({ error: `Maksimal ${effectiveForPatch.length} target sesuai rincian rencana` }, { status: 400 });
+      const effMapPatch = new Map(effectiveForPatch.map(e => [e.name.trim().toLowerCase(), e]));
+      const seenPatch = new Set<string>();
+      for (const t of updTargets) {
+        if (!t.name || String(t.name).trim().length < 1 || String(t.name).trim().length > 50) return Response.json({ error: "Nama target 1-50 karakter" }, { status: 400 });
+        if (t.value === undefined || String(t.value).trim().length < 1) return Response.json({ error: "Nilai target wajib diisi" }, { status: 400 });
+        if (!/^\d+$/.test(String(t.value).trim())) return Response.json({ error: `Nilai capaian untuk "${t.name}" harus angka` }, { status: 400 });
+        if (!t.unit || String(t.unit).trim().length < 1 || String(t.unit).trim().length > 20) return Response.json({ error: "Satuan target 1-20 karakter" }, { status: 400 });
+        const key = String(t.name).trim().toLowerCase();
+        const eff = effMapPatch.get(key);
+        if (!eff) return Response.json({ error: `Target "${t.name}" tidak ada di rincian rencana. Hanya: ${effectiveForPatch.map(e=>e.name).join(", ")}` }, { status: 400 });
+        if (String(t.unit).trim() !== String(eff.unit).trim()) return Response.json({ error: `Satuan untuk "${t.name}" harus "${eff.unit}" sesuai rencana` }, { status: 400 });
+        if (seenPatch.has(key)) return Response.json({ error: `Target "${t.name}" duplikat` }, { status: 400 });
+        seenPatch.add(key);
+      }
     }
     await prisma.realizationTarget.deleteMany({ where: { realizationId: b.id } });
     for (const t of updTargets) {
@@ -249,7 +297,7 @@ export async function PATCH(req: Request) {
     for (const p of updParticipants as any[]) {
       const hasEmployee = p.employeeId && String(p.employeeId).trim().length > 0;
       await prisma.realizationParticipant.create({
-        data: { realizationId: b.id, employeeId: hasEmployee ? String(p.employeeId).trim() : null, customName: !hasEmployee ? String(p.customName ?? (p as any).name).trim().slice(0,50) : null, role: String(p.role).trim().slice(0,30) }
+        data: { realizationId: b.id, employeeId: hasEmployee ? String(p.employeeId).trim() : null, customName: !hasEmployee ? String(p.customName ?? (p as any).name).trim().slice(0,50) : null, role: String(p.role).trim().slice(0,30) } as any
       }).catch(()=>{});
     }
   }

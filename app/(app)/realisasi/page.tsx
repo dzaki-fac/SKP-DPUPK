@@ -130,20 +130,38 @@ export default function RealisasiPage() {
     return false;
   };
 
+  // Effective customTargets: dari plan sendiri atau induk terdekat yang punya rincian — hanya itu yang boleh diisi
+  const getEffectiveTargets = (plan: typeof plans[number] | null | undefined): Array<{name:string,value:string,unit:string}> => {
+    if (!plan) return [];
+    const direct = (plan as any).customTargets as Array<{name:string,value:string,unit:string}> | undefined;
+    if (direct && direct.length > 0) return direct;
+    if (!plan.parentId) return [];
+    const parent = plans.find(p => p.id === plan.parentId);
+    return parent ? getEffectiveTargets(parent) : [];
+  };
+
   const openEdit = (r: (typeof realizations)[number]) => {
     const plan = plans.find(p => p.id === r.planId);
     if (!plan) return;
     if (!canEdit(r)) return;
     setEditingRealization(r);
-    setRealForm({ title: r.title, value: r.value, description: r.description, date: r.date, time: (r as any).time ?? "09:00", files: [], targets: (r as any).targets?.map((t:any)=>({ name: t.name, value: t.value, unit: t.unit })) ?? [], participants: (r as any).participants?.map((p:any)=>({ employeeId: p.employeeId ?? undefined, customName: p.customName ?? undefined, role: p.role })) ?? [] });
+    const effective = getEffectiveTargets(plan);
+    const existingMap = new Map(((r as any).targets ?? []).map((t:any)=>[String(t.name).trim().toLowerCase(), t]));
+    const mappedTargets = effective.length > 0
+      ? effective.map((eff: any) => {
+          const found: any = existingMap.get(eff.name.trim().toLowerCase());
+          return { name: eff.name, value: found ? String(found.value) : "", unit: eff.unit };
+        })
+      : [];
+    setRealForm({ title: r.title, value: r.value, description: r.description, date: r.date, time: (r as any).time ?? "09:00", files: [], targets: mappedTargets, participants: (r as any).participants?.map((p:any)=>({ employeeId: p.employeeId ?? undefined, customName: p.customName ?? undefined, role: p.role })) ?? [] });
     setShowRealizationModal(plan);
   };
 
   const openCreate = (plan: typeof plans[number]) => {
     if (plan.assignedTo !== currentUser.id) return;
     setEditingRealization(null);
-    // Prefill targets dari customTargets rencana jika ada, agar pengaju tinggal isi capaian
-    const tpl = (plan as any).customTargets?.map((ct:any)=>({ name: ct.name, value: "", unit: ct.unit })) ?? [];
+    const effective = getEffectiveTargets(plan);
+    const tpl = effective.map((ct: any) => ({ name: ct.name, value: "", unit: ct.unit }));
     setRealForm({ title: "", value: "1", description: "", date: new Date().toISOString().slice(0,10), time: new Date().toTimeString().slice(0,5), files: [], targets: tpl, participants: [] });
     setShowRealizationModal(plan);
   };
@@ -309,12 +327,16 @@ export default function RealisasiPage() {
                 if (allReals.length === 0 && !hasActiveFilter) {
                   return (
                     <div key={plan.id} className="px-4 py-3 border bg-white" style={{ borderRadius: 12, borderColor: "#e4f0f1" }}>
-                      <h3 className="font-medium text-[#231e21] leading-tight">{plan.title}</h3>
-                      <div className="font-mono text-xs text-[#283338]/60">Target: {plan.target} • Progress: {plan.progress}%</div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-[#231e21] leading-tight">{plan.title}</h3>
+                          <div className="font-mono text-xs text-[#283338]/60">Target: {plan.target} • Progress: {plan.progress}%</div>
+                        </div>
+                        {plan.assignedTo === currentUser.id && (
+                          <button onClick={() => openCreate(plan)} className="shrink-0 px-4 py-1.5 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90 whitespace-nowrap" style={{ borderRadius: 48 }}>+ Realisasi</button>
+                        )}
+                      </div>
                       <div className="mt-2 font-mono text-xs text-[#283338]/50">Belum ada realisasi.</div>
-                      {plan.assignedTo === currentUser.id && (
-                        <button onClick={() => openCreate(plan)} className="mt-3 w-full py-2 rounded-full bg-[#16325a] text-white text-xs font-medium hover:opacity-90" style={{ borderRadius: 48 }}>+ Realisasi</button>
-                      )}
                     </div>
                   );
                 }

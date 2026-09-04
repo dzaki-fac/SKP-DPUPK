@@ -259,72 +259,82 @@ export function GlobalModals() {
             <div className="p-6 space-y-3 overflow-y-auto flex-1 min-h-0 overscroll-contain">
               <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Judul Realisasi</label><input value={realForm.title} onChange={e => setRealForm({ ...realForm, title: e.target.value })} placeholder="Contoh: Webinar Registrasi 1" className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 12 }} /></div>
               <div><label className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Deskripsi</label><textarea value={realForm.description} onChange={e => setRealForm({ ...realForm, description: e.target.value })} rows={2} placeholder="Jelaskan capaian..." className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm" style={{ borderRadius: 12 }} /></div>
-              {/* Target terealisasi — diisi pengaju, max 5 — collapsed default (opsi 1 simplifikasi) */}
-              <details className="border border-[#e4f0f1] rounded-xl bg-[#f2f8f7]/50 group" style={{ borderRadius: 12 }} open={realForm.targets.length > 0 ? true : undefined}>
-                <summary className="list-none p-3 flex items-center justify-between cursor-pointer select-none">
-                  <span className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target Terealisasi <span className="normal-case font-normal text-[#283338]/50">• opsional</span></span>
-                  <span className="flex items-center gap-2">
-                    {realForm.targets.length > 0 && <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#1c5d5f] text-white">{realForm.targets.length}</span>}
-                    <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60 group-open:hidden">+ tambah</span>
-                    <span className="text-[#283338]/40 group-open:rotate-180 transition-transform">▾</span>
-                  </span>
-                </summary>
-                <div className="px-3 pb-3">
-                <p className="font-mono text-[11px] text-[#283338]/60">
-                  Isi capaian per target. Contoh: <span className="font-semibold">jumlah peserta</span> → <span className="font-mono">250</span> <span className="italic">orang</span>
-                  {showRealizationModal?.customTargets && showRealizationModal.customTargets.length>0 && (
-                    <span> • <button type="button" onClick={()=>{
-                      const tpl = (showRealizationModal as any).customTargets.map((ct:any)=>({ name: ct.name, value: ct.value, unit: ct.unit }));
-                      const curNames = new Set(realForm.targets.map(t=>t.name.trim().toLowerCase()));
-                      const toAdd = tpl.filter((ct:any)=> !curNames.has(ct.name.trim().toLowerCase())).map((ct:any)=>({ name: ct.name, value: "", unit: ct.unit }));
-                      if (toAdd.length) setRealForm({ ...realForm, targets: [...realForm.targets, ...toAdd].slice(0,5) });
-                    }} className="underline text-[#1c5d5f] hover:text-[#0e4749]">salin dari target rencana ({showRealizationModal.customTargets.length})</button></span>
-                  )}
-                </p>
-                <div className="mt-3 space-y-2">
-                  {realForm.targets.length === 0 && (
-                    <div className="text-xs text-[#283338]/60 text-center py-2 border border-dashed border-[#a2cbcd] rounded-xl" style={{ borderRadius: 12 }}>Belum ada target — klik tambah di bawah</div>
-                  )}
-                  {realForm.targets.map((ct, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_70px_70px_32px] sm:grid-cols-[1fr_80px_80px_36px] gap-1.5 sm:gap-2 items-end">
-                      <div>
-                        <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Nama target</label>
-                        <input value={ct.name} onChange={e => {
-                          const copy = [...realForm.targets];
-                          copy[idx] = { ...copy[idx], name: e.target.value };
-                          setRealForm({ ...realForm, targets: copy });
-                        }} placeholder="jumlah peserta" className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 8 }} />
-                      </div>
-                      <div>
-                        <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Capaian</label>
-                        <input value={ct.value} onChange={e => {
-                          const copy = [...realForm.targets];
-                          let v = e.target.value.replace(/[^0-9]/g, "").slice(0, 20);
-                          copy[idx] = { ...copy[idx], value: v };
-                          setRealForm({ ...realForm, targets: copy });
-                        }} placeholder="250" maxLength={20} inputMode="numeric" title={ct.value} className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd] font-mono truncate" style={{ borderRadius: 8 }} />
-                      </div>
-                      <div>
-                        <label className="font-mono text-[10px] tracking-wide uppercase text-[#283338]/60">Satuan</label>
-                        <input value={ct.unit} onChange={e => {
-                          const copy = [...realForm.targets];
-                          copy[idx] = { ...copy[idx], unit: e.target.value };
-                          setRealForm({ ...realForm, targets: copy });
-                        }} placeholder="orang" className="mt-1 w-full px-2 py-1.5 rounded-lg border border-[#e4f0f1] bg-white text-sm focus:outline-none focus:border-[#a2cbcd]" style={{ borderRadius: 8 }} />
-                      </div>
-                      <button type="button" onClick={() => setRealForm({ ...realForm, targets: realForm.targets.filter((_, i) => i !== idx) })} className="mb-0.5 w-8 h-8 rounded-full bg-white border border-[#d6aec1] text-[#b91c1c] flex items-center justify-center hover:bg-[#f2e8e2]">×</button>
+              {/* Target terealisasi — hanya dari pembuat rencana: nama & satuan terkunci, hanya capaian bisa diisi */}
+              {(() => {
+                const getEffective = (plan: any): any[] => {
+                  if (!plan) return [];
+                  if (plan.customTargets && plan.customTargets.length > 0) return plan.customTargets;
+                  if (!plan.parentId) return [];
+                  const parent = plans.find((p: any) => p.id === plan.parentId);
+                  return parent ? getEffective(parent) : [];
+                };
+                const effective = getEffective(showRealizationModal);
+                const hasEffective = effective.length > 0;
+                const filledCount = realForm.targets.filter(t => String(t.value).trim().length > 0).length;
+                return (
+                  <details className="border border-[#e4f0f1] rounded-xl bg-[#f2f8f7]/50 group" style={{ borderRadius: 12 }} open={hasEffective ? true : undefined}>
+                    <summary className="list-none p-3 flex items-center justify-between cursor-pointer select-none">
+                      <span className="font-mono text-xs tracking-[0.04em] uppercase font-semibold">Target Terealisasi <span className="normal-case font-normal text-[#283338]/50">• {hasEffective ? `${effective.length} kolom dari rencana` : "tidak ada rincian"}</span></span>
+                      <span className="flex items-center gap-2">
+                        {hasEffective && filledCount > 0 && <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#1c5d5f] text-white">{filledCount}/{effective.length} terisi</span>}
+                        {hasEffective && filledCount === 0 && <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/60">{effective.length} kolom</span>}
+                        {!hasEffective && <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e4f0f1] text-[#283338]/40">—</span>}
+                        <span className="text-[#283338]/40 group-open:rotate-180 transition-transform">▾</span>
+                      </span>
+                    </summary>
+                    <div className="px-3 pb-3">
+                      {hasEffective ? (
+                        <>
+                          <p className="font-mono text-[11px] text-[#283338]/60">Isi capaian sesuai target dari rencana. Kosongkan jika tidak terealisasi.</p>
+                          <div className="mt-3 space-y-2">
+                            {effective.map((eff: any, idx: number) => {
+                              const curVal = realForm.targets[idx]?.value ?? "";
+                              return (
+                                <div key={eff.id ?? `${eff.name}-${idx}`} className="flex items-center gap-3 p-3 rounded-xl border border-[#e4f0f1] bg-white" style={{ borderRadius: 12 }}>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-[#231e21] leading-tight truncate" title={eff.name}>{eff.name}</div>
+                                    <div className="font-mono text-xs text-[#283338]/60 mt-0.5">{eff.value} {eff.unit} <span className="text-[#283338]/40">• target</span></div>
+                                  </div>
+                                  <div className="shrink-0 w-[110px]">
+                                    <input
+                                      value={curVal}
+                                      onChange={e => {
+                                        const copy = [...realForm.targets];
+                                        while (copy.length < effective.length) {
+                                          const ei = effective[copy.length];
+                                          copy.push({ name: ei.name, value: "", unit: ei.unit });
+                                        }
+                                        let v = e.target.value.replace(/[^0-9]/g, "").slice(0, 20);
+                                        copy[idx] = { name: eff.name, value: v, unit: eff.unit };
+                                        if (copy.length > effective.length) copy.length = effective.length;
+                                        setRealForm({ ...realForm, targets: copy });
+                                      }}
+                                      placeholder="0"
+                                      maxLength={20}
+                                      inputMode="numeric"
+                                      title={curVal}
+                                      className="w-full px-3 py-2 rounded-xl border border-[#e4f0f1] bg-[#f2f8f7] text-sm font-mono text-center focus:outline-none focus:border-[#a2cbcd] focus:bg-white"
+                                      style={{ borderRadius: 12 }}
+                                    />
+                                    <div className="font-mono text-[10px] text-[#283338]/50 text-center mt-1">{eff.unit}</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="mt-2 font-mono text-[11px] text-[#283338]/50 text-center">{filledCount}/{effective.length} terisi — kosongkan jika tidak ada capaian</div>
+                        </>
+                      ) : (
+                        <div className="text-xs text-[#283338]/60 text-center py-3 border border-dashed border-[#a2cbcd] rounded-xl bg-white/60" style={{ borderRadius: 12 }}>
+                          <div className="font-medium text-[#283338]/70">Tidak ada rincian target dari pembuat rencana</div>
+                          <div className="font-mono text-[11px] mt-1">Pembuat tugas ini tidak menambahkan <span className="font-semibold">Rincian Target</span> saat membuat rencana.</div>
+                          <div className="font-mono text-[11px]">Sehingga kolom <span className="font-semibold">Target Terealisasi</span> tidak perlu diisi — cukup isi judul, deskripsi & bukti.</div>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  {realForm.targets.length < 5 && (
-                    <button type="button" onClick={() => setRealForm({ ...realForm, targets: [...realForm.targets, { name: "", value: "", unit: "" }] })} className="w-full py-1.5 rounded-full border border-dashed border-[#a2cbcd] bg-white text-xs font-medium text-[#1c5d5f] hover:bg-[#f2f8f7]" style={{ borderRadius: 48 }}>+ Tambah target terealisasi</button>
-                  )}
-                  {realForm.targets.length >= 5 && <p className="font-mono text-[11px] text-[#b91c1c]">Maksimal 5 target per realisasi</p>}
-                </div>
-                {realForm.targets.length > 0 && (
-                  <div className="mt-2 font-mono text-[11px] text-[#283338]/50 text-center">{realForm.targets.length} target akan disimpan bersama realisasi</div>
-                )}
-                </div>
-              </details>
+                  </details>
+                );
+              })()}
               {/* Pegawai Terlibat + Peran — collapsed default */}
               <details className="border border-[#e4f0f1] rounded-xl bg-white group" style={{ borderRadius: 12 }} open={realForm.participants.length > 0 ? true : undefined}>
                 <summary className="list-none p-3 flex items-center justify-between cursor-pointer select-none">

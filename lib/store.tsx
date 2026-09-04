@@ -356,11 +356,44 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       return;
     }
     if (realForm.files.length > 5) { notify("Maksimal 5 bukti per realisasi"); return; }
-    if (realForm.targets.length > 5) { notify("Maksimal 5 target per realisasi"); return; }
-    for (const t of realForm.targets) {
-      if (!t.name.trim() || t.name.trim().length > 50) { notify("Nama target 1-50 karakter"); return; }
-      if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
-      if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
+    // Validasi target terealisasi: hanya yang dari pembuat rencana (effective customTargets) boleh diisi, nama & satuan terkunci
+    const getEffectiveForSubmit = (pid: string): Array<{name:string,value:string,unit:string}> => {
+      const p = plans.find(x=>x.id===pid);
+      if (!p) return [];
+      const direct = (p as any).customTargets as Array<{name:string,value:string,unit:string}> | undefined;
+      if (direct && direct.length>0) return direct;
+      if (!p.parentId) return [];
+      return getEffectiveForSubmit(p.parentId);
+    };
+    const effectiveSubmit = getEffectiveForSubmit(plan.id);
+    const filteredTargetsSubmit = realForm.targets.filter(t => String(t.value).trim().length > 0);
+    if (effectiveSubmit.length === 0) {
+      if (filteredTargetsSubmit.length > 0 || realForm.targets.some(t=> String(t.name).trim().length>0 && String(t.value).trim().length>0)) {
+        notify("Rencana ini tidak memiliki rincian target — target terealisasi tidak boleh diisi");
+        return;
+      }
+    } else {
+      if (filteredTargetsSubmit.length > effectiveSubmit.length) { notify(`Maksimal ${effectiveSubmit.length} target sesuai rincian rencana`); return; }
+      const effMapSubmit = new Map(effectiveSubmit.map(e=>[e.name.trim().toLowerCase(), e]));
+      const seenSubmit = new Set<string>();
+      for (const t of filteredTargetsSubmit) {
+        const key = t.name.trim().toLowerCase();
+        const eff = effMapSubmit.get(key);
+        if (!eff) { notify(`Target "${t.name}" tidak ada di rincian rencana. Hanya: ${effectiveSubmit.map(e=>e.name).join(", ")}`); return; }
+        if (String(t.unit).trim() !== String(eff.unit).trim()) { notify(`Satuan untuk "${t.name}" harus "${eff.unit}" sesuai rencana`); return; }
+        if (seenSubmit.has(key)) { notify(`Target "${t.name}" duplikat`); return; }
+        seenSubmit.add(key);
+        if (!t.name.trim() || t.name.trim().length > 50) { notify("Nama target 1-50 karakter"); return; }
+        if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
+        if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
+        if (!/^\d+$/.test(String(t.value).trim())) { notify(`Nilai capaian untuk "${t.name}" harus angka`); return; }
+      }
+      // juga cegah entri dengan nama/unit tidak sesuai meski value kosong (jaga integritas)
+      for (const t of realForm.targets) {
+        if (String(t.value).trim().length===0) continue;
+        // sudah divalidasi di atas
+      }
+      if (realForm.targets.length > effectiveSubmit.length) { notify(`Jumlah baris target melebihi rincian rencana (${effectiveSubmit.length})`); return; }
     }
     if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
     // Validasi duplikat berdasarkan employeeId atau customName
@@ -373,7 +406,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (hasEmployee && hasCustom) { notify("Peserta tidak boleh punya employeeId dan customName bersamaan"); return; }
       if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
     }
-    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: titleTrim, value: String(valNum), description: realForm.description, date: dateVal, time: timeVal, uploadedBy: currentUser.id, targets: realForm.targets.map(t=>({ id: "rt"+Date.now()+Math.random().toString(36).slice(2,5), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId: p.employeeId || null, customName: p.customName?.trim() || null, role:p.role.trim() } as any)) };
+    const r: Realization = { id: "r" + Date.now(), planId: plan.id, title: titleTrim, value: String(valNum), description: realForm.description, date: dateVal, time: timeVal, uploadedBy: currentUser.id, targets: filteredTargetsSubmit.map(t=>({ id: "rt"+Date.now()+Math.random().toString(36).slice(2,5), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId: p.employeeId || null, customName: p.customName?.trim() || null, role:p.role.trim() } as any)) };
     const nextReals = [r, ...realizations];
     // untuk plan yang punya anak, progress = (langsung + anak)/target
     const newProgress = calcPlanProgress(plan.id, plans, nextReals);
@@ -394,7 +427,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       }
       return updated;
     });
-    fetch("/api/realizations", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ planId: plan.id, title: r.title, value: r.value, description: r.description, date: r.date, time: r.time, files: realForm.files, fileNames: realForm.files.map(f=>f.fileName), uploadedBy: currentUser.id, progress: newProgress, targets: realForm.targets, participants: realForm.participants }) }).then(async res => {
+    fetch("/api/realizations", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ planId: plan.id, title: r.title, value: r.value, description: r.description, date: r.date, time: r.time, files: realForm.files, fileNames: realForm.files.map(f=>f.fileName), uploadedBy: currentUser.id, progress: newProgress, targets: filteredTargetsSubmit, participants: realForm.participants }) }).then(async res => {
       if (!res.ok) {
         const j = await res.json().catch(()=>({}));
         notify("Gagal simpan realisasi: " + (j.error || res.statusText));
@@ -456,11 +489,36 @@ export function SKPProvider({ children }: { children: ReactNode }) {
         return;
       }
     }
-    if (realForm.targets.length > 5) { notify("Maksimal 5 target per realisasi"); return; }
-    for (const t of realForm.targets) {
-      if (!t.name.trim() || t.name.trim().length > 50) { notify("Nama target 1-50 karakter"); return; }
-      if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
-      if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
+    // Validasi target terealisasi edit: hanya dari pembuat rencana
+    const getEffectiveForEdit = (pid: string): Array<{name:string,value:string,unit:string}> => {
+      const p = plans.find(x=>x.id===pid);
+      if (!p) return [];
+      const direct = (p as any).customTargets as Array<{name:string,value:string,unit:string}> | undefined;
+      if (direct && direct.length>0) return direct;
+      if (!p.parentId) return [];
+      return getEffectiveForEdit(p.parentId);
+    };
+    const effectiveEdit = getEffectiveForEdit(editingRealization.planId);
+    const filteredTargetsEdit = realForm.targets.filter(t => String(t.value).trim().length > 0);
+    if (effectiveEdit.length === 0) {
+      if (filteredTargetsEdit.length > 0) { notify("Rencana ini tidak memiliki rincian target — target terealisasi tidak boleh diisi"); return; }
+    } else {
+      if (filteredTargetsEdit.length > effectiveEdit.length) { notify(`Maksimal ${effectiveEdit.length} target sesuai rincian rencana`); return; }
+      const effMapEdit = new Map(effectiveEdit.map(e=>[e.name.trim().toLowerCase(), e]));
+      const seenEdit = new Set<string>();
+      for (const t of filteredTargetsEdit) {
+        const key = t.name.trim().toLowerCase();
+        const eff = effMapEdit.get(key);
+        if (!eff) { notify(`Target "${t.name}" tidak ada di rincian rencana. Hanya: ${effectiveEdit.map(e=>e.name).join(", ")}`); return; }
+        if (String(t.unit).trim() !== String(eff.unit).trim()) { notify(`Satuan untuk "${t.name}" harus "${eff.unit}" sesuai rencana`); return; }
+        if (seenEdit.has(key)) { notify(`Target "${t.name}" duplikat`); return; }
+        seenEdit.add(key);
+        if (!t.name.trim() || t.name.trim().length > 50) { notify("Nama target 1-50 karakter"); return; }
+        if (!t.value.trim()) { notify("Nilai target wajib diisi"); return; }
+        if (!t.unit.trim() || t.unit.trim().length > 20) { notify("Satuan target 1-20 karakter"); return; }
+        if (!/^\d+$/.test(String(t.value).trim())) { notify(`Nilai capaian untuk "${t.name}" harus angka`); return; }
+      }
+      if (realForm.targets.length > effectiveEdit.length) { notify(`Jumlah baris target melebihi rincian rencana (${effectiveEdit.length})`); return; }
     }
     if (realForm.participants.length > 10) { notify("Maksimal 10 pegawai terlibat"); return; }
     const updPKeys = realForm.participants.map(p => p.employeeId ? `id:${p.employeeId}` : `custom:${(p.customName||"").toLowerCase().trim()}`);
@@ -471,11 +529,11 @@ export function SKPProvider({ children }: { children: ReactNode }) {
       if (!hasEmployee && !hasCustom) { notify("Isi nama pegawai terlibat (ketik nama, pilih dari daftar jika ada)"); return; }
       if (!p.role.trim() || p.role.trim().length > 30) { notify("Peran 1-30 karakter"); return; }
     }
-    const updated: Realization = { ...editingRealization, title: titleTrim, description: realForm.description, date: dateVal, time: timeVal, targets: realForm.targets.map(t=>({ id: t.name+Date.now(), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId: p.employeeId || null, customName: p.customName?.trim() || null, role:p.role.trim() } as any)) };
+    const updated: Realization = { ...editingRealization, title: titleTrim, description: realForm.description, date: dateVal, time: timeVal, targets: filteredTargetsEdit.map(t=>({ id: t.name+Date.now(), name: t.name.trim(), value: t.value.trim(), unit: t.unit.trim() })), participants: realForm.participants.map(p=>({ id:"rp"+Date.now()+Math.random().toString(36).slice(2,5), employeeId: p.employeeId || null, customName: p.customName?.trim() || null, role:p.role.trim() } as any)) };
     const addedFiles = [...realForm.files];
     setRealizations(prev => prev.map(r => r.id === editingRealization.id ? updated : r));
     // jangan buat optimistic attachment — tunggu refetch dari DB setelah PATCH
-    fetch("/api/realizations", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: updated.id, title: updated.title, description: updated.description, date: updated.date, time: updated.time, files: addedFiles, fileNames: addedFiles.map(f=>f.fileName), targets: realForm.targets, participants: realForm.participants }) }).then(async r => {
+    fetch("/api/realizations", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id: updated.id, title: updated.title, description: updated.description, date: updated.date, time: updated.time, files: addedFiles, fileNames: addedFiles.map(f=>f.fileName), targets: filteredTargetsEdit, participants: realForm.participants }) }).then(async r => {
       if (!r.ok) {
         const j = await r.json().catch(()=>({}));
         notify("Gagal ubah: " + (j.error || r.statusText));
