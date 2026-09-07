@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 import { useSKP } from "@/lib/store";
 import { DatePicker } from "@/components/ui/date-picker";
+import { ExcelIcon } from "@/components/ui/ExcelIcon";
 
 export default function RealisasiPage() {
  const { realizations, plans, employees, attachments, periods, currentUser, isSubordinate, setShowRealizationModal, setEditingRealization, setRealForm, handleDeleteRealization, handleDeleteAttachment } = useSKP();
@@ -494,7 +495,7 @@ export default function RealisasiPage() {
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
   </button>
   <button onClick={() => exportRealizationDetail(r)} className="w-7 h-7 rounded-full bg-white border border-[#e8e6e5] text-[#78716c] flex items-center justify-center hover:bg-[#fafaf9] hover:border-[#d6d3d1] hover:text-[#0c0a09] transition-colors" title="Export Excel">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  <ExcelIcon size={12} />
   </button>
   {canE && (
   <button onClick={() => openEdit(r)} className="w-7 h-7 rounded-full bg-white border border-[#e8e6e5] text-[#78716c] flex items-center justify-center hover:bg-[#fafaf9] hover:border-[#d6d3d1] hover:text-[#0c0a09] transition-colors" title="Edit">
@@ -609,7 +610,7 @@ export default function RealisasiPage() {
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
   </button>
   <button onClick={() => exportRealizationDetail(r)} className="w-7 h-7 rounded-full bg-white border border-[#e8e6e5] text-[#78716c] flex items-center justify-center hover:bg-[#fafaf9] hover:border-[#d6d3d1] hover:text-[#0c0a09] transition-colors" title="Export Excel">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  <ExcelIcon size={12} />
   </button>
   {canDel ? (
   <button onClick={() => setConfirmDelete({ id: r.id, title: r.title })} className="w-7 h-7 rounded-full bg-white border border-[#e8e6e5] text-[#b91c1c] flex items-center justify-center hover:bg-[#fef2f2] hover:border-[#e8e6e5]" title="Hapus (atasan)">

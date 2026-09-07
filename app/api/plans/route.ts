@@ -7,6 +7,7 @@ export async function GET() {
   return Response.json(plans.map(p => ({
     id: p.id, parentId: p.parentId, skpPeriodId: p.skpPeriodId, createdBy: p.createdBy, assignedTo: p.assignedTo,
     title: p.title, target: p.target, progress: p.progress, createdAt: (p as any).createdAt, plannedDate: (p as any).plannedDate ?? null, plannedTime: (p as any).plannedTime ?? null,
+    allowSelfClaim: Boolean((p as any).allowSelfClaim ?? false),
     customTargets: (p as any).customTargets?.map((t:any) => ({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
   })));
 }
@@ -24,8 +25,22 @@ const createSchema = z.object({
   customTargets: z.array(customTargetSchema).optional(),
   plannedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
   plannedTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional().nullable(),
+  allowSelfClaim: z.coerce.boolean().optional().default(false),
   createdAt: z.string().optional()
 }).passthrough();
+
+// Apakah subId adalah bawahan (langsung/tidak langsung) dari supId? Telusuri rantai supervisor ke atas.
+async function isSubordinateOf(subId: string, supId: string): Promise<boolean> {
+  if (!subId || !supId || subId === supId) return false;
+  let cur = await prisma.employee.findUnique({ where: { id: subId }, select: { supervisorId: true } });
+  const seen = new Set<string>();
+  while (cur?.supervisorId && !seen.has(cur.supervisorId)) {
+    if (cur.supervisorId === supId) return true;
+    seen.add(cur.supervisorId);
+    cur = await prisma.employee.findUnique({ where: { id: cur.supervisorId }, select: { supervisorId: true } });
+  }
+  return false;
+}
 
 export async function POST(req: Request) {
   const token = getTokenFromHeader(req); const payload = token ? verifyToken(token) : null;
@@ -45,7 +60,9 @@ export async function POST(req: Request) {
     // Tapi delegasi (child) tetap mengharuskan createdBy == pelimpah, jadi tetap lolos
     return Response.json({ error: "Hanya pemilik akun yang dapat membuat atas namanya" }, { status: 403 });
   }
-  // Validasi porsi: total bawahan tidak boleh melebihi target induk
+  // Validasi porsi + izin pembuatan anak:
+  // boleh jika pemilik induk, admin/direktur, atau atasan dari pemilik (kelola ke bawah).
+  // Selain itu hanya boleh pengambilan mandiri untuk diri sendiri (induk harus terbuka).
   if (b.parentId) {
     const parent = await prisma.performancePlan.findUnique({ where: { id: b.parentId } });
     if (parent) {
@@ -56,18 +73,50 @@ export async function POST(req: Request) {
       if (parentTarget>0 && siblingsTotal + newVal > parentTarget) {
         return Response.json({ error: `Total porsi delegasi penerima (${siblingsTotal}+${newVal}=${siblingsTotal+newVal}) melebihi target induk (${parentTarget}). Kurangi porsi.` }, { status: 400 });
       }
+      const isPrivileged = payload.role === "admin" || payload.role === "pimpinan_1";
+      const ownerIds = [(parent as any).createdBy, (parent as any).assignedTo].filter(Boolean) as string[];
+      const isParentOwner = ownerIds.includes(payload.id);
+      // Atasan dari pemilik boleh melimpahkan ke bawah (seperti perilaku lama)
+      let isSuperior = false;
+      if (!isPrivileged && !isParentOwner) {
+        for (const oid of ownerIds) {
+          if (await isSubordinateOf(oid, payload.id)) { isSuperior = true; break; }
+        }
+      }
+      if (!isPrivileged && !isParentOwner && !isSuperior) {
+        // Bukan pemilik/atasan → hanya boleh jika induk mengizinkan pengambilan mandiri + pengambil adalah bawahan pemilik
+        const parentOpen = Boolean((parent as any).allowSelfClaim);
+        if (!parentOpen) {
+          return Response.json({ error: "Anda belum mengambil rencana ini — ambil dulu sebelum mendelegasikan" }, { status: 403 });
+        }
+        // Self-claim wajib untuk diri sendiri
+        if (b.assignedTo !== payload.id || b.createdBy !== payload.id) {
+          return Response.json({ error: "Pengambilan mandiri hanya untuk diri sendiri" }, { status: 403 });
+        }
+        // Cegah ambil ganda
+        const already = siblings.some(s => (s as any).assignedTo === payload.id);
+        if (already) {
+          return Response.json({ error: "Anda sudah mengambil rencana ini" }, { status: 400 });
+        }
+        // Pastikan pengambil adalah bawahan dari pemilik induk (telusuri rantai supervisor)
+        let isSub = false;
+        for (const oid of ownerIds) {
+          if (await isSubordinateOf(payload.id, oid)) { isSub = true; break; }
+        }
+        if (!isSub) {
+          return Response.json({ error: "Hanya bawahan pemilik rencana yang boleh mengambil mandiri" }, { status: 403 });
+        }
+      }
     }
   }
   try {
-    // Rincian target (seperti form realisasi) — boleh untuk semua pegawai, maks 5
-    if (b.customTargets && b.customTargets.length > 5) {
-      return Response.json({ error: "Maksimal 5 target kustom per rencana" }, { status: 400 });
-    }
+    // Rincian target (seperti form realisasi) — boleh untuk semua pegawai, tanpa batas jumlah
     const plan = await prisma.performancePlan.create({ data: {
       parentId: b.parentId ?? null, skpPeriodId: b.skpPeriodId, createdBy: b.createdBy, assignedTo: b.assignedTo,
       title: b.title, target: String(b.target), progress: Number(b.progress) || 0,
       createdAt: b.createdAt ?? new Date().toISOString().slice(0,16).replace("T"," "),
-      plannedDate: b.plannedDate ?? null, plannedTime: b.plannedTime ?? null
+      plannedDate: b.plannedDate ?? null, plannedTime: b.plannedTime ?? null,
+      allowSelfClaim: b.parentId ? false : Boolean((b as any).allowSelfClaim ?? false)
     }});
     // Buat custom targets jika ada (hanya untuk direktur)
     if (b.customTargets && b.customTargets.length > 0) {
@@ -88,6 +137,7 @@ export async function POST(req: Request) {
       ...plan,
       plannedDate: (planWithTargets as any)?.plannedDate ?? null,
       plannedTime: (planWithTargets as any)?.plannedTime ?? null,
+      allowSelfClaim: Boolean((planWithTargets as any)?.allowSelfClaim ?? false),
       createdAt: (planWithTargets as any)?.createdAt,
       customTargets: (planWithTargets as any)?.customTargets?.map((t:any) => ({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
     }, { status: 201 });
@@ -125,11 +175,16 @@ export async function PATCH(req: Request) {
       }
     }
   }
+  // Toggle Izinkan Pengambilan Mandiri — hanya pemilik (pembuat/pelaksana), admin, atau direktur
+  if (b.allowSelfClaim !== undefined) {
+    const existing = await prisma.performancePlan.findUnique({ where: { id: b.id } });
+    if (!existing) return Response.json({ error: "Rencana tidak ditemukan" }, { status: 404 });
+    const canToggle = payload.role === "admin" || payload.role === "pimpinan_1"
+      || (existing as any).createdBy === payload.id || (existing as any).assignedTo === payload.id;
+    if (!canToggle) return Response.json({ error: "Hanya pemilik/admin/direktur dapat mengubah izin pengambilan mandiri" }, { status: 403 });
+  }
   // Handle custom targets update — boleh untuk semua pegawai (seperti realisasi)
   if (b.customTargets !== undefined) {
-    if (Array.isArray(b.customTargets) && b.customTargets.length > 5) {
-      return Response.json({ error: "Maksimal 5 target kustom" }, { status: 400 });
-    }
     if (Array.isArray(b.customTargets)) {
       // Validasi
       for (const ct of b.customTargets as any[]) {
@@ -153,20 +208,27 @@ export async function PATCH(req: Request) {
     }
   }
 
-  const updated = await prisma.performancePlan.update({ where: { id: b.id }, data: {
-    title: b.title, target: b.target ? String(b.target) : undefined,
-    progress: b.progress !== undefined ? Number(b.progress) : undefined,
-    plannedDate: b.plannedDate !== undefined ? b.plannedDate : undefined,
-    plannedTime: b.plannedTime !== undefined ? b.plannedTime : undefined
-  }});
-  const withTargets = await prisma.performancePlan.findUnique({ where: { id: b.id }, include: { customTargets: true } });
-  return Response.json({
-    ...updated,
-    plannedDate: (withTargets as any)?.plannedDate ?? null,
-    plannedTime: (withTargets as any)?.plannedTime ?? null,
-    createdAt: (withTargets as any)?.createdAt,
-    customTargets: (withTargets as any)?.customTargets?.map((t:any) => ({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
-  });
+  try {
+    const updated = await prisma.performancePlan.update({ where: { id: b.id }, data: {
+      title: b.title, target: b.target ? String(b.target) : undefined,
+      progress: b.progress !== undefined ? Number(b.progress) : undefined,
+      plannedDate: b.plannedDate !== undefined ? b.plannedDate : undefined,
+      plannedTime: b.plannedTime !== undefined ? b.plannedTime : undefined,
+      allowSelfClaim: b.allowSelfClaim !== undefined ? Boolean(b.allowSelfClaim) : undefined
+    }});
+    const withTargets = await prisma.performancePlan.findUnique({ where: { id: b.id }, include: { customTargets: true } });
+    return Response.json({
+      ...updated,
+      plannedDate: (withTargets as any)?.plannedDate ?? null,
+      plannedTime: (withTargets as any)?.plannedTime ?? null,
+      allowSelfClaim: Boolean((withTargets as any)?.allowSelfClaim ?? (updated as any)?.allowSelfClaim ?? false),
+      createdAt: (withTargets as any)?.createdAt,
+      customTargets: (withTargets as any)?.customTargets?.map((t:any) => ({ id: t.id, name: t.name, value: t.value, unit: t.unit })) ?? []
+    });
+  } catch (e: any) {
+    console.error("PATCH /api/plans update failed", e, "body:", b);
+    return Response.json({ error: "Gagal memperbarui rencana", details: String(e?.message).slice(0, 500) }, { status: 500 });
+  }
 }
 
 // DELETE — hapus rencana + seluruh turunannya (cascade down the tree)

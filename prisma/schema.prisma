@@ -67,6 +67,7 @@ model PerformancePlan {
   createdAt   String  @default("2026-01-01") @map("created_at")
   plannedDate String? @map("planned_date") // tanggal rencana akan dijalankan (YYYY-MM-DD)
   plannedTime String? @map("planned_time") // jam rencana akan dijalankan (HH:mm 24H)
+  allowSelfClaim Boolean @default(false) @map("allow_self_claim") // jika true, bawahan boleh ambil mandiri tanpa ditunjuk
 
   parent   PerformancePlan?  @relation("PlanParent", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   children PerformancePlan[] @relation("PlanParent")

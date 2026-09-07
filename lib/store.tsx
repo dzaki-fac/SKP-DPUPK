@@ -4,7 +4,7 @@ import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, Act
 import { validateOrgChange, validateOrgCreate, canCreateAnyRole } from "./roles";
 import { seedEmployees, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
 
-type PlanForm = Partial<PerformancePlan> & { plannedDate?: string; plannedTime?: string };
+type PlanForm = Partial<PerformancePlan> & { plannedDate?: string; plannedTime?: string; allowSelfClaim?: boolean };
 type Ctx = {
  currentUser: Employee | null; setCurrentUser: (e: Employee | null) => void;
  authChecked: boolean;
@@ -25,8 +25,9 @@ type Ctx = {
  isSubordinate: (sup: string, emp: string) => boolean;
  getSubordinates: (id: string) => Employee[];
  getDirectSubordinates: (id: string) => Employee[];
- visiblePlans: PerformancePlan[]; filteredPlans: PerformancePlan[]; myPlans: PerformancePlan[];
- search: string; setSearch: (s: string) => void;
+  visiblePlans: PerformancePlan[]; filteredPlans: PerformancePlan[]; myPlans: PerformancePlan[];
+  claimablePlans: PerformancePlan[];
+  search: string; setSearch: (s: string) => void;
  // modals & forms
  showPlanModal: boolean; setShowPlanModal: (v: boolean) => void;
  showCascadeModal: PerformancePlan | null; setShowCascadeModal: (p: PerformancePlan | null) => void;
@@ -42,8 +43,10 @@ type Ctx = {
  periodForm: { name: string; year: number; startDate: string; endDate: string }; setPeriodForm: (v: { name: string; year: number; startDate: string; endDate: string }) => void;
  empForm: { name: string; email: string; supervisorId: string; role: Role }; setEmpForm: (v: { name: string; email: string; supervisorId: string; role: Role }) => void;
  // handlers
- handleCreatePlan: () => void;
- handleCascade: () => void;
+  handleCreatePlan: () => void;
+  handleClaimPlan: (parentId: string, title: string, portion: string) => Promise<{ ok: boolean; error?: string }>;
+  handleToggleAllowSelfClaim: (id: string, value: boolean) => Promise<void>;
+  handleCascade: () => void;
  handleUpdateDelegation: (id: string, target: string, title?: string) => void;
  handleDeleteDelegation: (id: string, title: string) => Promise<void>;
  handleSubmitRealization: () => void;
@@ -76,7 +79,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
  const [editingRealization, setEditingRealization] = useState<Realization | null>(null);
  const [editingPlan, setEditingPlan] = useState<PerformancePlan | null>(null);
  const [search, setSearch] = useState("");
- const [planForm, setPlanForm] = useState<PlanForm>({ title: "", target: "", skpPeriodId: "sp2026", plannedDate: "", plannedTime: ""});
+  const [planForm, setPlanForm] = useState<PlanForm>({ title: "", target: "", skpPeriodId: "sp2026", plannedDate: "", plannedTime: "", allowSelfClaim: false });
  const [planCustomTargets, setPlanCustomTargets] = useState<Array<{name: string, value: string, unit: string}>>([]);
  const [cascadeTargets, setCascadeTargets] = useState<string[]>([]);
  const [cascadePortions, setCascadePortions] = useState<Record<string,string>>({});
@@ -153,8 +156,27 @@ export function SKPProvider({ children }: { children: ReactNode }) {
 
  const filteredPlans = visiblePlans.filter(p => !search || p.title.toLowerCase().includes(search.toLowerCase()));
 
- // Hanya rencana yang ditugaskan KEpada user ini (tugas pribadi)
- const myPlans = useMemo(() => currentUser ? plans.filter(p => p.assignedTo === currentUser.id) : [], [currentUser, plans]);
+  // Hanya rencana yang ditugaskan KEpada user ini (tugas pribadi)
+  const myPlans = useMemo(() => currentUser ? plans.filter(p => p.assignedTo === currentUser.id) : [], [currentUser, plans]);
+
+  // Rencana Pilihan: rencana atasan yang membuka pengambilan mandiri, belum diambil user ini
+  const claimablePlans = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === "admin") return plans.filter(p => (p as any).allowSelfClaim && p.assignedTo !== currentUser.id);
+    return plans.filter(p => {
+      if (!(p as any).allowSelfClaim) return false;
+      if (p.assignedTo === currentUser.id) return false;
+      if (p.createdBy === currentUser.id && p.assignedTo === currentUser.id) return false;
+      // Harus bawahan dari pemilik (pelaksana atau pembuat induk)
+      const ownerIds = [p.assignedTo, p.createdBy];
+      const isSub = ownerIds.some(oid => oid && isSubordinate(oid, currentUser.id));
+      if (!isSub) return false;
+      // Sudah diambil? sembunyikan agar tidak ganda
+      const already = plans.some(c => c.parentId === p.id && c.assignedTo === currentUser.id);
+      if (already) return false;
+      return true;
+    });
+  }, [currentUser, plans, employees]);
 
  const handleCreatePlan = () => {
  if (!currentUser) return;
@@ -164,8 +186,7 @@ export function SKPProvider({ children }: { children: ReactNode }) {
   const effectiveTarget = String(planForm.target).trim();
   if (!effectiveTarget) { notify("Target jumlah wajib diisi"); return; }
   if (!/^\d+$/.test(effectiveTarget) || Number(effectiveTarget) <= 0) { notify("Target jumlah harus angka >0"); return; }
- if (planCustomTargets.length > 5) { notify("Maksimal 5 target kustom"); return; }
- for (const ct of planCustomTargets) {
+  for (const ct of planCustomTargets) {
  if (!ct.name.trim() || ct.name.trim().length > 50) { notify("Nama target kustom 1-50 karakter"); return; }
  if (!ct.value.trim()) { notify("Nilai target kustom wajib"); return; }
  if (!ct.unit.trim() || ct.unit.trim().length > 20) { notify("Satuan target kustom 1-20 karakter"); return; }
@@ -180,25 +201,27 @@ export function SKPProvider({ children }: { children: ReactNode }) {
  if (plannedDateVal && plannedTimeVal && (Number(plannedTimeVal.split(":")[0]) > 23 || Number(plannedTimeVal.split(":")[1]) > 59)) { notify("Jam rencana tidak valid"); return; }
  const now = new Date();
  const createdAtVal = editingPlan ? editingPlan.createdAt : `${now.toISOString().slice(0,10)} ${now.toTimeString().slice(0,5)}`;
- const newPlan: PerformancePlan = {
- id: "pl"+ Date.now(), parentId: editingPlan ? editingPlan.parentId : null,
- skpPeriodId: validPeriodId, createdBy: currentUser.id, assignedTo: currentUser.id,
- title: planForm.title!, target: effectiveTarget, progress: 0,
- createdAt: createdAtVal,
- plannedDate: plannedDateVal || null,
- plannedTime: plannedTimeVal || null,
- customTargets: planCustomTargets.map(ct => ({ id: "ct"+ Date.now() + Math.random().toString(36).slice(2,5), name: ct.name.trim(), value: ct.value.trim(), unit: ct.unit.trim() }))
- };
- if (editingPlan) {
- const prevTargets = editingPlan.customTargets ?? [];
- const prevPlannedDate = (editingPlan as any).plannedDate ?? null;
- const prevPlannedTime = (editingPlan as any).plannedTime ?? null;
- setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, id: editingPlan.id } : p));
- fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json"}, credentials: "include", body: JSON.stringify({ id: editingPlan.id, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime }) }).then(async r => { if (!r.ok) { const j = await r.json().catch(()=>({})); notify("Gagal simpan ke database: "+ (j.error || r.statusText)); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime } : p)); }}).catch(() => { notify("Gagal simpan ke database"); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime } : p)); });
- addLog("Mengubah rencana", `Mengubah rencana '${newPlan.title}'`, "performance_plan", editingPlan.id); notify("Rencana diperbarui");
- } else {
- setPlans(prev => [newPlan, ...prev]);
- fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json"}, credentials: "include", body: JSON.stringify({ ...newPlan, log: false, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, createdAt: newPlan.createdAt }) }).then(async r => {
+  const newPlan: PerformancePlan = {
+  id: "pl"+ Date.now(), parentId: editingPlan ? editingPlan.parentId : null,
+  skpPeriodId: validPeriodId, createdBy: currentUser.id, assignedTo: currentUser.id,
+  title: planForm.title!, target: effectiveTarget, progress: 0,
+  createdAt: createdAtVal,
+  plannedDate: plannedDateVal || null,
+  plannedTime: plannedTimeVal || null,
+  allowSelfClaim: Boolean((planForm as any).allowSelfClaim ?? (editingPlan as any)?.allowSelfClaim ?? false),
+  customTargets: planCustomTargets.map(ct => ({ id: "ct"+ Date.now() + Math.random().toString(36).slice(2,5), name: ct.name.trim(), value: ct.value.trim(), unit: ct.unit.trim() }))
+  };
+  if (editingPlan) {
+  const prevTargets = editingPlan.customTargets ?? [];
+  const prevPlannedDate = (editingPlan as any).plannedDate ?? null;
+  const prevPlannedTime = (editingPlan as any).plannedTime ?? null;
+  const prevAllow = Boolean((editingPlan as any).allowSelfClaim ?? false);
+  setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, allowSelfClaim: newPlan.allowSelfClaim, id: editingPlan.id } : p));
+  fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json"}, credentials: "include", body: JSON.stringify({ id: editingPlan.id, title: newPlan.title, target: newPlan.target, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, allowSelfClaim: newPlan.allowSelfClaim }) }).then(async r => { if (!r.ok) { const j = await r.json().catch(()=>({})); notify("Gagal simpan ke database: "+ (j.error || r.statusText)); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime, allowSelfClaim: prevAllow } : p)); }}).catch(() => { notify("Gagal simpan ke database"); setPlans(prev => prev.map(p => p.id === editingPlan.id ? { ...p, customTargets: prevTargets, plannedDate: prevPlannedDate, plannedTime: prevPlannedTime, allowSelfClaim: prevAllow } : p)); });
+  addLog("Mengubah rencana", `Mengubah rencana '${newPlan.title}'`, "performance_plan", editingPlan.id); notify("Rencana diperbarui");
+  } else {
+  setPlans(prev => [newPlan, ...prev]);
+  fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json"}, credentials: "include", body: JSON.stringify({ ...newPlan, log: false, customTargets: newPlan.customTargets, plannedDate: newPlan.plannedDate, plannedTime: newPlan.plannedTime, allowSelfClaim: newPlan.allowSelfClaim, createdAt: newPlan.createdAt }) }).then(async r => {
  if (!r.ok) {
  const j = await r.json().catch(()=>({}));
  const detail = j.details ? JSON.stringify(j.details).slice(0,200) : "";
@@ -217,10 +240,73 @@ export function SKPProvider({ children }: { children: ReactNode }) {
  notify("Rencana kinerja dibuat — tersimpan di database");
  }
  }).catch(() => { notify("Gagal simpan ke database (jaringan)"); setPlans(prev => prev.filter(p => p.id !== newPlan.id)); });
- addLog("Membuat rencana", `Membuat rencana '${newPlan.title}'`, "performance_plan", newPlan.id);
- }
- setShowPlanModal(false); setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026", plannedDate: "", plannedTime: ""}); setPlanCustomTargets([]);
- };
+  addLog("Membuat rencana", `Membuat rencana '${newPlan.title}'`, "performance_plan", newPlan.id);
+  }
+  setShowPlanModal(false); setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026", plannedDate: "", plannedTime: "", allowSelfClaim: false }); setPlanCustomTargets([]);
+  };
+
+  const handleToggleAllowSelfClaim = async (id: string, value: boolean) => {
+    const plan = plans.find(p => p.id === id);
+    if (!plan || !currentUser) return;
+    const prev = Boolean((plan as any).allowSelfClaim ?? false);
+    setPlans(prevPlans => prevPlans.map(p => p.id === id ? { ...p, allowSelfClaim: value } as PerformancePlan : p));
+    try {
+      const res = await fetch("/api/plans", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ id, allowSelfClaim: value }) });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      addLog(value ? "Membuka pengambilan mandiri" : "Menutup pengambilan mandiri", `${value ? "Membuka" : "Menutup"} pengambilan mandiri '${plan.title}'`, "performance_plan", id);
+      notify(value ? "Pengambilan mandiri dibuka — bawahan bisa ambil di Rencana Pilihan" : "Pengambilan mandiri ditutup");
+    } catch (e: any) {
+      setPlans(prevPlans => prevPlans.map(p => p.id === id ? { ...p, allowSelfClaim: prev } as PerformancePlan : p));
+      notify("Gagal ubah izin: " + (e?.message || "error"));
+    }
+  };
+
+  const handleClaimPlan = async (parentId: string, title: string, portion: string) => {
+    if (!currentUser) return { ok: false, error: "unauthorized" };
+    const parent = plans.find(p => p.id === parentId);
+    if (!parent) { notify("Rencana induk tidak ditemukan"); return { ok: false, error: "not_found" }; }
+    const t = String(title ?? "").trim() || parent.title;
+    if (t.length < 3) { notify("Judul minimal 3 karakter"); return { ok: false, error: "title" }; }
+    const porsiNum = parseFloat(String(portion).replace(",", ".")) || 0;
+    if (porsiNum <= 0) { notify("Porsi harus >0"); return { ok: false, error: "portion" }; }
+    const children = plans.filter(c => c.parentId === parentId);
+    const totalPorsi = children.reduce((s, c) => s + (parseFloat(String(c.target).replace(",", ".")) || 0), 0);
+    const parentTarget = parseFloat(String(parent.target).replace(",", ".")) || 0;
+    const sisa = parentTarget > 0 ? parentTarget - totalPorsi : Infinity;
+    if (parentTarget > 0 && porsiNum > sisa) { notify(`Porsi melebihi sisa (${sisa} dari ${parentTarget})`); return { ok: false, error: "over" }; }
+    if (children.some(c => c.assignedTo === currentUser.id)) { notify("Anda sudah mengambil rencana ini"); return { ok: false, error: "taken" }; }
+    const parentTargets = ((parent as any).customTargets as Array<{ name: string; value: string; unit: string }>) ?? [];
+    const payload: any = {
+      parentId: parent.id,
+      skpPeriodId: parent.skpPeriodId,
+      createdBy: currentUser.id,
+      assignedTo: currentUser.id,
+      title: t,
+      target: String(portion).trim(),
+      progress: 0,
+      customTargets: parentTargets.map(ct => ({ name: ct.name, value: ct.value, unit: ct.unit })),
+      plannedDate: (parent as any).plannedDate ?? null,
+      plannedTime: (parent as any).plannedTime ?? null,
+      allowSelfClaim: false,
+      log: false,
+    };
+    try {
+      const res = await fetch("/api/plans", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify(payload) });
+      const j = await res.json().catch(() => null);
+      if (!res.ok) { notify("Gagal mengambil: " + (j?.error || res.statusText)); return { ok: false, error: j?.error || res.statusText }; }
+      if (j && j.id) {
+        setPlans(prev => (prev.some(p => p.id === j.id) ? prev : [j, ...prev]));
+        fetch("/api/db").then(r => r.ok ? r.json() : null).then(d => { if (d?.plans) setPlans(d.plans); }).catch(() => {});
+      }
+      addLog("Pengambilan mandiri", `Mengambil '${t}' (${portion}) dari '${parent.title}'`, "performance_plan", parent.id);
+      notify(`Berhasil mengambil — masuk ke Tugas Saya`);
+      return { ok: true };
+    } catch {
+      notify("Gagal mengambil rencana");
+      return { ok: false, error: "network" };
+    }
+  };
 
  // Auto-koreksi planForm jika masih pakai id lama (sp1) setelah periods ter-hydrate dari DB
  useEffect(() => {
@@ -229,9 +315,19 @@ export function SKPProvider({ children }: { children: ReactNode }) {
  }
  }, [periods]);
 
- const handleCascade = () => {
- if (!currentUser) return;
- if (!showCascadeModal || cascadeTargets.length === 0) { notify("Pilih minimal satu delegasi penerima"); return; }
+  const handleCascade = () => {
+  if (!currentUser) return;
+  if (!showCascadeModal || cascadeTargets.length === 0) { notify("Pilih minimal satu delegasi penerima"); return; }
+  // Kunci: hanya pemilik, atasan pemilik, admin, atau direktur yang boleh melimpahkan.
+  // Bawahan yang belum mengambil tidak bisa mendelegasikan.
+  {
+  const o = showCascadeModal;
+  const ownerIds = [(o as any).assignedTo, (o as any).createdBy].filter(Boolean) as string[];
+  const isOwner = ownerIds.includes(currentUser.id);
+  const isPriv = ["admin", "pimpinan_1"].includes(currentUser.role);
+  const isSup = !isOwner && !isPriv && ownerIds.some(oid => isSubordinate(currentUser.id, oid));
+  if (!isOwner && !isPriv && !isSup) { notify("Anda belum mengambil rencana ini — ambil dulu sebelum mendelegasikan"); return; }
+  }
  // validasi porsi + judul
  const parentTarget = parseFloat(String(showCascadeModal.target).replace(",", ".")) || 0;
  const portions = cascadeTargets.map(tid => ({
@@ -853,10 +949,10 @@ export function SKPProvider({ children }: { children: ReactNode }) {
  currentUser, setCurrentUser, authChecked, dbLoaded, login, logout, employees, setEmployees,
  updateEmployee, createEmployee, deleteEmployee,
  periods, setPeriods, plans, setPlans, realizations, setRealizations, attachments, setAttachments, logs, setLogs,
- toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, search, setSearch,
- showPlanModal, setShowPlanModal, showCascadeModal, setShowCascadeModal, showRealizationModal, setShowRealizationModal,
- editingPlan, setEditingPlan, planForm, setPlanForm, planCustomTargets, setPlanCustomTargets, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, editingRealization, setEditingRealization, periodForm, setPeriodForm, empForm, setEmpForm,
- handleCreatePlan, handleCascade, handleUpdateDelegation, handleDeleteDelegation, handleSubmitRealization, handleEditRealization, handleDeleteRealization, handleDeleteAttachment, handleDeletePlan,
+  toast, notify, addLog, isSubordinate, getSubordinates, getDirectSubordinates, visiblePlans, filteredPlans, myPlans, claimablePlans, search, setSearch,
+  showPlanModal, setShowPlanModal, showCascadeModal, setShowCascadeModal, showRealizationModal, setShowRealizationModal,
+  editingPlan, setEditingPlan, planForm, setPlanForm, planCustomTargets, setPlanCustomTargets, cascadeTargets, setCascadeTargets, cascadePortions, setCascadePortions, cascadeTitles, setCascadeTitles, realForm, setRealForm, editingRealization, setEditingRealization, periodForm, setPeriodForm, empForm, setEmpForm,
+  handleCreatePlan, handleClaimPlan, handleToggleAllowSelfClaim, handleCascade, handleUpdateDelegation, handleDeleteDelegation, handleSubmitRealization, handleEditRealization, handleDeleteRealization, handleDeleteAttachment, handleDeletePlan,
  };
  return <SKPContext.Provider value={value}>{children}</SKPContext.Provider>;
 }

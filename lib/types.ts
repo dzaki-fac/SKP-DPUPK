@@ -34,6 +34,7 @@ export interface PerformancePlan {
   createdAt?: string;
   plannedDate?: string | null;
   plannedTime?: string | null;
+  allowSelfClaim?: boolean;
 }
 
 export interface RealizationTarget { id: string; name: string; value: string; unit: string; }

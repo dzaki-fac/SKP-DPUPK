@@ -88,7 +88,6 @@ export async function POST(req: Request) {
     const timeVal = normalizeTime(b.time) ?? normalizeTime(b.realizationTime) ?? "09:00";
     // Validasi target rincian: hanya dari pembuat rencana (effective customTargets) boleh diisi
     const incomingTargets: Array<{name:string,value:string,unit:string}> = Array.isArray(b.targets) ? b.targets : Array.isArray(b.realizationTargets) ? b.realizationTargets : [];
-    if (incomingTargets.length > 5) return Response.json({ error: "Maksimal 5 target per realisasi" }, { status: 400 });
     // Ambil rincian efektif (plan sendiri atau induk terdekat yang punya customTargets)
     const getEffectiveForPost = async (pid: string): Promise<Array<{name:string,unit:string}>> => {
       const plan = await prisma.performancePlan.findUnique({ where: { id: pid }, include: { customTargets: true } });
@@ -231,7 +230,6 @@ export async function PATCH(req: Request) {
   // Handle targets update jika ada — hanya dari pembuat rencana
   if (b.targets !== undefined || b.realizationTargets !== undefined) {
     const updTargets: Array<{name:string,value:string,unit:string}> = Array.isArray(b.targets) ? b.targets : Array.isArray(b.realizationTargets) ? b.realizationTargets : [];
-    if (updTargets.length > 5) return Response.json({ error: "Maksimal 5 target per realisasi" }, { status: 400 });
     // validasi vs effective
     const getEffectiveForPatch = async (pid: string): Promise<Array<{name:string,unit:string}>> => {
       const plan = await prisma.performancePlan.findUnique({ where: { id: pid }, include: { customTargets: true } });

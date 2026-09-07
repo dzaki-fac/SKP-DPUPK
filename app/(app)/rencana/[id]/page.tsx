@@ -4,10 +4,11 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { useSKP } from "@/lib/store";
+import { ExcelIcon } from "@/components/ui/ExcelIcon";
 
 export default function RencanaDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { plans, employees, periods, realizations, attachments, currentUser, setShowCascadeModal } = useSKP();
+  const { plans, employees, periods, realizations, attachments, currentUser, setShowCascadeModal, isSubordinate, handleToggleAllowSelfClaim } = useSKP() as any;
   const [selectedRealId, setSelectedRealId] = useState<string | null>(null);
   if (!currentUser) return null;
 
@@ -186,10 +187,17 @@ export default function RencanaDetailPage() {
           </Link>
           <div className="flex items-center gap-1.5">
             <button onClick={exportDetail} className="px-2.5 py-1 rounded-full bg-white border border-[#e8e6e5] text-[12px] font-medium text-[#0c0a09] hover:bg-[#fafaf9] inline-flex items-center gap-1" style={{borderRadius:9999}}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <ExcelIcon size={12} />
               Excel
             </button>
-            <button onClick={() => setShowCascadeModal(plan)} className="px-3 py-1 rounded-full bg-[#0c0a09] text-white text-[12px] font-medium hover:bg-[#1c1917]" style={{borderRadius:9999}}>Delegasi</button>
+            {(() => {
+              const isOwner = plan.assignedTo === currentUser.id || plan.createdBy === currentUser.id;
+              const isPriv = ["admin", "pimpinan_1"].includes(currentUser.role);
+              const canDelegate = isOwner || isPriv || (!isPriv && (isSubordinate(currentUser.id, plan.assignedTo) || isSubordinate(currentUser.id, plan.createdBy)));
+              return canDelegate ? (
+                <button onClick={() => setShowCascadeModal(plan)} className="px-3 py-1 rounded-full bg-[#0c0a09] text-white text-[12px] font-medium hover:bg-[#1c1917]" style={{borderRadius:9999}}>Delegasi</button>
+              ) : null;
+            })()}
           </div>
         </div>
         <div>
@@ -197,10 +205,37 @@ export default function RencanaDetailPage() {
           <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#fafaf9] border border-[#e8e6e5] text-[#78716c]">{period?.name ?? "-"}</span>
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#e8e6e5] text-[#0c0a09] inline-flex items-center gap-1">{assignee?.name.split(",")[0] ?? "-"}</span>
+            {(plan as any).allowSelfClaim && <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#e8f7ee] border border-[#bbf7d0] text-[#15803d] font-medium">Bisa diambil mandiri</span>}
             {(plan as any).plannedDate && <span className="text-[11px] text-[#78716c]">{formatTanggalIndo((plan as any).plannedDate)}</span>}
             <span className="text-[11px] text-[#a8a29e]">• Dibuat {formatTanggalIndo((plan as any).createdAt ?? plan.createdAt ?? "")}</span>
             {parentPlan && <Link href={`/rencana/${parentPlan.id}`} className="text-[11px] px-2 py-0.5 rounded-full bg-[#c1e1f7] border border-[#e8e6e5] text-[#0c0a09]">↳ {parentPlan.title.slice(0,22)}</Link>}
           </div>
+          {(() => {
+            const isOwner = plan.createdBy === currentUser.id || plan.assignedTo === currentUser.id || ["admin", "pimpinan_1"].includes(currentUser.role);
+            const isSub = plan.assignedTo !== currentUser.id && (isSubordinate(plan.assignedTo, currentUser.id) || isSubordinate(plan.createdBy, currentUser.id));
+            const already = plans.some((c: any) => c.parentId === plan.id && c.assignedTo === currentUser.id);
+            const kids = plans.filter((c: any) => c.parentId === plan.id);
+            const used = kids.reduce((s: number, c: any) => s + (parseFloat(String(c.target).replace(",", ".")) || 0), 0);
+            const need = parseFloat(String(plan.target).replace(",", ".")) || 0;
+            const sisa = need > 0 ? need - used : 99;
+            const habis = need > 0 && sisa <= 0;
+            return (
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                {isOwner && (
+                  <label className="flex items-center gap-2 text-[12px] text-[#0c0a09] cursor-pointer select-none px-2.5 py-1 rounded-full bg-[#fafaf9] border border-[#e8e6e5]">
+                    <input type="checkbox" checked={Boolean((plan as any).allowSelfClaim)} onChange={e => handleToggleAllowSelfClaim(plan.id, e.target.checked)} className="accent-[#3ba6f1] w-3.5 h-3.5" />
+                    <span className="font-medium">Izinkan Pengambilan Mandiri</span>
+                  </label>
+                )}
+                {(plan as any).allowSelfClaim && isSub && already && (
+                  <span className="text-[12px] text-[#15803d]">✓ Sudah Anda ambil — cek Tugas Saya</span>
+                )}
+                {(plan as any).allowSelfClaim && isSub && !already && habis && (
+                  <span className="text-[12px] text-[#a8a29e]">Porsi sudah habis ({used}/{plan.target})</span>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 

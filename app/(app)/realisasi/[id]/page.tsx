@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { useSKP } from "@/lib/store";
+import { ExcelIcon } from "@/components/ui/ExcelIcon";
 
 export default function RealisasiViewPage() {
  const { id } = useParams<{ id: string }>();
@@ -104,7 +105,7 @@ export default function RealisasiViewPage() {
  <p className="eyebrow">DETAIL REALISASI</p>
  <h1 className="subheading text-[20px] leading-tight truncate">{real.title || "Realisasi"}</h1>
  </div>
- <button onClick={exportDetail} className="px-3 py-1.5 rounded-full bg-white border border-[#e8e6e5] text-[12px] font-medium hover:bg-[#fafaf9] inline-flex items-center gap-1.5">Export Excel</button>
+  <button onClick={exportDetail} className="px-3 py-1.5 rounded-full bg-white border border-[#e8e6e5] text-[12px] font-medium hover:bg-[#fafaf9] inline-flex items-center gap-1.5"><ExcelIcon size={14} />Export Excel</button>
  </div>
 
  <div className="seline-card !p-5 space-y-4">

@@ -3,16 +3,18 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 import { useSKP } from "@/lib/store";
+import { ExcelIcon } from "@/components/ui/ExcelIcon";
 import type { PerformancePlan } from "@/lib/types";
 
-type Scope = "mine" | "team" | "delegasi";
+type Scope = "mine" | "team" | "delegasi" | "pilihan";
 
 export default function RencanaPage() {
   const {
-    myPlans, filteredPlans, search, setSearch, currentUser, setEditingPlan, setPlanForm, setShowPlanModal,
+    myPlans, filteredPlans, claimablePlans, search, setSearch, currentUser, setEditingPlan, setPlanForm, setShowPlanModal,
     employees, periods, realizations, plans, setShowCascadeModal, setShowRealizationModal,
     handleDeletePlan, handleUpdateDelegation, handleDeleteDelegation, setPlanCustomTargets,
-  } = useSKP();
+    handleClaimPlan, isSubordinate,
+  } = useSKP() as any;
   const router = useRouter();
   const [scope, setScope] = useState<Scope>("mine");
   const [openMenu, setOpenMenu] = useState<{ id: string; plan: PerformancePlan; x: number; y: number } | null>(null);
@@ -20,14 +22,15 @@ export default function RencanaPage() {
   const [confirmDelegasiId, setConfirmDelegasiId] = useState<{ id: string; title: string; empName: string } | null>(null);
   const [openOthersSection, setOpenOthersSection] = useState(false);
   const [autoCascadePlanId, setAutoCascadePlanId] = useState<string | null>(null);
+  const [claimDraft, setClaimDraft] = useState<{ id: string; title: string; portion: string; sisa: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   if (!currentUser) return null;
 
   const activeScope: Scope = scope;
   const canManage = true;
 
-  const basePlans = activeScope === "mine" ? myPlans : filteredPlans;
-  const shown = basePlans.filter(p => !search || p.title.toLowerCase().includes(search.toLowerCase()));
+  const basePlans = activeScope === "mine" ? myPlans : activeScope === "pilihan" ? claimablePlans : filteredPlans;
+  const shown = basePlans.filter((p: PerformancePlan) => !search || p.title.toLowerCase().includes(search.toLowerCase()));
 
   const confirmPlan = confirmId ? plans.find(x => x.id === confirmId) ?? null : null;
   const closeMenu = () => setOpenMenu(null);
@@ -191,12 +194,13 @@ export default function RencanaPage() {
     const titleSize = "text-[13px]";
     return (
       <tr key={p.id} onClick={() => router.push(`/rencana/${p.id}`)} className="border-b border-[#e8e6e5] hover:bg-[#fafaf9] cursor-pointer group">
- <td className={`${rowPad} max-w-[360px]`}>
- <div className={`font-medium text-[#0c0a09] leading-tight truncate ${titleSize}`}>{p.title}</div>
- <div className="flex items-center gap-1.5 mt-0.5">
- <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[#fafaf9] border border-[#e8e6e5] text-[#78716c]">{period?.name ?? "-"}</span>
- </div>
- </td>
+  <td className={`${rowPad} max-w-[360px]`}>
+  <div className={`font-medium text-[#0c0a09] leading-tight truncate ${titleSize}`}>{p.title}</div>
+  <div className="flex items-center gap-1.5 mt-0.5">
+  <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[#fafaf9] border border-[#e8e6e5] text-[#78716c]">{period?.name ?? "-"}</span>
+  {(p as any).allowSelfClaim && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e8f7ee] border border-[#bbf7d0] text-[#15803d] font-medium">Mandiri</span>}
+  </div>
+  </td>
         <td className={`${rowPad} whitespace-nowrap text-center`}>
           <span className="text-[12px] font-medium text-[#0c0a09]">{jumlahTarget}</span>
         </td>
@@ -248,7 +252,7 @@ export default function RencanaPage() {
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                   </button>
                   {canEdit && (
-                    <button onClick={(e) => { e.stopPropagation(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId }); setPlanCustomTargets((p as any).customTargets?.map((ct:any) => ({ name: ct.name, value: ct.value, unit: ct.unit })) ?? []); setShowPlanModal(true); }} className="w-7 h-7 rounded-full bg-white border border-[#e8e6e5] text-[#78716c] flex items-center justify-center hover:text-[#0c0a09] hover:bg-[#fafaf9] active:scale-95" style={{ borderRadius: 9999 }} title="Edit">
+                    <button onClick={(e) => { e.stopPropagation(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId, allowSelfClaim: Boolean((p as any).allowSelfClaim) }); setPlanCustomTargets((p as any).customTargets?.map((ct:any) => ({ name: ct.name, value: ct.value, unit: ct.unit })) ?? []); setShowPlanModal(true); }} className="w-7 h-7 rounded-full bg-white border border-[#e8e6e5] text-[#78716c] flex items-center justify-center hover:text-[#0c0a09] hover:bg-[#fafaf9] active:scale-95" style={{ borderRadius: 9999 }} title="Edit">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                     </button>
                   )}
@@ -276,23 +280,25 @@ export default function RencanaPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="eyebrow">RENCANA KINERJA</p>
-          <h2 className="heading-sm">{activeScope === "mine" ? "Tugas saya" : activeScope === "delegasi" ? "Delegasi penerima" : "Rencana tim saya"}</h2>
+          <h2 className="heading-sm">{activeScope === "mine" ? "Tugas saya" : activeScope === "delegasi" ? "Delegasi penerima" : activeScope === "pilihan" ? "Rencana Pilihan" : "Rencana tim saya"}</h2>
           <p className="text-[12px] text-[#78716c] mt-1">
             {activeScope === "mine"
               ? "Hanya rencana yang ditugaskan kepada Anda."
               : activeScope === "delegasi"
               ? "Kelompok per tugas — siapa saja penerima delegasi dan porsinya."
+              : activeScope === "pilihan"
+              ? "Rencana atasan yang membuka pengambilan mandiri — ambil tanpa perlu ditunjuk."
               : `Semua rencana milik Anda dan delegasi penerima (${employees.filter(e => e.supervisorId === currentUser.id).length} langsung).`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] text-[#a8a29e] hidden sm:inline px-2">{shown.length} baris • rapat</span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari judul..." className="px-3 py-1.5 rounded-full border bg-white text-[13px] border-[#e8e6e5] w-36 sm:w-44 focus:outline-none focus:border-[#d6d3d1] placeholder:text-[#a8a29e]" style={{ borderRadius: 9999 }} />
-          <button onClick={exportExcel} disabled={shown.length===0} className="px-3 py-1.5 rounded-full bg-white border border-[#e8e6e5] text-[#0c0a09] text-[12px] font-medium hover:bg-[#fafaf9] disabled:opacity-40 inline-flex items-center gap-1.5" style={{ borderRadius: 9999 }} title="Export ke Excel (CSV)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <button onClick={exportExcel} disabled={shown.length===0} className="px-3 py-1.5 rounded-full bg-white border border-[#e8e6e5] text-[#0c0a09] text-[12px] font-medium hover:bg-[#fafaf9] disabled:opacity-40 inline-flex items-center gap-1.5" style={{ borderRadius: 9999 }} title="Export ke Excel (XLSX)">
+            <ExcelIcon size={14} />
             Excel
           </button>
-          <button onClick={() => { setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026"}); setPlanCustomTargets([]); setShowPlanModal(true); }} className="px-3.5 py-1.5 rounded-full bg-[#0c0a09] text-white text-[12px] font-medium hover:bg-[#1c1917] active:scale-95" style={{ borderRadius: 9999 }}>+ Buat</button>
+          <button onClick={() => { setEditingPlan(null); setPlanForm({ title: "", target: "", skpPeriodId: periods[0]?.id ?? "sp2026", allowSelfClaim: false }); setPlanCustomTargets([]); setShowPlanModal(true); }} className="px-3.5 py-1.5 rounded-full bg-[#0c0a09] text-white text-[12px] font-medium hover:bg-[#1c1917] active:scale-95" style={{ borderRadius: 9999 }}>+ Buat</button>
         </div>
       </div>
 
@@ -306,6 +312,9 @@ export default function RencanaPage() {
         </button>
         <button onClick={() => setScope("delegasi")} className={`px-3 py-1 rounded-full text-[12px] font-medium border ${activeScope === "delegasi" ? "bg-[#0c0a09] text-white border-[#0c0a09]" : "bg-white border-[#e8e6e5] text-[#78716c] hover:border-[#d6d3d1]"}`} style={{ borderRadius: 9999 }}>
           Delegasi
+        </button>
+        <button onClick={() => setScope("pilihan")} className={`px-3 py-1 rounded-full text-[12px] font-medium border ${activeScope === "pilihan" ? "bg-[#0c0a09] text-white border-[#0c0a09]" : "bg-white border-[#e8e6e5] text-[#78716c] hover:border-[#d6d3d1]"}`} style={{ borderRadius: 9999 }}>
+          Rencana Pilihan {claimablePlans.length > 0 ? claimablePlans.length : ""}
         </button>
         <span className="text-[11px] text-[#a8a29e] ml-1">• {shown.length} tampil</span>
         {search && <button onClick={() => setSearch("")} className="ml-1 px-2.5 py-1 rounded-full text-[11px] bg-[#c1e1f7] border border-[#e8e6e5] text-[#0c0a09]" style={{ borderRadius: 9999 }}>✕ {search}</button>}
@@ -352,7 +361,11 @@ export default function RencanaPage() {
         <div ref={menuRef} className="fixed z-50 w-44 bg-white border border-[#e8e6e5] overflow-hidden" style={{ borderRadius: 10, left: openMenu.x, top: openMenu.y, boxShadow: "rgba(0,0,0,0.05) 0px 4px 16px 0px" }}>
           {(() => {
             const p = openMenu.plan;
-            const canCascade = true;
+            // Hanya pemilik, atasan pemilik, admin, atau direktur yang boleh melimpahkan.
+            // Yang belum mengambil tidak melihat menu ini.
+            const isOwner = p.assignedTo === currentUser.id || p.createdBy === currentUser.id;
+            const isPriv = ["admin", "pimpinan_1"].includes(currentUser.role);
+            const canCascade = isOwner || isPriv || (!isPriv && (isSubordinate(currentUser.id, p.assignedTo) || isSubordinate(currentUser.id, p.createdBy)));
             const canRealize = p.assignedTo === currentUser.id;
             const canEdit = p.createdBy === currentUser.id || currentUser.role === "admin";
             const canDelete = canEdit;
@@ -360,7 +373,7 @@ export default function RencanaPage() {
               <>
                 {canCascade && <button onClick={() => { closeMenu(); setShowCascadeModal(p); }} className="w-full text-left px-3 py-2 text-[12px] hover:bg-[#fafaf9] flex items-center gap-2 text-[#0c0a09]">Kelola Pelimpahan</button>}
                 {canRealize && <button onClick={() => { closeMenu(); setShowRealizationModal(p); }} className="w-full text-left px-3 py-2 text-[12px] hover:bg-[#fafaf9] flex items-center gap-2 text-[#0c0a09]">Isi Realisasi</button>}
-                {canEdit && <button onClick={() => { closeMenu(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId }); setPlanCustomTargets((p as any).customTargets?.map((ct:any) => ({ name: ct.name, value: ct.value, unit: ct.unit })) ?? []); setShowPlanModal(true); }} className="w-full text-left px-3 py-2 text-[12px] hover:bg-[#fafaf9] flex items-center gap-2">Edit</button>}
+                {canEdit && <button onClick={() => { closeMenu(); setEditingPlan(p); setPlanForm({ title: p.title, target: p.target, skpPeriodId: p.skpPeriodId, allowSelfClaim: Boolean((p as any).allowSelfClaim) }); setPlanCustomTargets((p as any).customTargets?.map((ct:any) => ({ name: ct.name, value: ct.value, unit: ct.unit })) ?? []); setShowPlanModal(true); }} className="w-full text-left px-3 py-2 text-[12px] hover:bg-[#fafaf9] flex items-center gap-2">Edit</button>}
                 {canDelete && <button onClick={() => { closeMenu(); setConfirmId(p.id); }} className="w-full text-left px-3 py-2 text-[12px] hover:bg-red-50 text-[#b91c1c] flex items-center gap-2">Hapus</button>}
               </>
             );
@@ -478,8 +491,8 @@ export default function RencanaPage() {
         );
       })()}
 
-      {/* Table compact */}
-      {activeScope !== "delegasi" && activeScope !== "team" && (
+      {/* Table compact — Tugas Saya */}
+      {activeScope === "mine" && (
         <div className="border bg-white overflow-hidden" style={{ borderRadius: 10, borderColor: "#e8e6e5"}}>
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
@@ -512,6 +525,46 @@ export default function RencanaPage() {
             <span>{shown.length} rencana • rapat</span>
             <span className="hidden sm:inline">Klik baris untuk detail • Export untuk Excel</span>
           </div>
+        </div>
+      )}
+
+      {/* Rencana Pilihan — ambil mandiri dari atasan */}
+      {activeScope === "pilihan" && (
+        <div className="space-y-2.5">
+          {shown.length === 0 ? (
+            <div className="p-6 text-center border border-dashed bg-white" style={{ borderRadius: 10, borderColor: "#e8e6e5" }}>
+              <div className="subheading">Belum ada Rencana Pilihan</div>
+              <p className="text-[13px] text-[#78716c] mt-1 leading-5">Atasan belum membuka rencana untuk pengambilan mandiri, atau Anda sudah mengambil semuanya.</p>
+            </div>
+          ) : shown.map((p: PerformancePlan) => {
+            const period = periods.find((s: any) => s.id === p.skpPeriodId);
+            const owner = employees.find((e: any) => e.id === p.assignedTo);
+            const children = plans.filter((x: any) => x.parentId === p.id);
+            const totalPorsi = children.reduce((s: number, c: any) => s + (parseFloat(String(c.target).replace(",", ".")) || 0), 0);
+            const parentTarget = parseFloat(String(p.target).replace(",", ".")) || 0;
+            const sisa = parentTarget > 0 ? parentTarget - totalPorsi : 99;
+            const habis = parentTarget > 0 && sisa <= 0;
+            return (
+              <div key={p.id} className="px-3 py-2.5 border bg-white" style={{ borderRadius: 10, borderColor: "#e8e6e5" }}>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-[13px] text-[#0c0a09] leading-tight">{p.title}</div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[#fafaf9] border border-[#e8e6e5] text-[#78716c]">{period?.name ?? "-"}</span>
+                      <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-white border border-[#e8e6e5] text-[#0c0a09]">{owner?.name?.split(",")[0] ?? "-"}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e8f7ee] border border-[#bbf7d0] text-[#15803d] font-medium">Bisa diambil mandiri</span>
+                      {(p as any).plannedDate && <span className="text-[11px] text-[#78716c]">{formatTanggalIndo((p as any).plannedDate)}</span>}
+                    </div>
+                    <div className="text-[11px] text-[#78716c] mt-1">Target {p.target} • terisi {totalPorsi} • sisa {parentTarget > 0 ? sisa : "∞"} • {children.length} pengambil</div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button onClick={() => router.push(`/rencana/${p.id}`)} className="px-2.5 py-1 rounded-full bg-white border border-[#e8e6e5] text-[12px] text-[#78716c] hover:text-[#0c0a09]" style={{ borderRadius: 9999 }}>Detail</button>
+                    <button disabled={habis} onClick={() => setClaimDraft({ id: p.id, title: p.title, portion: String(Math.min(1, sisa > 0 ? sisa : 1)), sisa })} className={`px-3 py-1 rounded-full text-[12px] font-medium ${habis ? "bg-white border border-[#e8e6e5] text-[#a8a29e] cursor-not-allowed" : "bg-[#0c0a09] text-white hover:bg-[#1c1917]"}`} style={{ borderRadius: 9999 }}>{habis ? "Penuh" : "Ambil"}</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -556,6 +609,33 @@ export default function RencanaPage() {
             </div>
           ))}
           {teamGroups.length===0 && <div className="text-[13px] text-[#a8a29e] text-center py-8 border border-dashed bg-white rounded-[10px]">Tidak ada data tim untuk filter ini.</div>}
+        </div>
+      )}
+
+      {/* Modal ambil mandiri */}
+      {claimDraft && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#1c1917]/30 backdrop-blur-sm" onClick={() => setClaimDraft(null)}>
+          <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-md border border-[#e8e6e5] overflow-hidden" style={{ borderRadius: 10 }}>
+            <div className="p-5 border-b border-[#e8e6e5]">
+              <div className="eyebrow">PENGAMBILAN MANDIRI</div>
+              <h3 className="subheading text-[16px] mt-1">Ambil rencana ini?</h3>
+              <p className="text-[12px] text-[#78716c] mt-1">Masuk ke Tugas Saya sebagai delegasi mandiri. Sisa porsi: {claimDraft.sisa}.</p>
+            </div>
+            <div className="p-5 space-y-3">
+              <div>
+                <label className="text-[12px] tracking-[0.04em] uppercase font-semibold">Judul tugas Anda</label>
+                <input value={claimDraft.title} onChange={e => setClaimDraft({ ...claimDraft, title: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e8e6e5] bg-[#fafaf9] text-[14px] focus:outline-none focus:border-[#d6d3d1]" style={{ borderRadius: 12 }} />
+              </div>
+              <div>
+                <label className="text-[12px] tracking-[0.04em] uppercase font-semibold">Porsi diambil (maks {claimDraft.sisa})</label>
+                <input type="number" min={1} max={claimDraft.sisa} value={claimDraft.portion} onChange={e => setClaimDraft({ ...claimDraft, portion: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e8e6e5] bg-[#fafaf9] text-[14px] text-center focus:outline-none focus:border-[#d6d3d1]" style={{ borderRadius: 12 }} />
+              </div>
+            </div>
+            <div className="p-3 border-t border-[#e8e6e5] flex gap-2 justify-end bg-[#fafaf9]">
+              <button onClick={() => setClaimDraft(null)} className="px-4 py-1.5 rounded-full border border-[#e8e6e5] bg-white text-[13px]" style={{ borderRadius: 9999 }}>Batal</button>
+              <button onClick={async () => { const d = claimDraft; if (!d) return; const r = await handleClaimPlan(d.id, d.title, d.portion); if ((r as any)?.ok) { setClaimDraft(null); setScope("mine"); } }} className="px-4 py-1.5 rounded-full bg-[#0c0a09] text-white text-[13px] font-medium hover:bg-[#1c1917]" style={{ borderRadius: 9999 }}>Ya, Ambil</button>
+            </div>
+          </div>
         </div>
       )}
 

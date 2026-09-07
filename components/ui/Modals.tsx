@@ -18,14 +18,11 @@ function CustomTargetsEditorInline() {
 
  return (
  <div className="border border-[#e8e6e5] rounded-xl p-3 bg-[#fafaf9]/50 mt-3" style={{ borderRadius: 12 }}>
- <div className="flex items-center justify-between">
- <label className="text-[12px] tracking-[0.04em] uppercase font-semibold">Rincian Target</label>
- <span className="text-[12px] px-2 py-0.5 rounded-full bg-white border border-[#e8e6e5] text-[#0c0a09]/60">{planCustomTargets.length} / 5</span>
- </div>
-  <p className="text-[12px] text-[#0c0a09]/60 mt-1">Rincian terpisah dari Target jumlah. Contoh: <span className="font-semibold">jumlah peserta</span> → <span className="">250</span> <span className="italic">orang</span>, <span className="font-semibold">honor</span> → <span className="">500000</span> <span className="italic">perjam</span> • Opsional, maks 5</p>
+  <label className="text-[12px] tracking-[0.04em] uppercase font-semibold">Rincian Target</label>
+   <p className="text-[12px] text-[#0c0a09]/60 mt-1">Opsional</p>
  <div className="mt-3 space-y-2">
  {planCustomTargets.length === 0 && (
- <div className="text-[12px] text-[#0c0a09]/60 text-center py-2 border border-dashed border-[#d6d3d1] rounded-xl" style={{ borderRadius: 12 }}>Belum ada rincian target — tambah di bawah (opsional, maks 5)</div>
+  <div className="text-[12px] text-[#0c0a09]/60 text-center py-2 border border-dashed border-[#d6d3d1] rounded-xl" style={{ borderRadius: 12 }}>Belum ada rincian target</div>
  )}
  {planCustomTargets.map((ct, idx) => (
  <div key={idx} className="grid grid-cols-[1fr_70px_70px_32px] sm:grid-cols-[1fr_80px_80px_36px] gap-1.5 sm:gap-2 items-end">
@@ -57,18 +54,10 @@ function CustomTargetsEditorInline() {
  <button type="button" onClick={() => setPlanCustomTargets(planCustomTargets.filter((_, i) => i !== idx))} className="mb-0.5 w-8 h-8 rounded-full bg-white border border-[#e8e6e5] text-[#b91c1c] flex items-center justify-center hover:bg-[#fafaf9]">×</button>
  </div>
  ))}
- {planCustomTargets.length < 5 && (
- <button type="button" onClick={() => setPlanCustomTargets([...planCustomTargets, { name: "", value: "", unit: ""}])} className="w-full py-1.5 rounded-full border border-dashed border-[#d6d3d1] bg-white text-[12px] font-medium text-[#3ba6f1] hover:bg-[#fafaf9]" style={{ borderRadius: 48 }}>+ Tambah target</button>
- )}
- {planCustomTargets.length >= 5 && <p className="text-[12px] text-[#b91c1c]">Maksimal 5 target</p>}
- </div>
-  {planCustomTargets.length > 0 && (
-  <div className="mt-3 p-2 rounded-xl bg-white border border-[#e8e6e5] text-center" style={{ borderRadius: 12 }}>
-  <span className="text-[12px] text-[#0c0a09]/60">{planCustomTargets.length} rincian terpisah • tidak mempengaruhi Target jumlah</span>
+  <button type="button" onClick={() => setPlanCustomTargets([...planCustomTargets, { name: "", value: "", unit: ""}])} className="w-full py-1.5 rounded-full border border-dashed border-[#d6d3d1] bg-white text-[12px] font-medium text-[#3ba6f1] hover:bg-[#fafaf9]" style={{ borderRadius: 48 }}>+ Tambah target</button>
   </div>
-  )}
- </div>
- );
+  </div>
+  );
 }
 
 export function GlobalModals() {
@@ -87,7 +76,7 @@ export function GlobalModals() {
  {showPlanModal && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1c1917]/30 backdrop-blur-sm" onClick={() => setShowPlanModal(false)}>
  <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto border border-[#e8e6e5]" style={{ borderRadius: 12 }}>
- <div className="p-6 border-b border-[#e8e6e5]"><div className="eyebrow">PERFORMANCE_PLANS</div><h3 className="subheading mt-1">{editingPlan ? " Edit Rencana Kinerja": " Buat Rencana Kinerja Baru"}</h3><p className="text-[12px] tracking-wide text-[#0c0a09]/60">parent_id untuk cascading hierarkis</p></div>
+  <div className="p-6 border-b border-[#e8e6e5]"><div className="eyebrow">PERFORMANCE_PLANS</div><h3 className="subheading mt-1">{editingPlan ? " Edit Rencana Kinerja": " Buat Rencana Kinerja Baru"}</h3></div>
  <div className="p-6 space-y-4">
  <div><label className="text-[12px] tracking-[0.04em] uppercase font-semibold">Judul Rencana</label><input value={planForm.title ?? ""} onChange={e => setPlanForm({ ...planForm, title: e.target.value })} placeholder="Contoh: Menyelenggarakan 6 webinar" className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e8e6e5] bg-[#fafaf9] text-[14px] focus:outline-none focus:border-[#d6d3d1]" style={{ borderRadius: 12 }} /></div>
  <div><label className="text-[12px] tracking-[0.04em] uppercase font-semibold">Periode SKP</label><select value={planForm.skpPeriodId} onChange={e => setPlanForm({ ...planForm, skpPeriodId: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e8e6e5] bg-[#fafaf9] text-[14px]" style={{ borderRadius: 12 }}>{periods.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
@@ -122,11 +111,17 @@ export function GlobalModals() {
   <div>
   <label className="text-[12px] tracking-[0.04em] uppercase font-semibold">Target (jumlah realisasi)</label>
   <input value={planForm.target ?? ""} onChange={e => setPlanForm({ ...planForm, target: e.target.value })} placeholder="6" className="mt-1 w-full px-3 py-2 rounded-xl border border-[#e8e6e5] bg-[#fafaf9] text-[14px] focus:outline-none focus:border-[#d6d3d1]" style={{ borderRadius: 12 }} />
-  <p className="text-[12px] text-[#0c0a09]/50 mt-1">Jumlah realisasi yang diharapkan — terpisah dari rincian di bawah. Saat dilimpahkan, hanya jumlah ini yang dibagi.</p>
+   <p className="text-[12px] text-[#0c0a09]/50 mt-1">Jumlah realisasi yang diharapkan.</p>
   </div>
- <CustomTargetsEditorInline />
- <p className="text-[12px] text-[#0c0a09]/50">Deskripsi, indikator, bobot & tanggal akan diisi otomatis.</p>
- </div>
+  <label className="flex items-start gap-2.5 p-3 rounded-xl border border-[#e8e6e5] bg-[#fafaf9]/50 cursor-pointer hover:bg-[#fafaf9]" style={{ borderRadius: 12 }}>
+  <input type="checkbox" checked={Boolean((planForm as any).allowSelfClaim)} onChange={e => setPlanForm({ ...planForm, allowSelfClaim: e.target.checked } as any)} className="accent-[#3ba6f1] w-4 h-4 mt-0.5" />
+  <span>
+  <span className="block text-[13px] font-medium text-[#0c0a09]">Izinkan Pengambilan Mandiri</span>
+   <span className="block text-[12px] text-[#0c0a09]/60 mt-0.5">Bawahan bisa mengambil sendiri dari Rencana Pilihan.</span>
+  </span>
+  </label>
+  <CustomTargetsEditorInline />
+  </div>
  <div className="p-6 border-t border-[#e8e6e5] flex gap-2 justify-end"><button onClick={() => setShowPlanModal(false)} className="px-4 py-2 rounded-full border border-[#e8e6e5] bg-white text-[14px]" style={{ borderRadius: 48 }}>Batal</button><button onClick={handleCreatePlan} className="px-5 py-2 rounded-full bg-[#3ba6f1] text-white text-[14px] font-medium hover:bg-[#3398e1]" style={{ borderRadius: 48 }}>{editingPlan ? " Simpan Perubahan": " Buat Rencana"}</button></div>
  </div>
  </div>
