@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 import { verifyPassword, signToken, authResponse } from "@/lib/auth";
 import { z } from "zod";
 

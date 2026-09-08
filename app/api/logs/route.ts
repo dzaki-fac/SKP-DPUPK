@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 // GET /api/logs — dua mode:
 //  1) ?meta=1              → opsi filter (distinct actions/entityTypes/pegawai) dalam scope
 //  2) page/limit/filters   → hasil ter-paginasi dari server (bukan tarik semua lalu di-slice di frontend)

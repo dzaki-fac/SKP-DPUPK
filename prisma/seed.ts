@@ -1,4 +1,5 @@
-﻿import { prisma } from "../lib/prisma";
+﻿import "dotenv/config";
+import { prisma } from "../lib/prisma";
 import { ALL_SEED_EMPLOYEES } from "../lib/perpus-2026";
 
 /**
