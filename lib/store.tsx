@@ -3,6 +3,10 @@ import { createContext, useContext, useState, useEffect, useMemo, ReactNode } fr
 import type { Employee, SkpPeriod, PerformancePlan, Realization, Attachment, ActivityLog, Role } from "./types";
 import { validateOrgChange, validateOrgCreate, canCreateAnyRole } from "./roles";
 import { seedEmployees, seedPeriods, seedPlans, seedRealizations, seedAttachments, seedLogs } from "./data";
+import { installFetchPrefix } from "./base-path";
+
+// Samakan fetch("/api/...") client dengan basePath deployment (/skp-dpupk).
+installFetchPrefix();
 
 type PlanForm = Partial<PerformancePlan> & { plannedDate?: string; plannedTime?: string; allowSelfClaim?: boolean };
 type Ctx = {

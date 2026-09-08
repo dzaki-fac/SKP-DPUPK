@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { useSKP } from "@/lib/store";
+import { withBase } from "@/lib/base-path";
 import { ExcelIcon } from "@/components/ui/ExcelIcon";
 
 export default function RencanaDetailPage() {
@@ -380,7 +381,7 @@ export default function RencanaDetailPage() {
           <div className="eyebrow">Bukti Langsung ({attachments.filter(a=>a.planId===plan.id).length})</div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {attachments.filter(a=>a.planId===plan.id).map(a=>(
-              <a key={a.id} href={a.filePath} target="_blank" className="text-[11px] px-2 py-1 rounded-full bg-[#fafaf9] border border-[#e8e6e5] text-[#0c0a09] hover:bg-white inline-flex items-center gap-1">📎 {a.fileName} <span className="text-[#a8a29e]">{a.fileSize}</span></a>
+              <a key={a.id} href={withBase(a.filePath)} target="_blank" className="text-[11px] px-2 py-1 rounded-full bg-[#fafaf9] border border-[#e8e6e5] text-[#0c0a09] hover:bg-white inline-flex items-center gap-1">📎 {a.fileName} <span className="text-[#a8a29e]">{a.fileSize}</span></a>
             ))}
           </div>
         </div>
