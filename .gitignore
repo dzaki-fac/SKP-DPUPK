@@ -41,10 +41,12 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
-# sqlite
+# sqlite legacy (sudah pindah ke Supabase, arsip lokal saja)
 /prisma/dev.db
 /dev.db
+/dev.db*
 /prisma/dev.db-journal
+/prisma/migrations_sqlite_backup/
 
 public/uploads/*
 !public/uploads/.gitkeep
