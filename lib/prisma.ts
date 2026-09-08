@@ -20,6 +20,13 @@ function createPrismaClient(): PrismaClient {
   const pool = new pg.Pool({
     connectionString,
     ssl: { rejectUnauthorized: false },
+    // Serverless (Vercel): tiap instance fungsi cukup 1 koneksi.
+    // Pooling beneran dipegang Supavisor/Supabase di sisi server.
+    // Default pg (max 10/instance) menghabiskan jatah Supabase
+    // ("max clients reached", pool_size session mode cuma 15).
+    max: 1,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
   });
   return new PrismaClient({ adapter: new PrismaPg(pool) });
 }
