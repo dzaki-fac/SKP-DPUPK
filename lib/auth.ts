@@ -3,6 +3,9 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "skp-dpupk-secret-2026-change-in-production";
 const JWT_EXPIRES = "7d";
+// Cookie Secure hanya jika eksplisit (deployment HTTP lokal/LAN: tetap 0).
+// Jangan kaitkan ke NODE_ENV — production di Laragon tetap HTTP polos.
+const COOKIE_SECURE = process.env.COOKIE_SECURE === "1";
 
 export type JwtPayload = {
   id: string;
@@ -45,7 +48,7 @@ export function authResponse(data: any, token?: string) {
   const res = Response.json(data);
   if (token) {
     // httpOnly cookie
-    res.headers.set("Set-Cookie", `skp_token=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7*24*60*60}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
+    res.headers.set("Set-Cookie", `skp_token=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7*24*60*60}${COOKIE_SECURE ? "; Secure" : ""}`);
   }
   return res;
 }

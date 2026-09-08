@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { useSKP } from "@/lib/store";
+import { withBase } from "@/lib/base-path";
 import { ExcelIcon } from "@/components/ui/ExcelIcon";
 
 export default function RealisasiViewPage() {
@@ -164,7 +165,7 @@ export default function RealisasiViewPage() {
  <div key={a.id} className="p-2.5 rounded-xl bg-[#fafaf9] border border-[#e8e6e5] text-[13px] flex items-center justify-between gap-2" style={{borderRadius:12}}>
  <span className="truncate">📎 {a.fileName} • {a.fileSize} • {formatTanggal(a.date)}</span>
  <div className="flex items-center gap-1.5 shrink-0">
- <a href={a.filePath} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1 rounded-full bg-white border border-[#e8e6e5] text-[#3ba6f1] text-[12px]">lihat</a>
+ <a href={withBase(a.filePath)} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1 rounded-full bg-white border border-[#e8e6e5] text-[#3ba6f1] text-[12px]">lihat</a>
  {canDeleteBukti(a) && <button onClick={()=> handleDeleteAttachment(a.id, a.fileName)} className="w-7 h-7 rounded-full bg-white border border-[#e8e6e5] text-[#b91c1c] flex items-center justify-center hover:bg-[#fef2f2]">×</button>}
  </div>
  </div>
