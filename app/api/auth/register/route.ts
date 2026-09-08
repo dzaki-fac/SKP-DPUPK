@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 import { hashPassword, getTokenFromHeader, verifyToken } from "@/lib/auth";
 import { validateOrgCreate } from "@/lib/roles";
 import type { OrgRow } from "@/lib/roles";

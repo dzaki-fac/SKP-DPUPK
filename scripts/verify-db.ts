@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { prisma } from "../lib/prisma";
 import { validateOrgCreate } from "../lib/roles";
 import { PERPUS_2026_EMPLOYEES } from "../lib/perpus-2026";

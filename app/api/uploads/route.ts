@@ -3,6 +3,7 @@ import path from "path";
 import { getTokenFromHeader, verifyToken } from "@/lib/auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const ALLOWED = new Set(["application/pdf","image/jpeg","image/png","image/jpg","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","text/csv"]);
 const MAX = 10 * 1024 * 1024; // 10MB

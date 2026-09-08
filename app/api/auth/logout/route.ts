@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 import { getTokenFromHeader, verifyToken, logoutResponse } from "@/lib/auth";
 
 export async function POST(req: Request) {

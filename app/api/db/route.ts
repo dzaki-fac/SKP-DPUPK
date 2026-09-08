@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 // Aggregated fetch for initial load — single round-trip
 export async function GET() {
   const [employees, periods, plans, realizations, attachments, logs] = await Promise.all([
